@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <title>Monitoring Results</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.css"/>
+</head>
+
+<body>
+
+<div th:replace="fragments/header :: header">
+</div>
+
+<div class="container" style="padding-top: 10ex; padding-bottom: 10ex;">
+
+
+                <table class="table table-striped table-bordered table-condensed"
+                       style="word-wrap: break-word; table-layout: fixed;">
+                    <thead>
+                        <td>Id</td>
+                        <td>Test Date/Time</td>
+                        <td>DHCP Entry Time</td>
+                        <td>Auth Entry Time</td>
+                        <td>Download Rate (KB/s)</td>
+                        <td>Upload Rate (KB/s)</td>
+                        <td>Ping (ms)</td>
+                        <td>Client IP Address</td>
+                        <td>Client MAC Address</td>
+                        <td>Username</td>
+                        <td>NAS ID</td>
+                        <td>Connection Info</td>
+                        <td>AP IP Address</td>
+                        <td>User Agent</td>
+                    </thead>
+                    <tbody>
+                    <tr data-th-each="m : ${measurements}">
+                        <td data-th-text="${m.id}"></td>
+                        <td data-th-text="${m.date}"></td>
+                        <td data-th-text="${m.dhcpEntry}"></td>
+                        <td data-th-text="${m.authEntry}"></td>
+                        <td data-th-text="${m.downloadRate}"></td>
+                        <td data-th-text="${m.uploadRate}"></td>
+                        <td data-th-text="${m.localPing}"></td>
+                        <td data-th-text="${m.clientIp}">...</td>
+                        <td data-th-text="${m.mac}">...</td>
+                        <td data-th-text="${m.auth_user_name}">...</td>
+                        <td data-th-text="${m.auth_nas_idenifier}">...</td>
+                        <td data-th-text="${m.auth_connect_info}">...</td>
+                        <td data-th-text="${m.auth_nas_ip_address}">...</td>
+                        <td data-th-text="${m.userAgent}">...</td>
+                    </tr>
+                    </tbody>
+            </table>
+
+    <ul class="pagination pull-right">
+        <li class="previous"><a href="generic?move=back">&larr; Previous</a></li>
+        <li class="disabled"><a href="#">
+            <span data-th-text="${page + 1}" /> of
+            <span data-th-text="${totalResults / pageSize}" />
+        </a></li>
+        <li class="next"><a href="generic?move=front">Next &rarr;</a></li>
+    </ul>
+
+</div>
+
+</body>
+</html>
