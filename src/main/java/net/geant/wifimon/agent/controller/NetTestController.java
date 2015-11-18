@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
-@CrossOrigin(origins = "http://62.217.124.241:8080", maxAge = 3600)
+//@CrossOrigin(origins = "http://62.217.124.241:8080", maxAge = 3600)
+@CrossOrigin
 @RequestMapping("nettest")
 public class NetTestController {
 
@@ -33,9 +34,9 @@ public class NetTestController {
                 .tag("longitude", measurement.getLongitude())
                 .tag("latitude", measurement.getLatitude())
                 .tag("locationMethod", measurement.getLocationMethod())
-                .field("DownloadThroughtput", measurement.getDownloadThroughput() * 8 * 1000)
-                .field("UploadThroughtput", measurement.getUploadThroughput() * 8 * 1000)
-                .field("ping", measurement.getLocalPing())
+                .field("DownloadThroughtput", measurement.getDownloadThroughput() == -1 ? -1d : measurement.getDownloadThroughput() * 8 * 1000)
+                .field("UploadThroughtput", measurement.getUploadThroughput() == -1 ? -1d : measurement.getUploadThroughput() * 8 * 1000)
+                .field("ping", measurement.getLocalPing() == -1 ? -1d : measurement.getLocalPing())
 //                .time(System.currentTimeMillis() * 1000, TimeUnit.MILLISECONDS)
                 .build();
         influxDB.write("wifimon", "default", point);
