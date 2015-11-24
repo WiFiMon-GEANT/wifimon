@@ -28,18 +28,20 @@ public class NetTestController {
     @ResponseStatus(value = HttpStatus.OK)
     @RequestMapping(value = "/{add}", method = RequestMethod.POST)
     public void add(@RequestBody NetTestMeasurement measurement) {
-        Point point = Point.measurement("nettest")
-                .tag("ip", measurement.getClientIp())
-                .tag("UserAgent", measurement.getUserAgent())
-                .tag("longitude", measurement.getLongitude())
-                .tag("latitude", measurement.getLatitude())
-                .tag("locationMethod", measurement.getLocationMethod())
-                .field("DownloadThroughtput", measurement.getDownloadThroughput() == -1 ? -1d : measurement.getDownloadThroughput() * 8 * 1000)
-                .field("UploadThroughtput", measurement.getUploadThroughput() == -1 ? -1d : measurement.getUploadThroughput() * 8 * 1000)
-                .field("ping", measurement.getLocalPing() == -1 ? -1d : measurement.getLocalPing())
+        try {
+            Point point = Point.measurement("nettest")
+                    .tag("ip", measurement.getClientIp())
+                    .tag("UserAgent", measurement.getUserAgent())
+                    .tag("longitude", measurement.getLongitude())
+                    .tag("latitude", measurement.getLatitude())
+                    .tag("locationMethod", measurement.getLocationMethod())
+                    .field("DownloadThroughtput", measurement.getDownloadThroughput() == -1 ? -1d : measurement.getDownloadThroughput() * 8 * 1000)
+                    .field("UploadThroughtput", measurement.getUploadThroughput() == -1 ? -1d : measurement.getUploadThroughput() * 8 * 1000)
+                    .field("ping", measurement.getLocalPing() == -1 ? -1d : measurement.getLocalPing())
 //                .time(System.currentTimeMillis() * 1000, TimeUnit.MILLISECONDS)
-                .build();
-        influxDB.write("wifimon", "default", point);
+                    .build();
+            influxDB.write("wifimon", "default", point);
+        } catch (Exception e) {}
     }
 
 }
