@@ -5,11 +5,12 @@
 
     <groupId>net.geant.wifimon</groupId>
     <artifactId>ui</artifactId>
+    <packaging>jar</packaging>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.3.0.RELEASE</version>
+        <groupId>net.geant.wifimon</groupId>
+        <artifactId>agent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
     </parent>
 
     <properties>

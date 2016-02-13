@@ -10,6 +10,12 @@
     <version>0.1.0-SNAPSHOT</version>
     <name>WiFiMon Agent</name>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.3.0.RELEASE</version>
+    </parent>
+
     <modules>
         <module>wifimon-processor</module>
         <module>wifimon-ui</module>
