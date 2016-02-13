@@ -19,6 +19,7 @@
     <modules>
         <module>wifimon-processor</module>
         <module>wifimon-ui</module>
+        <module>wifimon-assembly</module>
     </modules>
 
     <build>
