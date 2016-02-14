@@ -1,0 +1,10 @@
+Package: wifimon
+Version: 0.1.0-SNAPSHOT
+Section: misc
+Priority: optional
+Architecture: all
+Depends: jdk (>= 1.8)
+Maintainer: Nikos Kanakis <kanakisne@gmail.com>
+Description: WiFiMon
+Distribution: development
+Depends: default-jre | java8-runtime

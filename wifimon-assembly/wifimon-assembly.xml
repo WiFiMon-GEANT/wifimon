@@ -18,4 +18,11 @@
             </excludes>
         </dependencySet>
     </dependencySets>
+    <files>
+        <file>
+            <source>start.sh</source>
+            <outputDirectory></outputDirectory>
+            <filtered>true</filtered>
+        </file>
+    </files>
 </assembly>
