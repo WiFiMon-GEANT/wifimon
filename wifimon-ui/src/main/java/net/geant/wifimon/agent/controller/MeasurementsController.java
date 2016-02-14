@@ -1,6 +1,13 @@
 package net.geant.wifimon.agent.controller;
 
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
 import net.geant.wifimon.agent.data.GenericMeasurement;
+import net.geant.wifimon.agent.dto.GrafanaSnapshotResponse;
 import net.geant.wifimon.agent.repository.GenericMeasurementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -62,8 +69,57 @@ public class MeasurementsController {
         return "redirect:/secure/measurements/generic";
     }
     
-        @RequestMapping(value = "/secure/grafana")
+    @RequestMapping(value = "/secure/grafana")
     public String grafana(Model model, HttpSession session) {
+
+        ClientConfig clientConfig = new DefaultClientConfig();
+        clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+        Client client = Client.create(clientConfig);
+
+        WebResource webResource = client
+                .resource("http://admin:admin@localhost:3000/api/snapshots");
+
+        String snapshotJsonRequest =
+        "{\n" +
+                "  \"dashboard\": {\n" +
+                "    \"editable\":false,\n" +
+                "    \"hideControls\":true,\n" +
+                "    \"nav\":[\n" +
+                "    {\n" +
+                "      \"enable\":false,\n" +
+                "    \"type\":\"timepicker\"\n" +
+                "    }\n" +
+                "    ],\n" +
+                "    \"rows\": [\n" +
+                "      {\n" +
+                "\n" +
+                "      }\n" +
+                "    ],\n" +
+                "    \"style\":\"dark\",\n" +
+                "    \"tags\":[],\n" +
+                "    \"templating\":{\n" +
+                "      \"list\":[\n" +
+                "      ]\n" +
+                "    },\n" +
+                "    \"time\":{\n" +
+                "    },\n" +
+                "    \"timezone\":\"browser\",\n" +
+                "    \"title\":\"Home\",\n" +
+                "    \"version\":5\n" +
+                "    },\n" +
+                "  \"expires\": 3600\n" +
+                "}";
+
+        ClientResponse response = webResource.accept("application/json").type("application/json")
+                .post(ClientResponse.class, snapshotJsonRequest);
+
+        if (response.getStatus() != 200) {
+            model.addAttribute("error", "Grafana snapshot creation failed");
+            return "secure/grafana";
+        }
+
+        GrafanaSnapshotResponse snapshotResponse = response.getEntity(GrafanaSnapshotResponse.class);
+        model.addAttribute("url", snapshotResponse.getUrl());
         return "secure/grafana";
     }
 
