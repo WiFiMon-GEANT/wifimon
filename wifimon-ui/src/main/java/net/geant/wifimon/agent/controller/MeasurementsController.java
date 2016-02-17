@@ -55,20 +55,6 @@ public class MeasurementsController {
         return "secure/genericMeasurements";
     }
 
-    @RequestMapping(value = "/secure/measurements/process")
-    public String process(Model model) {
-        for (GenericMeasurement gm : gmRepository.findAll()) {
-            if (gm != null) {
-                if (gm.getClientMac() != null && !gm.getClientMac().isEmpty()) {
-                    gm.setMac(new StringBuilder(gm.getClientMac()).substring(0, 17).toUpperCase().replace(":", "-"));
-                    gmRepository.save(gm);
-
-                }
-            }
-        }
-        return "redirect:/secure/measurements/generic";
-    }
-    
     @RequestMapping(value = "/secure/grafana")
     public String grafana(Model model, HttpSession session) {
 

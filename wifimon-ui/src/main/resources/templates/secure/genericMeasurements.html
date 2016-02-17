@@ -20,16 +20,12 @@
                     <thead>
                         <td>Id</td>
                         <td>Test Date/Time</td>
-                        <td>DHCP Entry Time</td>
-                        <td>Auth Entry Time</td>
                         <td>Download Rate (KB/s)</td>
                         <td>Upload Rate (KB/s)</td>
                         <td>Ping (ms)</td>
                         <td>Client IP Address</td>
                         <td>Client MAC Address</td>
                         <td>Username</td>
-                        <td>NAS ID</td>
-                        <td>Connection Info</td>
                         <td>AP IP Address</td>
                         <td>User Agent</td>
                     </thead>
@@ -37,17 +33,13 @@
                     <tr data-th-each="m : ${measurements}">
                         <td data-th-text="${m.id}"></td>
                         <td data-th-text="${m.date}"></td>
-                        <td data-th-text="${m.dhcpEntry}"></td>
-                        <td data-th-text="${m.authEntry}"></td>
                         <td data-th-text="${m.downloadRate}"></td>
                         <td data-th-text="${m.uploadRate}"></td>
                         <td data-th-text="${m.localPing}"></td>
                         <td data-th-text="${m.clientIp}">...</td>
-                        <td data-th-text="${m.mac}">...</td>
-                        <td data-th-text="${m.auth_user_name}">...</td>
-                        <td data-th-text="${m.auth_nas_idenifier}">...</td>
-                        <td data-th-text="${m.auth_connect_info}">...</td>
-                        <td data-th-text="${m.auth_nas_ip_address}">...</td>
+                        <td data-th-text="${m.callingStationId}">...</td>
+                        <td data-th-text="${m.username}">...</td>
+                        <td data-th-text="${m.nasIpAddress}">...</td>
                         <td data-th-text="${m.userAgent}">...</td>
                     </tr>
                     </tbody>

@@ -1,7 +1,6 @@
 package net.geant.wifimon.agent.data;
 
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -32,17 +31,15 @@ public class GenericMeasurement implements Serializable {
     private String locationMethod;
     private String clientIp;
     private String userAgent;
-    private String clientMac;
-    private String mac;
-    private String dhcpEntry;
-    private String authEntry;
-    private Set<MeasurementAuthDetails> measurementAuthDetails;
-    private String auth_user_name;
-    private String auth_packet_type;
-    private String auth_called_station_id;
-    private String auth_connect_info;
-    private String auth_nas_idenifier;
-    private String auth_nas_ip_address;
+    private Date startTime;
+    private String username;
+    private String framedIpAddress;
+    private String sessionId;
+    private String callingStationId;
+    private String calledStationId;
+    private String nasPortId;
+    private String nasPortType;
+    private String nasIpAddress;
 
     @Id
     @Column(name = "measurement_id")
@@ -55,7 +52,7 @@ public class GenericMeasurement implements Serializable {
     }
 
     @Column(name = "measurement_date")
-//    @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
+    //    @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
     public Date getDate() {
         return date;
     }
@@ -136,106 +133,85 @@ public class GenericMeasurement implements Serializable {
         this.userAgent = userAgent;
     }
 
-    @Formula("(select distinct md.from_var from measurements_dhcp as md where md.type_var like 'DHCPREQUEST' and md.date_of_entry < measurement_date and md.for_var like '%' || client_ip || '%' limit 1)")
-    public String getClientMac() {
-        return clientMac;
+    @Column(name = "acctstarttime")
+    public Date getStartTime() {
+        return startTime;
     }
 
-    public void setClientMac(String clientMac) {
-        this.clientMac = clientMac;
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
     }
 
-    @Formula("(select distinct md.date_of_entry from measurements_dhcp as md where md.type_var like 'DHCPREQUEST' and md.for_var like '%' || client_ip || '%' and md.date_of_entry < measurement_date limit 1)")
-    public String getDhcpEntry() {
-        return dhcpEntry;
+    @Column(name = "username")
+    public String getUsername() {
+        return username;
     }
 
-    public void setDhcpEntry(String dhcpEntry) {
-        this.dhcpEntry = dhcpEntry;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    @Column(name = "mac")
-    public String getMac() {
-        return mac;
+    @Column(name = "framedipaddress")
+    public String getFramedIpAddress() {
+        return framedIpAddress;
     }
 
-    public void setMac(String mac) {
-        this.mac = mac;
+    public void setFramedIpAddress(String framedIpAddress) {
+        this.framedIpAddress = framedIpAddress;
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "calling_station_id", referencedColumnName = "mac")
-    //@Formula("(select * from measurements_auth_detail where calling_station_id like mac)")
-    public Set<MeasurementAuthDetails> getMeasurementAuthDetails() {
-        return measurementAuthDetails;
+    @Column(name = "acctsessionid")
+    public String getSessionId() {
+        return sessionId;
     }
 
-    public void setMeasurementAuthDetails(Set<MeasurementAuthDetails> measurementAuthDetails) {
-        this.measurementAuthDetails = measurementAuthDetails;
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
-    @Formula("(select distinct mad.user_name from measurements_auth_detail as mad where mad.calling_station_id like mac and mad.date_of_entry < measurement_date limit 1)")
-    public String getAuth_user_name() {
-        return auth_user_name;
+    @Column(name = "callingstationid")
+    public String getCallingStationId() {
+        return callingStationId;
     }
 
-    public void setAuth_user_name(String auth_user_name) {
-        this.auth_user_name = auth_user_name;
+    public void setCallingStationId(String callingStationId) {
+        this.callingStationId = callingStationId;
     }
 
-    @Formula("(select distinct mad.date_of_entry from measurements_auth_detail as mad where mad.calling_station_id like mac and mad.date_of_entry < measurement_date limit 1)")
-    public String getAuthEntry() {
-        return authEntry;
+    @Column(name = "calledstationid")
+    public String getCalledStationId() {
+        return calledStationId;
     }
 
-    public void setAuthEntry(String authEntry) {
-        this.authEntry = authEntry;
+    public void setCalledStationId(String calledStationId) {
+        this.calledStationId = calledStationId;
     }
 
-    @Formula("(select distinct mad.packet_type from measurements_auth_detail as mad where mad.calling_station_id like mac and mad.date_of_entry < measurement_date limit 1)")
-    public String getAuth_packet_type() {
-        return auth_packet_type;
+    @Column(name = "nasportid")
+    public String getNasPortId() {
+        return nasPortId;
     }
 
-    public void setAuth_packet_type(String auth_packet_type) {
-        this.auth_packet_type = auth_packet_type;
+    public void setNasPortId(String nasPortId) {
+        this.nasPortId = nasPortId;
     }
 
-    @Formula("(select distinct mad.called_station_id from measurements_auth_detail as mad where mad.calling_station_id like mac and mad.date_of_entry < measurement_date limit 1)")
-    public String getAuth_called_station_id() {
-        return auth_called_station_id;
+    @Column(name = "nasporttype")
+    public String getNasPortType() {
+        return nasPortType;
     }
 
-    public void setAuth_called_station_id(String auth_called_station_id) {
-        this.auth_called_station_id = auth_called_station_id;
+    public void setNasPortType(String nasPortType) {
+        this.nasPortType = nasPortType;
     }
 
-
-    @Formula("(select distinct mad.connect_info from measurements_auth_detail as mad where mad.calling_station_id like mac and mad.date_of_entry < measurement_date limit 1)")
-    public String getAuth_connect_info() {
-        return auth_connect_info;
+    @Column(name = "nasipaddress")
+    public String getNasIpAddress() {
+        return nasIpAddress;
     }
 
-    public void setAuth_connect_info(String auth_connect_info) {
-        this.auth_connect_info = auth_connect_info;
-    }
-
-    @Formula("(select distinct mad.nas_identifier from measurements_auth_detail as mad where mad.calling_station_id like mac and mad.date_of_entry < measurement_date limit 1)")
-    public String getAuth_nas_idenifier() {
-        return auth_nas_idenifier;
-    }
-
-    public void setAuth_nas_idenifier(String auth_nas_idenifier) {
-        this.auth_nas_idenifier = auth_nas_idenifier;
-    }
-
-    @Formula("(select distinct mad.nas_ip_address from measurements_auth_detail as mad where mad.calling_station_id like mac and mad.date_of_entry < measurement_date limit 1)")
-    public String getAuth_nas_ip_address() {
-        return auth_nas_ip_address;
-    }
-
-    public void setAuth_nas_ip_address(String auth_nas_ip_address) {
-        this.auth_nas_ip_address = auth_nas_ip_address;
+    public void setNasIpAddress(String nasIpAddress) {
+        this.nasIpAddress = nasIpAddress;
     }
 
     @Override
@@ -247,8 +223,6 @@ public class GenericMeasurement implements Serializable {
 
         GenericMeasurement that = (GenericMeasurement) o;
 
-        if (id != null ? !id.equals(that.id) : that.id != null)
-            return false;
         if (date != null ? !date.equals(that.date) : that.date != null)
             return false;
         if (downloadRate != null ? !downloadRate.equals(that.downloadRate) : that.downloadRate != null)
@@ -267,16 +241,29 @@ public class GenericMeasurement implements Serializable {
             return false;
         if (userAgent != null ? !userAgent.equals(that.userAgent) : that.userAgent != null)
             return false;
-        if (clientMac != null ? !clientMac.equals(that.clientMac) : that.clientMac != null)
+        if (startTime != null ? !startTime.equals(that.startTime) : that.startTime != null)
             return false;
-        return !(mac != null ? !mac.equals(that.mac) : that.mac != null);
+        if (username != null ? !username.equals(that.username) : that.username != null)
+            return false;
+        if (framedIpAddress != null ? !framedIpAddress.equals(that.framedIpAddress) : that.framedIpAddress != null)
+            return false;
+        if (sessionId != null ? !sessionId.equals(that.sessionId) : that.sessionId != null)
+            return false;
+        if (callingStationId != null ? !callingStationId.equals(that.callingStationId) : that.callingStationId != null)
+            return false;
+        if (calledStationId != null ? !calledStationId.equals(that.calledStationId) : that.calledStationId != null)
+            return false;
+        if (nasPortId != null ? !nasPortId.equals(that.nasPortId) : that.nasPortId != null)
+            return false;
+        if (nasPortType != null ? !nasPortType.equals(that.nasPortType) : that.nasPortType != null)
+            return false;
+        return nasIpAddress != null ? nasIpAddress.equals(that.nasIpAddress) : that.nasIpAddress == null;
 
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (date != null ? date.hashCode() : 0);
+        int result = date != null ? date.hashCode() : 0;
         result = 31 * result + (downloadRate != null ? downloadRate.hashCode() : 0);
         result = 31 * result + (uploadRate != null ? uploadRate.hashCode() : 0);
         result = 31 * result + (localPing != null ? localPing.hashCode() : 0);
@@ -285,8 +272,15 @@ public class GenericMeasurement implements Serializable {
         result = 31 * result + (locationMethod != null ? locationMethod.hashCode() : 0);
         result = 31 * result + (clientIp != null ? clientIp.hashCode() : 0);
         result = 31 * result + (userAgent != null ? userAgent.hashCode() : 0);
-        result = 31 * result + (clientMac != null ? clientMac.hashCode() : 0);
-        result = 31 * result + (mac != null ? mac.hashCode() : 0);
+        result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
+        result = 31 * result + (username != null ? username.hashCode() : 0);
+        result = 31 * result + (framedIpAddress != null ? framedIpAddress.hashCode() : 0);
+        result = 31 * result + (sessionId != null ? sessionId.hashCode() : 0);
+        result = 31 * result + (callingStationId != null ? callingStationId.hashCode() : 0);
+        result = 31 * result + (calledStationId != null ? calledStationId.hashCode() : 0);
+        result = 31 * result + (nasPortId != null ? nasPortId.hashCode() : 0);
+        result = 31 * result + (nasPortType != null ? nasPortType.hashCode() : 0);
+        result = 31 * result + (nasIpAddress != null ? nasIpAddress.hashCode() : 0);
         return result;
     }
 }
