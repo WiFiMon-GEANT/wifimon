@@ -1,25 +1,42 @@
 package net.geant.wifimon.processor.dto;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 
 /**
  * Created by kanakisn on 09/11/15.
  */
+@XmlRootElement
 public class NetTestMeasurement implements Serializable {
 
+    @XmlElement
     private Long date;
+    @XmlElement
     private Double downloadThroughput;
+    @XmlElement
     private Double uploadThroughput;
+    @XmlElement
     private Double localPing;
+    @XmlElement
     private String latitude;
+    @XmlElement
     private String longitude;
+    @XmlElement
     private String locationMethod;
+    @XmlElement
     private String clientIp;
+    @XmlElement
     private String userAgent;
+    @XmlElement
     private String username;
+    @XmlElement
     private String callingStationId;
+    @XmlElement
     private String calledStationId;
+    @XmlElement
     private String nasPortType;
+    @XmlElement
     private String nasIpAddress;
 
     public Long getDate() {
