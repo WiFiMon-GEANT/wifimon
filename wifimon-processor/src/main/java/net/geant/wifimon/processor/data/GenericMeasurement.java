@@ -1,5 +1,7 @@
 package net.geant.wifimon.processor.data;
 
+import org.hibernate.annotations.ColumnTransformer;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -8,7 +10,6 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Set;
 
 /**
  * Created by kanakisn on 8/5/15.
@@ -39,7 +40,7 @@ public class GenericMeasurement implements Serializable {
     private String nasIpAddress;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "measurement_id")
     public Long getId() {
         return id;
@@ -114,6 +115,7 @@ public class GenericMeasurement implements Serializable {
     }
 
     @Column(name = "client_ip")
+    @ColumnTransformer(read="CAST(inet AS varchar)", write="CAST(? AS inet)")
     public String getClientIp() {
         return clientIp;
     }

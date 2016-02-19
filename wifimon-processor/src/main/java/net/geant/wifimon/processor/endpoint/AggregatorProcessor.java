@@ -15,10 +15,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.util.Date;
-import java.util.Optional;
 
 /**
  * Created by kanakisn on 12/02/16.
@@ -42,8 +40,7 @@ public class AggregatorProcessor {
         String agent = request.getHeader("User-Agent");
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
-        Optional<Radius> radius = radiusRepository.findFirst1ByFramedIpAddressOrderByStopTimeAsc(ip);
-        Radius r = radius.get();
+        Radius r = radiusRepository.find(ip, new Date());
         if (r == null) return Response.serverError().build();
         return addGrafanaMeasurement(addMeasurement(measurement, r, ip, agent));
     }
@@ -79,9 +76,21 @@ public class AggregatorProcessor {
         m.setDate(new Date());
         m.setDownloadRate(measurement.getDownloadThroughput());
         m.setUploadRate(measurement.getUploadThroughput());
-        m.setCalledStationId(radius.getCalledStationId());
-        m.setCallingStationId(radius.getCallingStationId());
+        m.setLocalPing(measurement.getLocalPing());
+        m.setLatitude(Double.valueOf(measurement.getLatitude()));
+        m.setLongitude(Double.valueOf(measurement.getLongitude()));
+        m.setLocationMethod(measurement.getLocationMethod());
+        m.setClientIp(ip);
         m.setUserAgent(agent);
+        m.setStartTime(radius.getStartTime());
+        m.setUsername(radius.getUsername());
+        m.setFramedIpAddress(radius.getFramedIpAddress());
+        m.setSessionId(radius.getSessionId());
+        m.setCallingStationId(radius.getCallingStationId());
+        m.setCalledStationId(radius.getCalledStationId());
+        m.setNasPortId(radius.getNasPortId());
+        m.setNasPortType(radius.getNasPortType());
+        m.setNasIpAddress(radius.getNasIpAddress());
         return measurementRepository.save(m);
     }
 

@@ -1,5 +1,7 @@
 package net.geant.wifimon.processor.data;
 
+import org.hibernate.annotations.ColumnTransformer;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -98,7 +100,8 @@ public class Radius implements Serializable {
         this.realm = realm;
     }
 
-    @Column(name = "nasipaddress")
+    @Column(name="nasipaddress")
+    @ColumnTransformer(read="CAST(inet AS varchar)", write="CAST(? AS inet)")
     public String getNasIpAddress() {
         return nasIpAddress;
     }
@@ -251,7 +254,8 @@ public class Radius implements Serializable {
         this.framedProtocol = framedProtocol;
     }
 
-    @Column(name = "framedipaddress")
+    @Column(name="framedipaddress")
+    @ColumnTransformer(read="CAST(inet AS varchar)", write="CAST(? AS inet)")
     public String getFramedIpAddress() {
         return framedIpAddress;
     }

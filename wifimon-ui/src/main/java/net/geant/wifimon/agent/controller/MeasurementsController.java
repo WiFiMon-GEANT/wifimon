@@ -66,35 +66,18 @@ public class MeasurementsController {
                 .resource("http://admin:admin@localhost:3000/api/snapshots");
 
         String snapshotJsonRequest =
-        "{\n" +
-                "  \"dashboard\": {\n" +
-                "    \"editable\":false,\n" +
-                "    \"hideControls\":true,\n" +
-                "    \"nav\":[\n" +
-                "    {\n" +
-                "      \"enable\":false,\n" +
-                "    \"type\":\"timepicker\"\n" +
-                "    }\n" +
-                "    ],\n" +
-                "    \"rows\": [\n" +
-                "      {\n" +
-                "\n" +
-                "      }\n" +
-                "    ],\n" +
-                "    \"style\":\"dark\",\n" +
-                "    \"tags\":[],\n" +
-                "    \"templating\":{\n" +
-                "      \"list\":[\n" +
-                "      ]\n" +
-                "    },\n" +
-                "    \"time\":{\n" +
-                "    },\n" +
-                "    \"timezone\":\"browser\",\n" +
-                "    \"title\":\"Home\",\n" +
-                "    \"version\":5\n" +
-                "    },\n" +
-                "  \"expires\": 3600\n" +
-                "}";
+        "{ \"dashboard\": { \"editable\":false, " +
+                "\"hideControls\":true, " +
+                "\"nav\":[ { \"enable\":false, \"type\":\"timepicker\" } ], " +
+                "\"rows\": [ { } ], " +
+                "\"style\":\"dark\", " +
+                "\"tags\":[], " +
+                "\"templating\":{ \"list\":[ ] }, " +
+                "\"time\":{ }, " +
+                "\"timezone\":\"browser\", " +
+                "\"title\":\"Home\", " +
+                "\"version\":5 }, " +
+                "\"expires\": 0}";
 
         ClientResponse response = webResource.accept("application/json").type("application/json")
                 .post(ClientResponse.class, snapshotJsonRequest);

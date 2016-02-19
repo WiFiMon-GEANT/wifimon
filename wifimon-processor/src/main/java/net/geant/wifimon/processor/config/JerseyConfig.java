@@ -1,6 +1,7 @@
 package net.geant.wifimon.processor.config;
 
 import net.geant.wifimon.processor.endpoint.AggregatorProcessor;
+import net.geant.wifimon.processor.endpoint.CORSResponseFilter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,6 +17,7 @@ public class JerseyConfig extends ResourceConfig {
     }
 
     private void registerEndpoints() {
+        register(CORSResponseFilter.class);
         register(AggregatorProcessor.class);
     }
 
