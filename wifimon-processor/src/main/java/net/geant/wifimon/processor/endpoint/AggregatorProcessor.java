@@ -15,6 +15,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.util.Date;
 import java.util.Optional;
@@ -38,30 +39,30 @@ public class AggregatorProcessor {
     @POST
     @Path("/add")
     public Response correlate(final NetTestMeasurement measurement, @Context HttpServletRequest request) {
+        String agent = request.getHeader("User-Agent");
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
         Optional<Radius> radius = radiusRepository.findFirst1ByFramedIpAddressOrderByStopTimeAsc(ip);
         Radius r = radius.get();
         if (r == null) return Response.serverError().build();
-        addMeasurement(measurement, ip);
-        return addGrafanaMeasurement(measurement);
+        return addGrafanaMeasurement(addMeasurement(measurement, r, ip, agent));
     }
 
-    private Response addGrafanaMeasurement(NetTestMeasurement measurement) {
+    private Response addGrafanaMeasurement(GenericMeasurement measurement) {
         try {
             Point point = Point.measurement("nettest")
                     .tag("ip", measurement.getClientIp())
                     .tag("UserAgent", measurement.getUserAgent())
-                    .tag("longitude", measurement.getLongitude())
-                    .tag("latitude", measurement.getLatitude())
+                    .tag("longitude", String.valueOf(measurement.getLongitude()))
+                    .tag("latitude", String.valueOf(measurement.getLatitude()))
                     .tag("locationMethod", measurement.getLocationMethod())
                     .tag("username", measurement.getUsername())
                     .tag("callingStationId", measurement.getCallingStationId())
                     .tag("calledStationId", measurement.getCalledStationId())
                     .tag("nasPortType", measurement.getNasPortType())
                     .tag("nasIpAddress", measurement.getNasIpAddress())
-                    .field("DownloadThroughtput", measurement.getDownloadThroughput() == -1 ? -1d : measurement.getDownloadThroughput() * 8 * 1000)
-                    .field("UploadThroughtput", measurement.getUploadThroughput() == -1 ? -1d : measurement.getUploadThroughput() * 8 * 1000)
+                    .field("DownloadThroughtput", measurement.getDownloadRate() == -1 ? -1d : measurement.getDownloadRate() * 8 * 1000)
+                    .field("UploadThroughtput", measurement.getUploadRate() == -1 ? -1d : measurement.getUploadRate() * 8 * 1000)
                     .field("ping", measurement.getLocalPing() == -1 ? -1d : measurement.getLocalPing())
                     //                .time(System.currentTimeMillis() * 1000, TimeUnit.MILLISECONDS)
                     .build();
@@ -72,15 +73,16 @@ public class AggregatorProcessor {
         }
     }
 
-    private void addMeasurement(NetTestMeasurement measurement, String ip) {
+    private GenericMeasurement addMeasurement(NetTestMeasurement measurement, Radius radius, String ip, String agent) {
         GenericMeasurement m = new GenericMeasurement();
         m.setClientIp(ip);
         m.setDate(new Date());
         m.setDownloadRate(measurement.getDownloadThroughput());
         m.setUploadRate(measurement.getUploadThroughput());
-        m.setCalledStationId(measurement.getCalledStationId());
-        m.setCallingStationId(measurement.getCallingStationId());
-        measurementRepository.save(m);
+        m.setCalledStationId(radius.getCalledStationId());
+        m.setCallingStationId(radius.getCallingStationId());
+        m.setUserAgent(agent);
+        return measurementRepository.save(m);
     }
 
     @GET
