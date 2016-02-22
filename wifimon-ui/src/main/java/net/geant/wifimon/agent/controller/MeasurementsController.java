@@ -3,9 +3,6 @@ package net.geant.wifimon.agent.controller;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
 import net.geant.wifimon.agent.data.GenericMeasurement;
 import net.geant.wifimon.agent.dto.GrafanaSnapshotResponse;
 import net.geant.wifimon.agent.repository.GenericMeasurementRepository;
@@ -27,13 +24,15 @@ import javax.servlet.http.HttpSession;
 @Controller
 public class MeasurementsController {
     
-    private static final int PAGE_SIZE = 20;
+    private static final int PAGE_SIZE = 10;
     private static final Sort sort = new Sort(
-            new Sort.Order(Sort.Direction.ASC,"id"), 
-            new Sort.Order(Sort.Direction.ASC,"date"));
+            new Sort.Order(Sort.Direction.DESC,"date"));
 
     @Autowired
     GenericMeasurementRepository gmRepository;
+
+    @Autowired
+    Client client;
 
     @RequestMapping(value = "/secure/measurements/generic")
     public String afterLogin(@RequestParam(value = "move", required = false) String move, Model model,
@@ -46,21 +45,18 @@ public class MeasurementsController {
         } else {
             page = 0;
         }
-        session.setAttribute("page", page);
         Page<GenericMeasurement> measurementPage = gmRepository.findAll(new PageRequest(page, PAGE_SIZE, sort));
+        int totalPages = measurementPage.getTotalPages();
+        if (page > totalPages) page = totalPages;
+        session.setAttribute("page", page);
         model.addAttribute("measurements", measurementPage.getContent());
         model.addAttribute("page", page);
-        model.addAttribute("totalResults", gmRepository.count());
-        model.addAttribute("pageSize", PAGE_SIZE);
+        model.addAttribute("totalPages", totalPages);
         return "secure/genericMeasurements";
     }
 
     @RequestMapping(value = "/secure/grafana")
     public String grafana(Model model, HttpSession session) {
-
-        ClientConfig clientConfig = new DefaultClientConfig();
-        clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        Client client = Client.create(clientConfig);
 
         WebResource webResource = client
                 .resource("http://admin:admin@localhost:3000/api/snapshots");
