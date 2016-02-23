@@ -19,27 +19,35 @@
                        style="word-wrap: break-word; table-layout: fixed;">
                     <thead>
                         <td>Id</td>
-                        <td>Test Date/Time</td>
+                        <td>Test Date/Time (UTC)</td>
+                        <td>Start Time (UTC)</td>
+                        <td>Username</td>
                         <td>Download Rate (KB/s)</td>
                         <td>Upload Rate (KB/s)</td>
                         <td>Ping (ms)</td>
                         <td>Client IP Address</td>
+                        <td>Client IP (Logs)</td>
                         <td>Client MAC Address</td>
-                        <td>Username</td>
                         <td>AP IP Address</td>
+                        <td>AP MAC Address</td>
+                        <td>NAS Port Type</td>
                         <td>User Agent</td>
                     </thead>
                     <tbody>
                     <tr data-th-each="m : ${measurements}">
                         <td data-th-text="${m.id}"></td>
                         <td data-th-text="${m.date}"></td>
+                        <td data-th-text="${m.startTime}">...</td>
+                        <td data-th-text="${m.username}">...</td>
                         <td data-th-text="${m.downloadRate}"></td>
                         <td data-th-text="${m.uploadRate}"></td>
                         <td data-th-text="${m.localPing}"></td>
                         <td data-th-text="${m.clientIp}">...</td>
+                        <td data-th-text="${m.framedIpAddress}">...</td>
                         <td data-th-text="${m.callingStationId}">...</td>
-                        <td data-th-text="${m.username}">...</td>
                         <td data-th-text="${m.nasIpAddress}">...</td>
+                        <td data-th-text="${m.calledStationId}">...</td>
+                        <td data-th-text="${m.nasPortType}">...</td>
                         <td data-th-text="${m.userAgent}">...</td>
                     </tr>
                     </tbody>
