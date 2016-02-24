@@ -10,6 +10,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -30,9 +33,9 @@ import java.util.Map;
 
 @SpringBootApplication
 public class AgentConfiguration {
-    
+
     @Autowired
-	private Environment env;
+    private Environment env;
 
     @Bean
     public Client client() {
@@ -64,9 +67,23 @@ public class AgentConfiguration {
         clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         clientConfig.getProperties().
                 put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
-                        new HTTPSProperties((hostname, session) -> true,sslcontext));
+                    new HTTPSProperties((hostname, session) -> true, sslcontext));
 
         return Client.create(clientConfig);
+    }
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurerAdapter() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**").
+                        allowedOrigins("*").
+                        allowedHeaders("Access-Control-Allow-Origin", "Connection").
+                        exposedHeaders("Access-Control-Allow-Origin", "Connection").
+                        allowedMethods("POST", "GET", "OPTIONS", "DELETE", "PUT");
+            }
+        };
     }
 
     public static void main(String... args) {
