@@ -10,9 +10,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -70,20 +67,6 @@ public class AgentConfiguration {
                     new HTTPSProperties((hostname, session) -> true, sslcontext));
 
         return Client.create(clientConfig);
-    }
-
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurerAdapter() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**").
-                        allowedOrigins("*").
-                        allowedHeaders("Access-Control-Allow-Origin", "Connection").
-                        exposedHeaders("Access-Control-Allow-Origin", "Connection").
-                        allowedMethods("POST", "GET", "OPTIONS", "DELETE", "PUT");
-            }
-        };
     }
 
     public static void main(String... args) {
