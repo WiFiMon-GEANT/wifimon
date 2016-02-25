@@ -41,27 +41,41 @@ public class AggregatorProcessor {
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
         Radius r = radiusRepository.find(ip, new Date());
-        if (r == null) return Response.serverError().build();
+//        if (r == null) return Response.serverError().build();
         return addGrafanaMeasurement(addMeasurement(measurement, r, ip, agent));
+    }
+
+    @POST
+    @Path("/subnet")
+    public Response correlate(@Context HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        // TODO: 25/02/16 add subnet handling
+        return Response.ok(true).build();
     }
 
     private Response addGrafanaMeasurement(GenericMeasurement measurement) {
         try {
             Point point = Point.measurement("nettest")
-                    .tag("ip", measurement.getClientIp())
-                    .tag("UserAgent", measurement.getUserAgent())
-                    .tag("longitude", String.valueOf(measurement.getLongitude()))
-                    .tag("latitude", String.valueOf(measurement.getLatitude()))
-                    .tag("locationMethod", measurement.getLocationMethod())
-                    .tag("username", measurement.getUsername())
-                    .tag("callingStationId", measurement.getCallingStationId())
-                    .tag("calledStationId", measurement.getCalledStationId())
-                    .tag("nasPortType", measurement.getNasPortType())
-                    .tag("nasIpAddress", measurement.getNasIpAddress())
-                    .field("DownloadThroughtput", measurement.getDownloadRate() == -1 ? -1d : measurement.getDownloadRate() * 8 * 1000)
-                    .field("UploadThroughtput", measurement.getUploadRate() == -1 ? -1d : measurement.getUploadRate() * 8 * 1000)
+                    .tag("ip", measurement.getClientIp() != null ? measurement.getClientIp() : "N/A")
+                    .tag("UserAgent", measurement.getUserAgent() != null ? measurement.getUserAgent() : "N/A")
+                    .tag("longitude",
+                            measurement.getLongitude() != null ? String.valueOf(measurement.getLongitude()) : "N/A")
+                    .tag("latitude",
+                            measurement.getLatitude() != null ? String.valueOf(measurement.getLatitude()) : "N/A")
+                    .tag("locationMethod",
+                            measurement.getLocationMethod() != null ? measurement.getLocationMethod() : "N/A")
+                    .tag("username", measurement.getUsername() != null ? measurement.getUsername() : "N/A")
+                    .tag("callingStationId",
+                            measurement.getCallingStationId() != null ? measurement.getCallingStationId() : "N/A")
+                    .tag("calledStationId",
+                            measurement.getCalledStationId() != null ? measurement.getCalledStationId() : "N/A")
+                    .tag("nasPortType", measurement.getNasPortType() != null ? measurement.getNasPortType() : "N/A")
+                    .tag("nasIpAddress", measurement.getNasIpAddress() != null ? measurement.getNasIpAddress() : "N/A")
+                    .field("DownloadThroughtput",
+                            measurement.getDownloadRate() == -1 ? -1d : measurement.getDownloadRate() * 8 * 1000)
+                    .field("UploadThroughtput",
+                            measurement.getUploadRate() == -1 ? -1d : measurement.getUploadRate() * 8 * 1000)
                     .field("ping", measurement.getLocalPing() == -1 ? -1d : measurement.getLocalPing())
-                    //                .time(System.currentTimeMillis() * 1000, TimeUnit.MILLISECONDS)
                     .build();
             influxDB.write("wifimon", "default", point);
             return Response.ok().build();
@@ -72,7 +86,6 @@ public class AggregatorProcessor {
 
     private GenericMeasurement addMeasurement(NetTestMeasurement measurement, Radius radius, String ip, String agent) {
         GenericMeasurement m = new GenericMeasurement();
-        m.setClientIp(ip);
         m.setDate(new Date());
         m.setDownloadRate(measurement.getDownloadThroughput());
         m.setUploadRate(measurement.getUploadThroughput());
@@ -82,22 +95,16 @@ public class AggregatorProcessor {
         m.setLocationMethod(measurement.getLocationMethod());
         m.setClientIp(ip);
         m.setUserAgent(agent);
-        m.setStartTime(radius.getStartTime());
-        m.setUsername(radius.getUsername());
-        m.setFramedIpAddress(radius.getFramedIpAddress());
-        m.setSessionId(radius.getSessionId());
-        m.setCallingStationId(radius.getCallingStationId());
-        m.setCalledStationId(radius.getCalledStationId());
-        m.setNasPortId(radius.getNasPortId());
-        m.setNasPortType(radius.getNasPortType());
-        m.setNasIpAddress(radius.getNasIpAddress());
+        m.setStartTime(radius != null ? radius.getStartTime() : null);
+        m.setUsername(radius != null ? radius.getUsername() : null);
+        m.setFramedIpAddress(radius != null ? radius.getFramedIpAddress() : null);
+        m.setSessionId(radius != null ? radius.getSessionId() : null);
+        m.setCallingStationId(radius != null ? radius.getCallingStationId() : null);
+        m.setCalledStationId(radius != null ? radius.getCalledStationId() : null);
+        m.setNasPortId(radius != null ? radius.getNasPortId() : null);
+        m.setNasPortType(radius != null ? radius.getNasPortType() : null);
+        m.setNasIpAddress(radius != null ? radius.getNasIpAddress() : null);
         return measurementRepository.save(m);
-    }
-
-    @GET
-    @Path("/test")
-    public Response test() {
-            return Response.ok("Nikos").build();
     }
 
 }
