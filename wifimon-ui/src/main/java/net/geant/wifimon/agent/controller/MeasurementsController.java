@@ -58,9 +58,8 @@ public class MeasurementsController {
     @RequestMapping(value = "/secure/grafana")
     public String grafana(Model model, HttpSession session) {
 
-        //TODO read server IP from properties file
         WebResource webResource = client
-                .resource("https://admin:admin@62.217.125.88:3000/api/snapshots");
+                .resource("https://admin:admin@localhost:3000/api/snapshots");
 
         String snapshotJsonRequest =
         "{ \"dashboard\": { \"editable\":false, " +
