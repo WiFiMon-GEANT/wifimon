@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <title>Guide</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.css"/>
+</head>
+
+<body>
+
+<div th:replace="fragments/header :: header">
+</div>
+
+<div class="container" style="padding-top: 10ex">
+    <h3>Select the scripts to be embedded in your website</h3>
+    <br/>
+    <h4>Your website does not include the jQuery script</h4>
+    <p><i>
+        &lt;script type="text/javascript" src="http://62.217.125.88/wifimon/js/jquery-1.11.2.min.js"&gt;&lt;/script&gt;<br/>
+        &lt;script type="text/javascript" src="http://62.217.125.88/wifimon/js/nettest-swfobject.js"&gt;&lt;/script&gt;<br/>
+        &lt;script type="text/javascript" src="https://www.google.com/jsapi"&gt;&lt;/script&gt;<br/>
+        &lt;script type="text/javascript" id="settings" agentIp="62.217.125.88" imagesLocation="" cookieTimeInMinutes="" src="http://62.217.125.88/wifimon/js/runtests.js" defer&gt;&lt;/script&gt;<br/>
+    </i></p>
+    <br/>
+    <h4>Your website already includes the jQuery script</h4>
+    <p><i>
+        &lt;script type="text/javascript" src="http://62.217.125.88/wifimon/js/nettest-swfobject.js"&gt;&lt;/script&gt;<br/>
+        &lt;script type="text/javascript" src="https://www.google.com/jsapi"&gt;&lt;/script&gt;<br/>
+        &lt;script type="text/javascript" id="settings" agentIp="62.217.125.88" imagesLocation="" cookieTimeInMinutes="" src="http://62.217.125.88/wifimon/js/runtests.js" defer&gt;&lt;/script&gt;<br/>
+    </i></p>
+    <br/>
+    <h4>Changes (if necessary)</h4>
+    <ul>
+        <li><strong>agentIp:</strong> IP of the server where the Java agent is installed</li>
+        <li><strong>imagesLocation:</strong> Public link to the folder where the images are downloaded to perform the nettest measurements. If empty, "http://62.217.125.88/wifimon/images/" is assumed</li>
+        <li><strong>cookieTimeInMinutes:</strong> Duration time (in minutes) to set the cookie in order to prevent repeated measuremetns. If empty, "1.5" is assumed</li>
+    </ul>
+</div>
+
+</body>
+</html>

@@ -90,4 +90,8 @@ public class MeasurementsController {
         return "secure/grafana";
     }
 
+    @RequestMapping(value = "/secure/guide")
+    public String guide(Model model, HttpSession session) {
+        return "secure/guide";
+    }
 }
