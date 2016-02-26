@@ -52,6 +52,7 @@ public class MeasurementsController {
         model.addAttribute("measurements", measurementPage.getContent());
         model.addAttribute("page", page);
         model.addAttribute("totalPages", totalPages);
+        model.addAttribute("classActiveSettingsHome","active");
         return "secure/genericMeasurements";
     }
 
@@ -87,11 +88,18 @@ public class MeasurementsController {
 
         GrafanaSnapshotResponse snapshotResponse = response.getEntity(GrafanaSnapshotResponse.class);
         model.addAttribute("url", snapshotResponse.getUrl());
+        model.addAttribute("classActiveSettingsTimeline","active");
         return "secure/grafana";
     }
 
     @RequestMapping(value = "/secure/guide")
     public String guide(Model model, HttpSession session) {
+        model.addAttribute("classActiveSettingsGuide","active");
         return "secure/guide";
+    }
+    @RequestMapping(value = "/secure/help")
+    public String help(Model model, HttpSession session) {
+        model.addAttribute("classActiveSettingsHelp","active");
+        return "secure/help";
     }
 }
