@@ -23,16 +23,16 @@ public class SubnetsController {
     SubnetRepository subnetRepository;
 
     @RequestMapping(value = "/secure/subnets")
-    public String subnets(final Subnet s) {
+    public String subnets(final Subnet subnet) {
         return "secure/subnets";
     }
 
     @RequestMapping(value = "/secure/subnets", params = {"save"})
-    public String addSubnet(final Subnet s, final BindingResult bindingResult, final ModelMap model) {
+    public String addSubnet(@ModelAttribute final Subnet subnet, final BindingResult bindingResult, final ModelMap model) {
         if (bindingResult.hasErrors()) {
             return "secure/subnets";
         }
-        subnetRepository.save(s);
+        subnetRepository.save(subnet);
         model.clear();
         return "redirect:/secure/subnets";
     }
