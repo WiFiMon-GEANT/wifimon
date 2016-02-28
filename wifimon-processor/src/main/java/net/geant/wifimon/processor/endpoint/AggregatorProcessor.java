@@ -2,9 +2,12 @@ package net.geant.wifimon.processor.endpoint;
 
 import net.geant.wifimon.processor.data.GenericMeasurement;
 import net.geant.wifimon.processor.data.Radius;
+import net.geant.wifimon.processor.data.Subnet;
 import net.geant.wifimon.processor.dto.NetTestMeasurement;
 import net.geant.wifimon.processor.repository.GenericMeasurementRepository;
 import net.geant.wifimon.processor.repository.RadiusRepository;
+import net.geant.wifimon.processor.repository.SubnetRepository;
+import org.apache.commons.net.util.SubnetUtils;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.Point;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +19,15 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.net.util.SubnetUtils.*;
 
 /**
  * Created by kanakisn on 12/02/16.
@@ -34,6 +45,9 @@ public class AggregatorProcessor {
     @Autowired
     RadiusRepository radiusRepository;
 
+    @Autowired
+    SubnetRepository subnetRepository;
+
     @POST
     @Path("/add")
     public Response correlate(final NetTestMeasurement measurement, @Context HttpServletRequest request) {
@@ -49,8 +63,14 @@ public class AggregatorProcessor {
     @Path("/subnet")
     public Response correlate(@Context HttpServletRequest request) {
         String ip = request.getRemoteAddr();
-        // TODO: 25/02/16 add subnet handling
-        return Response.ok(true).build();
+        List<Subnet> subnets = subnetRepository.findAll();
+        if (subnets == null || subnets.isEmpty()) return Response.ok(false).build();
+
+        List<SubnetUtils.SubnetInfo> s = subnets.stream().map(it -> it.fromSubnetString()).collect(Collectors.toList());
+
+        s.forEach(item -> {if (item.isInRange(ip)) Response.ok(false).build();});
+
+        return Response.ok(false).build();
     }
 
     private Response addGrafanaMeasurement(GenericMeasurement measurement) {
@@ -105,6 +125,10 @@ public class AggregatorProcessor {
         m.setNasPortType(radius != null ? radius.getNasPortType() : null);
         m.setNasIpAddress(radius != null ? radius.getNasIpAddress() : null);
         return measurementRepository.save(m);
+    }
+
+    private SubnetUtils.SubnetInfo fromSubnetString(String subnet) {
+        return new SubnetUtils(subnet).getInfo();
     }
 
 }

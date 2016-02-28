@@ -1,4 +1,6 @@
-package net.geant.wifimon.agent.data;
+package net.geant.wifimon.processor.data;
+
+import org.apache.commons.net.util.SubnetUtils;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,7 +20,6 @@ import java.io.Serializable;
 public class Subnet implements Serializable {
 
     private Long id;
-    @NotNull
     private String subnet;
 
     @Id
@@ -39,6 +40,10 @@ public class Subnet implements Serializable {
 
     public void setSubnet(String subnet) {
         this.subnet = subnet;
+    }
+
+    public SubnetUtils.SubnetInfo fromSubnetString() {
+        return new SubnetUtils(subnet).getInfo();
     }
 
     @Override
