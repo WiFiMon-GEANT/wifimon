@@ -53,7 +53,7 @@ public class SubnetsController {
     }
 
     @RequestMapping(value = "/secure/subnets/delete/{id}")
-    public String deleteSubnet(@PathVariable final String id, final BindingResult bindingResult, final ModelMap model) {
+    public String deleteSubnet(@PathVariable final String id) {
         subnetRepository.delete(Long.valueOf(id));
         return "redirect:/secure/subnets";
     }
