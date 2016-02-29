@@ -32,12 +32,12 @@
 
     </div>
 
-    <form role="form" action="#" th:action="@{/secure/subnets}" th:object="${subnet}" method="post">
+    <form role="form" action="#" th:action="@{/secure/subnets}" th:object="${sub}" method="post">
         <div class="row">
             <div class="col-lg-12">
                 <div class="input-group" th:classappend="${#fields.hasErrors('subnet')}? 'has-error'">
                     <input type="text" id="subnet" class="form-control" name="subnet" placeholder="New Subnet"
-                           th:field="${subnet}"/>
+                           th:field="*{subnet}"/>
             <span class="input-group-btn">
                 <button type="submit" class="btn btn-success" name="save">Add</button>
             </span>

@@ -5,7 +5,6 @@ import net.geant.wifimon.agent.repository.SubnetRepository;
 import net.geant.wifimon.agent.validator.SubnetValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
@@ -29,25 +28,25 @@ public class SubnetsController {
     @Autowired
     SubnetRepository subnetRepository;
 
-    @InitBinder("subnet")
+    @InitBinder("sub")
     public void initBinder(WebDataBinder binder) {
         binder.addValidators(subnetValidator);
 //        binder.setDisallowedFields("id");
     }
 
     @RequestMapping(value = "/secure/subnets")
-    public String subnets(@ModelAttribute final Subnet subnet) {
+    public String subnets(@ModelAttribute("sub") final Subnet sub) {
         return "secure/subnets";
     }
 
     @RequestMapping(value = "/secure/subnets", params = {"save"})
-    public String addSubnet(@ModelAttribute @Valid final Subnet subnet,
+    public String addSubnet(@ModelAttribute("sub") @Valid final Subnet sub,
                             final BindingResult bindingResult,
                             final ModelMap model) {
         if (bindingResult.hasErrors()) {
             return "secure/subnets";
         }
-        subnetRepository.save(subnet);
+        subnetRepository.save(sub);
         model.clear();
         return "redirect:/secure/subnets";
     }
