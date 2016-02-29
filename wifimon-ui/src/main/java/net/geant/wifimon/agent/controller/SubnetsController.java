@@ -10,6 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.validation.Valid;
@@ -48,6 +49,12 @@ public class SubnetsController {
         }
         subnetRepository.save(sub);
         model.clear();
+        return "redirect:/secure/subnets";
+    }
+
+    @RequestMapping(value = "/secure/subnets/delete/{id}")
+    public String deleteSubnet(@PathVariable final String id, final BindingResult bindingResult, final ModelMap model) {
+        subnetRepository.delete(Long.valueOf(id));
         return "redirect:/secure/subnets";
     }
 
