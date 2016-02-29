@@ -66,10 +66,12 @@ public class AggregatorProcessor {
         List<Subnet> subnets = subnetRepository.findAll();
         if (subnets == null || subnets.isEmpty()) return Response.ok(false).build();
 
-        List<SubnetUtils.SubnetInfo> s = subnets.stream().map(it -> it.fromSubnetString()).collect(Collectors.toList());
+        List<SubnetUtils.SubnetInfo> s = subnets.stream().
+                map(it -> it.fromSubnetString()).collect(Collectors.toList());
 
-        s.forEach(item -> {if (item.isInRange(ip)) Response.ok(true).build();});
-
+        for (SubnetUtils.SubnetInfo si : s) {
+            if (si.isInRange(ip)) return Response.ok(true).build();
+        }
         return Response.ok(false).build();
     }
 
