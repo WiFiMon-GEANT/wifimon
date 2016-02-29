@@ -68,7 +68,7 @@ public class AggregatorProcessor {
 
         List<SubnetUtils.SubnetInfo> s = subnets.stream().map(it -> it.fromSubnetString()).collect(Collectors.toList());
 
-        s.forEach(item -> {if (item.isInRange(ip)) Response.ok(false).build();});
+        s.forEach(item -> {if (item.isInRange(ip)) Response.ok(true).build();});
 
         return Response.ok(false).build();
     }
