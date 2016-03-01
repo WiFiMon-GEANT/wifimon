@@ -21,13 +21,14 @@
         <thead>
         <td>Id</td>
         <td>Subnet</td>
-        <td>Action</td>
         </thead>
         <tbody>
         <tr data-th-each="s : ${subnets}">
             <td data-th-text="${s.id}"></td>
-            <td data-th-text="${s.subnet}"></td>
-            <td><a th:href="@{'/secure/subnets/delete/{id}'(id = ${s.id})}"><span class='glyphicon glyphicon-remove'>Delete</span></a></td>
+            <td data-th-text="">
+                <span th:text="${s.subnet}"></span>
+                <a th:href="@{'/secure/subnets/delete/{id}'(id = ${s.id})}"><span class='glyphicon glyphicon-remove'>Delete</span></a>
+            </td>
         </tr>
         </tbody>
     </table>
