@@ -29,5 +29,10 @@
             <outputDirectory></outputDirectory>
             <filtered>true</filtered>
         </file>
+        <file>
+            <source>README.txt</source>
+            <outputDirectory></outputDirectory>
+            <filtered>true</filtered>
+        </file>
     </files>
 </assembly>
