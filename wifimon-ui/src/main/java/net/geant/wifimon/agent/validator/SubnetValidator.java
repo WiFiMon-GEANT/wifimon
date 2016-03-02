@@ -27,7 +27,10 @@ public class SubnetValidator implements Validator {
     @Override
     public void validate(Object o, Errors errors) {
         Subnet subnet = (Subnet) o;
-        if (subnet.getSubnet() == null || subnet.getSubnet().isEmpty()) errors.reject("subnet", "Empty subnet");
+        if (subnet.getSubnet() == null || subnet.getSubnet().isEmpty()) {
+            errors.reject("subnet", "Empty subnet");
+            return;
+        }
         try {
             new SubnetUtils(subnet.getSubnet());
         } catch (IllegalArgumentException e) {
