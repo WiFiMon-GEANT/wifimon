@@ -47,7 +47,7 @@ public class MeasurementsController {
         }
         Page<GenericMeasurement> measurementPage = gmRepository.findAll(new PageRequest(page, PAGE_SIZE, sort));
         int totalPages = measurementPage.getTotalPages();
-        if (page > totalPages) page = totalPages;
+        if (page > totalPages - 1) page = totalPages;
         session.setAttribute("page", page);
         model.addAttribute("measurements", measurementPage.getContent());
         model.addAttribute("page", page);
