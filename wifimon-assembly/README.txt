@@ -85,6 +85,39 @@ the following columns and types:
 	- acctstartdelay: integer
 	- acctstopdelay: integer
 
+If you do not enable SQL accounting for the freeRADIUS server you should
+manually create the radacct table (but you will only be able to see the
+measurement tests without the correlation with the freeRADIUS records):
+CREATE TABLE radacct (
+    acctsessionid character varying(64) NOT NULL,
+    acctuniqueid character varying(32) NOT NULL,
+    username character varying(253),
+    groupname character varying(253),
+    realm character varying(64),
+    nasipaddress inet NOT NULL,
+    nasportid character varying(15),
+    nasporttype character varying(32),
+    acctstarttime timestamp with time zone,
+    acctstoptime timestamp with time zone,
+    acctsessiontime bigint,
+    acctauthentic character varying(32),
+    connectinfo_start character varying(50),
+    connectinfo_stop character varying(50),
+    acctinputoctets bigint,
+    acctoutputoctets bigint,
+    calledstationid character varying(50),
+    callingstationid character varying(50),
+    acctterminatecause character varying(32),
+    servicetype character varying(32),
+    xascendsessionsvrkey character varying(10),
+    framedprotocol character varying(32),
+    framedipaddress inet,
+    acctstartdelay integer,
+    acctstopdelay integer,
+    radacctid serial PRIMARY KEY
+);
+
+
 ***** Step 5: Setting privileges commands (if necessary) *****
 su postgres
 psql
