@@ -4,7 +4,9 @@
 <head>
     <title>Guide</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.css"/>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -20,7 +22,7 @@
         &lt;script type="text/javascript" src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/jquery-1.11.2.min.js"&gt;&lt;/script&gt;<br/>
         &lt;script type="text/javascript" src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/nettest-swfobject.js"&gt;&lt;/script&gt;<br/>
         &lt;script type="text/javascript" src="https://www.google.com/jsapi"&gt;&lt;/script&gt;<br/>
-        &lt;script type="text/javascript" id="settings" agentIp="62.217.125.88" imagesLocation="" cookieTimeInMinutes="" <br/>
+        &lt;script type="text/javascript" id="settings" agentIp="xxx.xxx.xxx.xxx" imagesLocation="" cookieTimeInMinutes="" <br/>
         &nbsp;&nbsp;&nbsp;&nbsp;src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/runtests.js" defer&gt;&lt;/script&gt;<br/>
     </code></i></p>
     <br/>
@@ -28,17 +30,69 @@
     <p><i><code>
         &lt;script type="text/javascript" src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/nettest-swfobject.js"&gt;&lt;/script&gt;<br/>
         &lt;script type="text/javascript" src="https://www.google.com/jsapi"&gt;&lt;/script&gt;<br/>
-        &lt;script type="text/javascript" id="settings" agentIp="62.217.125.88" imagesLocation="" cookieTimeInMinutes="" <br/>
+        &lt;script type="text/javascript" id="settings" agentIp="xxx.xxx.xxx.xxx" imagesLocation="" cookieTimeInMinutes="" <br/>
         &nbsp;&nbsp;&nbsp;&nbsp;src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/runtests.js" defer&gt;&lt;/script&gt;<br/>
     </code></i></p>
     <br/>
-    <h4>Changes (if necessary)</h4>
+    <h4>Changes</h4>
     <ul>
-        <li><strong><var>agentIp</var>:</strong> IP of the server where the Java agent is installed</li>
-        <li><strong><var>imagesLocation</var>:</strong> Public link to the folder where the images are downloaded to perform the nettest measurements. If empty, "https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/images/" is assumed</li>
-        <li><strong><var>cookieTimeInMinutes</var>:</strong> Duration time (in minutes) to set the cookie in order to prevent repeated measuremetns. If empty, "1.5" is assumed</li>
+        <li><strong><var>agentIp (required)</var>:</strong> Replace "xxx.xxx.xxx.xxx" with IP address (or domain name) of the server where the Java agent is installed</li>
+        <li><strong><var>imagesLocation (optional)</var>:</strong> Public link to the folder where the images are downloaded to perform the nettest measurements. If empty, "https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/images/" is assumed</li>
+        <li><strong><var>cookieTimeInMinutes (optional)</var>:</strong> Duration time (in minutes) to set the cookie in order to prevent repeated measuremetns. If empty, "1.5" is assumed</li>
     </ul>
+    <br/>
+    <p><strong>Note: </strong>With the above javascript lines, the images and scripts are downloaded from our Apache Server.
+        Therefore, the Download/Upload Rates and RTT will be relative to this Server. For more
+        accurate results you can setup your Apache Server to host the images and scripts <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal1"><span class="glyphicon glyphicon-info-sign"></span></button></p>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal1" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Apache Server Installation and Configuration</h4>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">--------- Install Apache2 with PHP5 ---------</p>
+                <p class="text-primary"><i><code>
+                    sudo apt-get install apache2<br/>
+                    sudo apt-get install php5<br/>
+                    sudo apt-get install libapache2-mod-php5<br/>
+                    sudo /etc/init.d/apache2 restart<br/>
+                </code></i></p>
+                <p class="text-muted">--------- Enable Apache2 mod_headers ---------</p>
+                <p class="text-primary"><i><code>
+                    a2enmod headers<br/>
+                    service apache2 restart<br/>
+                </code></i></p>
+                <p class="text-muted">--------- Enable CORS ---------</p>
+                <p>Add the following lines in the apache2.conf file and restart Apache2</p>
+                <p class="text-primary"><i><code>
+                    &lt;Files ~ "\.(htm|html|css|js|php|gif|jpg|swf)$"&gt;<br/>
+                    &nbsp;&nbsp;Header always set Access-Control-Allow-Origin "*"<br/>
+                    &nbsp;&nbsp;Header always set Access-Control-Allow-Methods "POST, GET, OPTIONS, DELETE,<br/>
+                    &nbsp;&nbsp;&nbsp;&nbsp;PUT"<br/>
+                    &nbsp;&nbsp;Header always set Access-Control-Max-Age "1000"<br/>
+                    &nbsp;&nbsp;Header always set Access-Control-Allow-Headers "x-requested-with, <br/>
+                    &nbsp;&nbsp;&nbsp;&nbsp;Content-Type, origin, authorization, accept, client-security-token"<br/>
+                    &lt;/Files&gt;
+                </code></i></p>
+                <p class="text-muted">--------- Scripts and images ---------</p>
+                <p>Download a zip file with the images and scripts from <a href="http://vm3-gn3-sa2t5.vm.grnet.gr/wifimon.zip" target="_blank">here</a>. Unzip the content inside the root directory of Apache2 and make the following changes:</p>
+                <ul>
+                    <li><strong>wifimon/js/nettest-swfobject.js:</strong> Change the <i>NetTest.FlashPath</i> (line 22) with the public link to nettest.swf</li>
+                    <li>Embed in your website the scripts provided, after specifying the new URL in their <i>src</i> attribute and <i>imagesLocation</i> attribute</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 
 <div th:replace="fragments/footer :: footer">
 </div>
