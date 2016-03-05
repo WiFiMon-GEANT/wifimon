@@ -54,12 +54,12 @@
             </table>
 
     <ul class="pagination pull-right">
-        <li class="previous"><a href="generic?move=back">&larr; Previous</a></li>
+        <li th:class="${page le 0} ? disabled"><a href="generic?move=back">&larr; Previous</a></li>
         <li class="disabled"><a href="#">
             <span data-th-text="${page + 1}" /> of
             <span data-th-text="${totalPages}" />
         </a></li>
-        <li class="next"><a href="generic?move=front">Next &rarr;</a></li>
+        <li th:class="${page ge totalPages} ? disabled"><a href="generic?move=front">Next &rarr;</a></li>
     </ul>
 
 </div>
