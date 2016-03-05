@@ -59,7 +59,7 @@
             <span data-th-text="${page + 1}" /> of
             <span data-th-text="${totalPages}" />
         </a></li>
-        <li th:class="${page ge totalPages} ? disabled"><a href="generic?move=front">Next &rarr;</a></li>
+        <li th:class="${page ge totalPages - 1} ? disabled"><a href="generic?move=front">Next &rarr;</a></li>
     </ul>
 
 </div>
