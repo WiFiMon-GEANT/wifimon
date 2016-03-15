@@ -1,5 +1,5 @@
 Package: wifimon
-Version: 0.1.0-SNAPSHOT
+Version: 0.1.0
 Section: misc
 Priority: optional
 Architecture: all
