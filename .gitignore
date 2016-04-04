@@ -1,0 +1,11 @@
+.idea
+wifimon-analytics/wifimon-analytics.iml
+wifimon-analytics/target
+*.iml
+*.iws
+.gradle
+build/
+log/
+target/
+!gradle-wrapper.jar
+.gradletasknamecache
