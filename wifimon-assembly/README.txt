@@ -135,6 +135,7 @@ GRANT USAGE, SELECT ON SEQUENCE subnets_subnet_id_seq TO nettest_user;
 
 ********** JAVA 8 **********
 See instructions at http://tecadmin.net/install-oracle-java-8-jdk-8-ubuntu-via-ppa/
+or http://www.webupd8.org/2014/03/how-to-install-oracle-java-8-in-debian.html
 
 
 ********** GRAFANA (2 steps) **********
@@ -147,7 +148,8 @@ sudo service grafana-server start
 
 ***** Step 2: Grafana configuration file *****
 Open to Grafana configuration file (/etc/grafana/grafana.ini) and make the 
-following changes:
+following changes (https certs & key file should be available - check the
+following link if necessary: http://www.akadia.com/services/ssh_test_certificate.html):
 
 [server]
 # Protocol (http or https)
