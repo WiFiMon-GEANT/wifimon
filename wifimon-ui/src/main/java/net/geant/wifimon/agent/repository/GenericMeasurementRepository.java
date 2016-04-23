@@ -1,7 +1,6 @@
 package net.geant.wifimon.agent.repository;
 
-import net.geant.wifimon.agent.data.GenericMeasurement;
-import org.springframework.data.repository.CrudRepository;
+import net.geant.wifimon.model.entity.GenericMeasurement;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**

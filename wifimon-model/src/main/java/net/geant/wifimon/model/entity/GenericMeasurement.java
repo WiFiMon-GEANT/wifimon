@@ -1,4 +1,4 @@
-package net.geant.wifimon.processor.data;
+package net.geant.wifimon.model.entity;
 
 import org.hibernate.annotations.ColumnTransformer;
 

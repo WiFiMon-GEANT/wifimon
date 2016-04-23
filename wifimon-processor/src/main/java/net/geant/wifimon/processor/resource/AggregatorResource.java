@@ -1,9 +1,9 @@
-package net.geant.wifimon.processor.endpoint;
+package net.geant.wifimon.processor.resource;
 
-import net.geant.wifimon.processor.data.GenericMeasurement;
-import net.geant.wifimon.processor.data.Radius;
-import net.geant.wifimon.processor.data.Subnet;
-import net.geant.wifimon.processor.dto.NetTestMeasurement;
+import net.geant.wifimon.model.dto.NetTestMeasurement;
+import net.geant.wifimon.model.entity.GenericMeasurement;
+import net.geant.wifimon.model.entity.Radius;
+import net.geant.wifimon.model.entity.Subnet;
 import net.geant.wifimon.processor.repository.GenericMeasurementRepository;
 import net.geant.wifimon.processor.repository.RadiusRepository;
 import net.geant.wifimon.processor.repository.SubnetRepository;
@@ -14,27 +14,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.net.util.SubnetUtils.*;
 
 /**
  * Created by kanakisn on 12/02/16.
  */
 @Component
 @Path("/wifimon")
-public class AggregatorProcessor {
+public class AggregatorResource {
 
     @Autowired
     private InfluxDB influxDB;

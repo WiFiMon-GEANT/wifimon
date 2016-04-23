@@ -1,6 +1,6 @@
 package net.geant.wifimon.processor.repository;
 
-import net.geant.wifimon.processor.data.Subnet;
+import net.geant.wifimon.model.entity.Subnet;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

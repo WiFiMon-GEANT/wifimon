@@ -112,6 +112,11 @@
             <artifactId>commons-net</artifactId>
             <version>3.4</version>
         </dependency>
+        <dependency>
+            <groupId>net.geant.wifimon</groupId>
+            <artifactId>model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <repositories>

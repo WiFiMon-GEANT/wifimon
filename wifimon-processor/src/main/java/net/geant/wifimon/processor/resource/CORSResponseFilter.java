@@ -1,4 +1,4 @@
-package net.geant.wifimon.processor.endpoint;
+package net.geant.wifimon.processor.resource;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;

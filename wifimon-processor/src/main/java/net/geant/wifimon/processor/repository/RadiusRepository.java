@@ -1,6 +1,6 @@
 package net.geant.wifimon.processor.repository;
 
-import net.geant.wifimon.processor.data.Radius;
+import net.geant.wifimon.model.entity.Radius;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
