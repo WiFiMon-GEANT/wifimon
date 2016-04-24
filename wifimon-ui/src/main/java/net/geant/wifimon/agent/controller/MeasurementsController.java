@@ -4,6 +4,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import net.geant.wifimon.agent.repository.GenericMeasurementRepository;
+import net.geant.wifimon.agent.security.WifimonUser;
 import net.geant.wifimon.agent.util.UiConstants;
 import net.geant.wifimon.model.dto.GrafanaSnapshotResponse;
 import net.geant.wifimon.model.entity.GenericMeasurement;
@@ -11,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,7 +65,6 @@ public class MeasurementsController implements UiConstants {
 
     @RequestMapping(value = "/secure/grafana")
     public String grafana(Model model, HttpSession session) {
-
         WebResource webResource = client
                 .resource("https://admin:admin@localhost:3000/api/snapshots");
 
