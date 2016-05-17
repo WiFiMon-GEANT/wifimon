@@ -8,13 +8,13 @@ import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.KeyManagementException;
@@ -22,14 +22,17 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Map;
 
 /**
  * Created by kanakisn on 11/17/15.
  */
 
 @SpringBootApplication
-public class AgentConfiguration {
+@EnableJpaRepositories(AgentApplication.BASE_PACKAGE)
+@EntityScan(basePackages = AgentApplication.BASE_PACKAGE)
+public class AgentApplication {
+
+    public static final String BASE_PACKAGE = "net.geant.wifimon";
 
     @Autowired
     private Environment env;
@@ -70,7 +73,7 @@ public class AgentConfiguration {
     }
 
     public static void main(String... args) {
-        SpringApplication.run(AgentConfiguration.class, args);
+        SpringApplication.run(AgentApplication.class, args);
     }
 
 }
