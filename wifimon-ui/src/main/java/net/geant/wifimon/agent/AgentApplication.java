@@ -28,7 +28,7 @@ import java.security.cert.X509Certificate;
  */
 
 @SpringBootApplication
-@EnableJpaRepositories(AgentApplication.BASE_PACKAGE)
+//@EnableJpaRepositories(AgentApplication.BASE_PACKAGE)
 @EntityScan(basePackages = AgentApplication.BASE_PACKAGE)
 public class AgentApplication {
 
