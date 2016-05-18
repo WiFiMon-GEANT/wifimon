@@ -101,7 +101,7 @@ public class Radius implements Serializable {
     }
 
     @Column(name="nasipaddress")
-    @ColumnTransformer(read="CAST(inet AS varchar)", write="CAST(? AS inet)")
+    @ColumnTransformer(write="CAST(? AS inet)")
     public String getNasIpAddress() {
         return nasIpAddress;
     }
@@ -255,7 +255,7 @@ public class Radius implements Serializable {
     }
 
     @Column(name="framedipaddress")
-    @ColumnTransformer(read="CAST(inet AS varchar)", write="CAST(? AS inet)")
+    @ColumnTransformer(write="CAST(? AS inet)")
     public String getFramedIpAddress() {
         return framedIpAddress;
     }
