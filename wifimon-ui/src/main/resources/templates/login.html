@@ -21,10 +21,10 @@
     <div class="collapse navbar-collapse navbar-ex1-collapse">
         <form class="navbar-form navbar-right" th:action="@{/login}" method="POST">
             <div class="form-group">
-                    <td><input class="form-control" type='text' placeholder="Username" name='username' value=''/></td>
+                    <td><input class="form-control" type='email' placeholder="Email" name='username' value='' required="true" autofocus="true"/></td>
             </div>
             <div class="form-group">
-                    <td><input class="form-control" type='password' placeholder="Password" name='password'/></td>
+                    <td><input class="form-control" type='password' placeholder="Password" name='password' required="true"/></td>
             </div>
             <button class="btn btn-" name="submit" type="submit" value="Login">Login</button>
             <!--<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />-->
