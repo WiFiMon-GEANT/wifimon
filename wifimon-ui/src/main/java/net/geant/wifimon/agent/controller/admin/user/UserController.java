@@ -46,6 +46,12 @@ public class UserController {
                 .orElseThrow(() -> new NoSuchElementException(String.format("User: %s not found", id))));
     }
 
+    @RequestMapping(value = "/admin/user/{id}/delete")
+    public String deleteUser(@PathVariable final Long id) {
+        userService.delete(id);
+        return String.join("/", "redirect:", UsersController.USERS_VIEW);
+    }
+
     @RequestMapping(value = "/admin/user/create", method = RequestMethod.GET)
     public String getUserCreatePage(@ModelAttribute("userCreateModel") final UserCreateFormModel userCreateFormModel) {
         return CREATE_USER_VIEW;

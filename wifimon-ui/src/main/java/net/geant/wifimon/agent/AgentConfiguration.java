@@ -29,7 +29,6 @@ import java.security.cert.X509Certificate;
 
 @SpringBootApplication
 @EntityScan("net.geant.wifimon")
-@EnableJpaRepositories
 public class AgentConfiguration {
 
     @Autowired

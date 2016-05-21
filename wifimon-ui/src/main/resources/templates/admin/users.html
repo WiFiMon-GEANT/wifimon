@@ -26,7 +26,10 @@
             </thead>
             <tbody>
             <tr data-th-each="u : ${users}">
-                <td data-th-text="${u.email}"></td>
+                <td>
+                    <a th:href="@{'/admin/user/{id}/delete'(id = ${u.id})}"><span class='glyphicon glyphicon-remove'></span></a>
+                    <span th:text="${u.email}"></span>
+                </td>
                 <td data-th-text="${u.role}"></td>
             </tr>
             </tbody>

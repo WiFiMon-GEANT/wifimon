@@ -1,9 +1,9 @@
 package net.geant.wifimon.agent.model;
 
 import net.geant.wifimon.model.entity.Role;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 
 /**
@@ -11,13 +11,13 @@ import java.io.Serializable;
  */
 public class UserCreateFormModel implements Serializable {
 
-        @NotEmpty
+        @NotNull
         private String email;
 
-        @NotEmpty
+        @NotNull @Size(min = 6, max = 30)
         private String password;
 
-        @NotEmpty
+        @NotNull @Size(min = 6, max = 30)
         private String passwordRepeated;
 
         @NotNull

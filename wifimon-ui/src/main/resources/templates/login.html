@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Login</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.css"/>
@@ -32,10 +31,6 @@
         </form>
     </div>
 </nav>
-
-
-<!--/* A very crude way of telling the user the login failed. */-->
-<p th:if="${param.error}">Login failed.</p>
 
 <div class="navbar navbar-inverse navbar-fixed-bottom" th:fragment="footer">
     <div class="container">
