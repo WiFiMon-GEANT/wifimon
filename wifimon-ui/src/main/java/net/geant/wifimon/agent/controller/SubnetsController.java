@@ -1,8 +1,8 @@
 package net.geant.wifimon.agent.controller;
 
-import net.geant.wifimon.agent.data.Subnet;
 import net.geant.wifimon.agent.repository.SubnetRepository;
 import net.geant.wifimon.agent.validator.SubnetValidator;
+import net.geant.wifimon.model.entity.Subnet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;

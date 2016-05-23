@@ -1,4 +1,4 @@
-package net.geant.wifimon.agent.dto;
+package net.geant.wifimon.model.dto;
 
 import java.io.Serializable;
 

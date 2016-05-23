@@ -1,4 +1,4 @@
-package net.geant.wifimon.processor.data;
+package net.geant.wifimon.model.entity;
 
 import org.hibernate.annotations.ColumnTransformer;
 
@@ -115,7 +115,7 @@ public class GenericMeasurement implements Serializable {
     }
 
     @Column(name = "client_ip")
-    @ColumnTransformer(read="CAST(inet AS varchar)", write="CAST(? AS inet)")
+    @ColumnTransformer(write="CAST(? AS inet)")
     public String getClientIp() {
         return clientIp;
     }

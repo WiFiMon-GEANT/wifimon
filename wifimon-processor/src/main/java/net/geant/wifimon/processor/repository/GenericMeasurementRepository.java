@@ -1,6 +1,6 @@
 package net.geant.wifimon.processor.repository;
 
-import net.geant.wifimon.processor.data.GenericMeasurement;
+import net.geant.wifimon.model.entity.GenericMeasurement;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**

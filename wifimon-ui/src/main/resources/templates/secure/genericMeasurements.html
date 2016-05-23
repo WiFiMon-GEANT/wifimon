@@ -3,8 +3,10 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head>
     <title>Monitoring Results</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.css"/>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -14,53 +16,59 @@
 
 <div class="container" style="padding-top: 10ex; padding-bottom: 10ex;">
 
+    <div th:if="!${#lists.isEmpty(measurements)}">
+        <table class="table table-striped table-bordered table-condensed"
+               style="word-wrap: break-word; table-layout: fixed;">
+            <thead>
+            <td>Id</td>
+            <td>Test Date/Time (UTC)</td>
+            <td>Start Time (UTC)</td>
+            <td>Username</td>
+            <td>Download Rate (KB/s)</td>
+            <td>Upload Rate (KB/s)</td>
+            <td>Ping (ms)</td>
+            <td>Client IP Address</td>
+            <td>Client IP (Logs)</td>
+            <td>Client MAC Address</td>
+            <td>AP IP Address</td>
+            <td>AP MAC Address</td>
+            <td>NAS Port Type</td>
+            <td>User Agent</td>
+            </thead>
+            <tbody>
+            <tr data-th-each="m : ${measurements}">
+                <td data-th-text="${m.id}"></td>
+                <td data-th-text="${m.date}"></td>
+                <td data-th-text="${m.startTime}">...</td>
+                <td data-th-text="${m.username}">...</td>
+                <td data-th-text="${m.downloadRate}"></td>
+                <td data-th-text="${m.uploadRate}"></td>
+                <td data-th-text="${m.localPing}"></td>
+                <td data-th-text="${m.clientIp}">...</td>
+                <td data-th-text="${m.framedIpAddress}">...</td>
+                <td data-th-text="${m.callingStationId}">...</td>
+                <td data-th-text="${m.nasIpAddress}">...</td>
+                <td data-th-text="${m.calledStationId}">...</td>
+                <td data-th-text="${m.nasPortType}">...</td>
+                <td data-th-text="${m.userAgent}">...</td>
+            </tr>
+            </tbody>
+        </table>
 
-                <table class="table table-striped table-bordered table-condensed"
-                       style="word-wrap: break-word; table-layout: fixed;">
-                    <thead>
-                        <td>Id</td>
-                        <td>Test Date/Time (UTC)</td>
-                        <td>Start Time (UTC)</td>
-                        <td>Username</td>
-                        <td>Download Rate (KB/s)</td>
-                        <td>Upload Rate (KB/s)</td>
-                        <td>Ping (ms)</td>
-                        <td>Client IP Address</td>
-                        <td>Client IP (Logs)</td>
-                        <td>Client MAC Address</td>
-                        <td>AP IP Address</td>
-                        <td>AP MAC Address</td>
-                        <td>NAS Port Type</td>
-                        <td>User Agent</td>
-                    </thead>
-                    <tbody>
-                    <tr data-th-each="m : ${measurements}">
-                        <td data-th-text="${m.id}"></td>
-                        <td data-th-text="${m.date}"></td>
-                        <td data-th-text="${m.startTime}">...</td>
-                        <td data-th-text="${m.username}">...</td>
-                        <td data-th-text="${m.downloadRate}"></td>
-                        <td data-th-text="${m.uploadRate}"></td>
-                        <td data-th-text="${m.localPing}"></td>
-                        <td data-th-text="${m.clientIp}">...</td>
-                        <td data-th-text="${m.framedIpAddress}">...</td>
-                        <td data-th-text="${m.callingStationId}">...</td>
-                        <td data-th-text="${m.nasIpAddress}">...</td>
-                        <td data-th-text="${m.calledStationId}">...</td>
-                        <td data-th-text="${m.nasPortType}">...</td>
-                        <td data-th-text="${m.userAgent}">...</td>
-                    </tr>
-                    </tbody>
-            </table>
+        <ul class="pagination pull-right">
+            <li th:class="${page le 0} ? disabled"><a href="generic?move=back">&larr; Previous</a></li>
+            <li class="disabled"><a href="#">
+                <span data-th-text="${page + 1}"/> of
+                <span data-th-text="${totalPages}"/>
+            </a></li>
+            <li th:class="${page ge totalPages - 1} ? disabled"><a href="generic?move=front">Next &rarr;</a></li>
+        </ul>
+    </div>
 
-    <ul class="pagination pull-right">
-        <li th:class="${page le 0} ? disabled"><a href="generic?move=back">&larr; Previous</a></li>
-        <li class="disabled"><a href="#">
-            <span data-th-text="${page + 1}" /> of
-            <span data-th-text="${totalPages}" />
-        </a></li>
-        <li th:class="${page ge totalPages - 1} ? disabled"><a href="generic?move=front">Next &rarr;</a></li>
-    </ul>
+    <div th:if="${#lists.isEmpty(measurements)}" class="alert alert-warning text-center">
+        <strong>No Monitoring results</strong>
+    </div>
+
 
 </div>
 <div th:replace="fragments/footer :: footer">

@@ -1,4 +1,4 @@
-package net.geant.wifimon.processor.data;
+package net.geant.wifimon.model.entity;
 
 import org.apache.commons.net.util.SubnetUtils;
 
@@ -8,7 +8,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
   <head>
   </head>
   <body>
@@ -11,26 +12,29 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand"><img style="margin-top: -5px" src="../../static/images/wifimon-logo-45x20.png" height="23"/></a>
+          <a class="navbar-brand"><img style="margin-top: -5px" th:src="@{/static/images/wifimon-logo-45x20.png}" height="23"/></a>
         </div>
         <div class="container">
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li th:class="${classActiveSettingsHome}"><a href="#" th:href="@{/}">Monitoring Results</a></li>
                 <li th:class="${classActiveSettingsTimeline}"><a href="#" th:href="@{/secure/grafana}">Timeline</a></li>
-                <li th:class="${classActiveSettingsConfig}"><a href="#" th:href="@{/secure/subnets}">Configuration</a></li>
-                <li th:class="${classActiveSettingsGuide}"><a href="#" th:href="@{/secure/guide}">Guide</a></li>
+                <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsConfig}"><a href="#" th:href="@{/secure/subnets}">Configuration</a></li>
+                <li sec:authorize="hasRole('ADMIN')" class="dropdown" th:classappend="${classActiveUsers}">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Users <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" th:href="@{/admin/users}">List</a></li>
+                        <li><a href="#" th:href="@{/admin/user/create}">Create</a></li>
+                    </ul>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsGuide}"><a href="#" th:href="@{/secure/guide}">Guide</a></li>
                 <li th:class="${classActiveSettingsHelp}"><a href="#" th:href="@{/secure/help}">Help</a></li>
             </ul>
-            <ul class="nav navbar-nav navbar-right">
-            <!--<li th:if="${#authorization.expression('!isAuthenticated()')}">
-              <a href="/login" th:href="@{/login}">Sign in</a>
-            </li>-->
-            <!--<li th:if="${#authorization.expression('isAuthenticated()')}">-->
-            <li>
-              <a href="/logout" th:href="@{/logout}">Logout</a>
-            </li>
-          </ul>
+
+            <p class="navbar-text navbar-right">
+                <span sec:authentication="name"></span>&nbsp;
+                <a th:alt="Logout" href="/logout" th:href="@{/logout}" class="navbar-link"><span class="glyphicon glyphicon-log-out"></span></a>
+            </p>
         </div>
         </div>
     </div>
