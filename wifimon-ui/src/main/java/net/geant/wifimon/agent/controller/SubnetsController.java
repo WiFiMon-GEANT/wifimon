@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -35,12 +36,12 @@ public class SubnetsController {
 //        binder.setDisallowedFields("id");
     }
 
-    @RequestMapping(value = "/secure/subnets")
+    @RequestMapping(value = "/secure/subnets", method = RequestMethod.GET)
     public String subnets(@ModelAttribute("sub") final Subnet sub) {
         return "secure/subnets";
     }
 
-    @RequestMapping(value = "/secure/subnets", params = {"save"})
+    @RequestMapping(value = "/secure/subnets", method = RequestMethod.POST)
     public String addSubnet(@ModelAttribute("sub") @Valid final Subnet sub,
                             final BindingResult bindingResult,
                             final ModelMap model) {
