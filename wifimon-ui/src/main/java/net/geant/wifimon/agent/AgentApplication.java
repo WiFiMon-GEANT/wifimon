@@ -28,8 +28,11 @@ import java.security.cert.X509Certificate;
  */
 
 @SpringBootApplication
-@EntityScan("net.geant.wifimon")
-public class AgentConfiguration {
+//@EnableJpaRepositories(AgentApplication.BASE_PACKAGE)
+@EntityScan(basePackages = AgentApplication.BASE_PACKAGE)
+public class AgentApplication {
+
+    public static final String BASE_PACKAGE = "net.geant.wifimon";
 
     @Autowired
     private Environment env;
@@ -70,7 +73,7 @@ public class AgentConfiguration {
     }
 
     public static void main(String... args) {
-        SpringApplication.run(AgentConfiguration.class, args);
+        SpringApplication.run(AgentApplication.class, args);
     }
 
 }
