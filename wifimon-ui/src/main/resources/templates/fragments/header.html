@@ -20,20 +20,14 @@
                 <li th:class="${classActiveSettingsHome}"><a href="#" th:href="@{/}">Monitoring Results</a></li>
                 <li th:class="${classActiveSettingsTimeline}"><a href="#" th:href="@{/secure/grafana}">Timeline</a></li>
                 <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsConfig}"><a href="#" th:href="@{/secure/subnets}">Configuration</a></li>
-                <li sec:authorize="hasRole('ADMIN')" class="dropdown" th:classappend="${classActiveUsers}">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Users <span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#" th:href="@{/admin/users}">List</a></li>
-                        <li><a href="#" th:href="@{/admin/user/create}">Create</a></li>
-                    </ul>
-                </li>
+                <li sec:authorize="hasRole('ADMIN')" th:classappend="${classActiveUsers}"><a href="#" th:href="@{/admin/users}">Users</a></li>
                 <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsGuide}"><a href="#" th:href="@{/secure/guide}">Guide</a></li>
                 <li th:class="${classActiveSettingsHelp}"><a href="#" th:href="@{/secure/help}">Help</a></li>
             </ul>
 
             <p class="navbar-text navbar-right">
                 <span sec:authentication="name"></span>&nbsp;
-                <a th:alt="Logout" href="/logout" th:href="@{/logout}" class="navbar-link"><span class="glyphicon glyphicon-log-out"></span></a>
+                <a th:title="Logout" href="/logout" th:href="@{/logout}" class="navbar-link"><span class="glyphicon glyphicon-log-out"></span></a>
             </p>
         </div>
         </div>
