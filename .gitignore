@@ -9,6 +9,7 @@ log/
 /wifimon-processor/target
 /wifimon-secure-processor/target
 /wifimon-ui/target
+/wifimon-assembly/debug-start.sh
 /wifimon-ui/src/main/resources/application-local.properties
 !gradle-wrapper.jar
 .gradletasknamecache
