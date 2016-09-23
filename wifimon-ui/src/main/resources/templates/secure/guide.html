@@ -41,9 +41,10 @@
         <li><strong><var>cookieTimeInMinutes (optional)</var>:</strong> Duration time (in minutes) to set the cookie in order to prevent repeated measuremetns. If empty, "1.5" is assumed</li>
     </ul>
     <br/>
-    <p><strong>Note: </strong>With the above javascript lines, the images and scripts are downloaded from our Apache Server.
+    <p><strong>Note 1: </strong>With the above javascript lines, the images and scripts are downloaded from our Apache Server.
         Therefore, the Download/Upload Rates and RTT will be relative to this Server. For more
         accurate results you can setup your Apache Server to host the images and scripts <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal1"><span class="glyphicon glyphicon-info-sign"></span></button></p>
+    <p><strong>Note 2: </strong>If the above scripts are to be embedded only to http websites the <strong><var>hostingWebsite="http"</var></strong> attribute can be added at the last script (i.e. <i><code>... id="settings" <strong>hostingWebsite="http"</strong> agentIp="xxx.xxx.xxx.xxx" ...</code></i>). This will direct the measurements to the agent running on port 9000 (http).</p>
 </div>
 
 <!-- Modal -->
