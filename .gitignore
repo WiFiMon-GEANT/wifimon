@@ -9,11 +9,14 @@ log/
 /wifimon-processor/target
 /wifimon-secure-processor/target
 /wifimon-ui/target
+/wifimon-assembly/debug-start.sh
 /wifimon-ui/src/main/resources/application-local.properties
 !gradle-wrapper.jar
 .gradletasknamecache
 /wifimon-secure-processor/src/main/resources/application-local.properties
 /wifimon-secure-processor/src/main/resources/vm11_keystore.jks
 /wifimon-secure-processor/src/main/resources/iucc_keystore.jks
+/wifimon-secure-processor/src/main/resources/wifimon.jks
 /wifimon-ui/src/main/resources/vm11_keystore.jks
+/wifimon-ui/src/main/resources/wifimon.jks
 /wifimon-ui/src/main/resources/iucc_keystore.jks
