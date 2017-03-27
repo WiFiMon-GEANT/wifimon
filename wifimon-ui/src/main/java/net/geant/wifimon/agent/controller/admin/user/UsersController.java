@@ -29,7 +29,7 @@ public class UsersController {
         return new ModelAndView(USERS_VIEW, "users", userService.getAllUsers());
     }
 
-    @ModelAttribute("classActiveUsers")
+    @ModelAttribute("classActiveSettingsConfig")
     public String populateCssClass() {
         return "active";
     }

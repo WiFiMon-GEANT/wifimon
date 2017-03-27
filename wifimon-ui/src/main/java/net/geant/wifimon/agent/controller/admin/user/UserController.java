@@ -5,7 +5,6 @@ import net.geant.wifimon.agent.service.UserService;
 import net.geant.wifimon.agent.validator.UserCreateFormValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
@@ -65,7 +64,7 @@ public class UserController {
         return String.join("/", "redirect:", UsersController.USERS_VIEW);
     }
 
-    @ModelAttribute("classActiveUsers")
+    @ModelAttribute("classActiveSettingsConfig")
     public String populateCssClass() {
         return  "active";
     }

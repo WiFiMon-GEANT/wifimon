@@ -3,9 +3,12 @@ package net.geant.wifimon.agent.controller;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import net.geant.wifimon.agent.repository.AccesspointRepository;
 import net.geant.wifimon.agent.repository.GenericMeasurementRepository;
+import net.geant.wifimon.agent.service.AccesspointService;
 import net.geant.wifimon.agent.util.UiConstants;
 import net.geant.wifimon.model.dto.GrafanaSnapshotResponse;
+import net.geant.wifimon.model.entity.Accesspoint;
 import net.geant.wifimon.model.entity.GenericMeasurement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * Created by kanakisn on 8/5/15.
@@ -35,8 +39,18 @@ public class MeasurementsController implements UiConstants {
     private static final Sort sort = new Sort(
             new Sort.Order(Sort.Direction.DESC,"date"));
 
+    private final AccesspointService accesspointService;
+
+    @Autowired
+    public MeasurementsController(AccesspointService accesspointService) {
+        this.accesspointService = accesspointService;
+    }
+
     @Autowired
     GenericMeasurementRepository gmRepository;
+
+    @Autowired
+    AccesspointRepository accesspointRepository;
 
     @Autowired
     Client client;
@@ -99,5 +113,69 @@ public class MeasurementsController implements UiConstants {
     public String help(Model model, HttpSession session) {
         model.addAttribute("classActiveSettingsHelp","active");
         return "secure/help";
+    }
+
+    @RequestMapping(value = "/secure/map")
+    public String map(Model model, HttpSession session) {
+        for (Accesspoint accesspoint : accesspointRepository.getAll()){
+            /*
+            AccesspointCreateModel accesspointCreateModel = new AccesspointCreateModel();
+            accesspointCreateModel.setApid(accesspoint.getApid());
+            accesspointCreateModel.setMac(accesspoint.getMac());
+            accesspointCreateModel.setLatitude(accesspoint.getLatitude());
+            accesspointCreateModel.setLongitude(accesspoint.getLongitude());
+            accesspointCreateModel.setBuilding(accesspoint.getBuilding());
+            accesspointCreateModel.setFloor(accesspoint.getFloor());
+            accesspointCreateModel.setNotes(accesspoint.getNotes());
+            accesspointCreateModel.setMeasurementscount(gmRepository.findCount(accesspoint.getMac()));
+            accesspointCreateModel.setDownloadavg(gmRepository.findDownloadAvg(accesspoint.getMac()));
+            accesspointCreateModel.setDownloadmin(gmRepository.findDownloadMin(accesspoint.getMac()));
+            accesspointCreateModel.setDownloadmax(gmRepository.findDownloadMax(accesspoint.getMac()));
+            accesspointCreateModel.setUploadavg(gmRepository.findUploadAvg(accesspoint.getMac()));
+            accesspointCreateModel.setUploadmin(gmRepository.findUploadMin(accesspoint.getMac()));
+            accesspointCreateModel.setUploadmax(gmRepository.findUploadMax(accesspoint.getMac()));
+            accesspointCreateModel.setPingavg(gmRepository.findPingAvg(accesspoint.getMac()));
+            accesspointCreateModel.setPingmin(gmRepository.findPingMin(accesspoint.getMac()));
+            accesspointCreateModel.setPingmax(gmRepository.findPingMax(accesspoint.getMac()));
+
+            accesspointRepository.delete(accesspoint.getApid());
+            accesspointService.create(accesspointCreateModel);
+            */
+            String mac = accesspoint.getMac();
+            Integer measurementsCount = gmRepository.findCount(mac);
+            if (measurementsCount != 0) {
+                Double downloadAvg = (double) Math.round(gmRepository.findDownloadAvg(mac) * 10) / 10;
+                Double downloadMin = gmRepository.findDownloadMin(mac);
+                Double downloadMax = gmRepository.findDownloadMax(mac);
+                Double uploadAvg = (double) Math.round(gmRepository.findUploadAvg(mac) * 10) / 10;
+                Double uploadMin = gmRepository.findUploadMin(mac);
+                Double uploadMax = gmRepository.findUploadMax(mac);
+                Double pingAvg = (double) Math.round(gmRepository.findPingAvg(mac) * 10) / 10;
+                Double pingMin = gmRepository.findPingMin(mac);
+                Double pingMax = gmRepository.findPingMax(mac);
+                Integer ap = accesspointRepository.updateApStats(mac,
+                                                                 measurementsCount, downloadAvg, downloadMin, downloadMax,
+                                                                 uploadAvg, uploadMin, uploadMax,
+                                                                 pingAvg, pingMin, pingMax);
+            } else {
+                Double downloadAvg = 0.0;
+                Double downloadMin = 0.0;
+                Double downloadMax = 0.0;
+                Double uploadAvg = 0.0;
+                Double uploadMin = 0.0;
+                Double uploadMax = 0.0;
+                Double pingAvg = 0.0;
+                Double pingMin = 0.0;
+                Double pingMax = 0.0;
+                Integer ap = accesspointRepository.updateApStats(mac,
+                                                                 measurementsCount, downloadAvg, downloadMin, downloadMax,
+                                                                 uploadAvg, uploadMin, uploadMax,
+                                                                 pingAvg, pingMin, pingMax);
+            }
+        }
+        List<Accesspoint> accesspointsList = accesspointRepository.getAll();
+        model.addAttribute("accesspointsMap", accesspointsList);
+        model.addAttribute("classActiveSettingsMap","active");
+        return "secure/map";
     }
 }
