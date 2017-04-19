@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created by kanakisn on 12/02/16.
+ * Created by kokkinos on 12/02/16.
  */
 @Component
 @Path("/wifimon")
@@ -53,6 +53,8 @@ public class AggregatorResource {
         String agent = request.getHeader("User-Agent");
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
+        //deleting radacct records older than 1 day
+        Integer integer = radiusRepository.deleteOldRecords();
         Radius r = radiusRepository.find(ip, new Date());
         if (r != null) {
             Accesspoint ap = accesspointsRepository.find(r.getCalledStationId());

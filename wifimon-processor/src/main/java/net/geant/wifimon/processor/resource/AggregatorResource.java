@@ -53,6 +53,8 @@ public class AggregatorResource {
         String agent = request.getHeader("User-Agent");
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
+        //deleting radacct records older than 1 day
+        Integer integer = radiusRepository.deleteOldRecords();
         Radius r = radiusRepository.find(ip, new Date());
         if (r != null) {
             Accesspoint ap = accesspointsRepository.find(r.getCalledStationId());
