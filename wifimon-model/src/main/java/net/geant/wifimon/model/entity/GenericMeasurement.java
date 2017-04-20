@@ -38,6 +38,12 @@ public class GenericMeasurement implements Serializable {
     private String nasPortId;
     private String nasPortType;
     private String nasIpAddress;
+    private String apMac;
+    private String apLatitude;
+    private String apLongitude;
+    private String apBuilding;
+    private String apFloor;
+    private String apNotes;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -214,6 +220,60 @@ public class GenericMeasurement implements Serializable {
         this.nasIpAddress = nasIpAddress;
     }
 
+    @Column(name = "apmac")
+    public String getApMac() {
+        return apMac;
+    }
+
+    public void setApMac(String apMac) {
+        this.apMac = apMac;
+    }
+
+    @Column(name = "aplatitude")
+    public String getApLatitude() {
+        return apLatitude;
+    }
+
+    public void setApLatitude(String apLatitude) {
+        this.apLatitude = apLatitude;
+    }
+
+    @Column(name = "aplongitude")
+    public String getApLongitude() {
+        return apLongitude;
+    }
+
+    public void setApLongitude(String apLongitude) {
+        this.apLongitude = apLongitude;
+    }
+
+    @Column(name = "apbuilding")
+    public String getApBuilding() {
+        return apBuilding;
+    }
+
+    public void setApBuilding(String apBuilding) {
+        this.apBuilding = apBuilding;
+    }
+
+    @Column(name = "apfloor")
+    public String getApFloor() {
+        return apFloor;
+    }
+
+    public void setApFloor(String apFloor) {
+        this.apFloor = apFloor;
+    }
+
+    @Column(name = "apnotes")
+    public String getApNotes() {
+        return apNotes;
+    }
+
+    public void setApNotes(String apNotes) {
+        this.apNotes = apNotes;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -257,7 +317,20 @@ public class GenericMeasurement implements Serializable {
             return false;
         if (nasPortType != null ? !nasPortType.equals(that.nasPortType) : that.nasPortType != null)
             return false;
+        if (apMac != null ? !apMac.equals(that.apMac) : that.apMac!= null)
+            return false;
+        if (apLatitude != null ? !apLatitude.equals(that.apLatitude) : that.apLatitude!= null)
+            return false;
+        if (apLongitude != null ? !apLongitude.equals(that.apLongitude) : that.apLongitude!= null)
+            return false;
+        if (apBuilding != null ? !apBuilding.equals(that.apBuilding) : that.apBuilding!= null)
+            return false;
+        if (apFloor != null ? !apFloor.equals(that.apFloor) : that.apFloor!= null)
+            return false;
+        if (apNotes != null ? !apNotes.equals(that.apNotes) : that.apNotes!= null)
+            return false;
         return nasIpAddress != null ? nasIpAddress.equals(that.nasIpAddress) : that.nasIpAddress == null;
+
 
     }
 
@@ -281,6 +354,12 @@ public class GenericMeasurement implements Serializable {
         result = 31 * result + (nasPortId != null ? nasPortId.hashCode() : 0);
         result = 31 * result + (nasPortType != null ? nasPortType.hashCode() : 0);
         result = 31 * result + (nasIpAddress != null ? nasIpAddress.hashCode() : 0);
+        result = 31 * result + (apMac != null ? apMac.hashCode() : 0);
+        result = 31 * result + (apLatitude != null ? apLatitude.hashCode() : 0);
+        result = 31 * result + (apLongitude != null ? apLongitude.hashCode() : 0);
+        result = 31 * result + (apBuilding != null ? apBuilding.hashCode() : 0);
+        result = 31 * result + (apFloor != null ? apFloor.hashCode() : 0);
+        result = 31 * result + (apNotes != null ? apNotes.hashCode() : 0);
         return result;
     }
 }

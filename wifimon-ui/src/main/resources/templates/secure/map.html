@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <title>Measurements map</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.css"/>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key= AIzaSyCXdo_Op4uqweUGFkXgO_8EA230aLEEhTs&amp;callback=map"></script>
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+
+        function load() {
+            var map = new google.maps.Map(document.getElementById("map"), {
+                center: new google.maps.LatLng(50, 20),
+                zoom: 3,
+                mapTypeId: 'roadmap'
+            });
+            var infoWindow = new google.maps.InfoWindow;
+            var accesspointslist = /*[[${accesspointsMap}]]*/;
+            for (var i = 0; accesspointslist.length; i++) {
+                if (typeof accesspointslist[i].mac !== 'undefined' && accesspointslist[i].mac !== null) {
+                    var ap_mac = accesspointslist[i].mac;
+                }else{
+                    var ap_mac = "-";
+                }
+                if (typeof accesspointslist[i].measurementscount !== 'undefined' && accesspointslist[i].measurementscount !== null) {
+                    var measurement_count = accesspointslist[i].measurementscount;
+                }else{
+                    var measurement_count = "-";
+                }
+                if (typeof accesspointslist[i].downloadavg !== 'undefined' && accesspointslist[i].downloadavg !== null) {
+                    var measurement_download_rate_avg = accesspointslist[i].downloadavg;
+                }else{
+                    var measurement_download_rate_avg = "-";
+                }
+                if (typeof accesspointslist[i].downloadmax !== 'undefined' && accesspointslist[i].downloadmax !== null) {
+                    var measurement_download_rate_max = accesspointslist[i].downloadmax;
+                }else{
+                    var measurement_download_rate_max = "-";
+                }
+                if (typeof accesspointslist[i].downloadmin !== 'undefined' && accesspointslist[i].downloadmin !== null) {
+                    var measurement_download_rate_min = accesspointslist[i].downloadmin;
+                }else{
+                    var measurement_download_rate_min = "-";
+                }
+                if (typeof accesspointslist[i].uploadavg !== 'undefined' && accesspointslist[i].uploadavg !== null) {
+                    var measurement_upload_rate_avg = accesspointslist[i].uploadavg;
+                }else{
+                    var measurement_upload_rate_avg = "-";
+                }
+                if (typeof accesspointslist[i].uploadmax !== 'undefined' && accesspointslist[i].uploadmax !== null) {
+                    var measurement_upload_rate_max = accesspointslist[i].uploadmax;
+                }else{
+                    var measurement_upload_rate_max = "-";
+                }
+                if (typeof accesspointslist[i].uploadmin !== 'undefined' && accesspointslist[i].uploadmin !== null) {
+                    var measurement_upload_rate_min = accesspointslist[i].uploadmin;
+                }else{
+                    var measurement_upload_rate_min = "-";
+                }
+
+                if (typeof accesspointslist[i].pingavg !== 'undefined' && accesspointslist[i].pingavg !== null) {
+                    var measurement_local_ping_avg = accesspointslist[i].pingavg;
+                }else{
+                    var measurement_local_ping_avg = "-";
+                }
+                if (typeof accesspointslist[i].pingmax !== 'undefined' && accesspointslist[i].pingmax !== null) {
+                    var measurement_local_ping_max = accesspointslist[i].pingmax;
+                }else{
+                    var measurement_local_ping_max = "-";
+                }
+                if (typeof accesspointslist[i].pingmin !== 'undefined' && accesspointslist[i].pingmin !== null) {
+                    var measurement_local_ping_min = accesspointslist[i].pingmin;
+                }else{
+                    var measurement_local_ping_min = "-";
+                }
+                if (typeof accesspointslist[i].building !== 'undefined' && accesspointslist[i].building !== null) {
+                    var ap_building = accesspointslist[i].building;
+                }else{
+                    var ap_building = "-";
+                }
+                if (typeof accesspointslist[i].floor !== 'undefined' && accesspointslist[i].floor !== null) {
+                    var ap_floor = accesspointslist[i].floor;
+                }else{
+                    var ap_floor = "-";
+                }
+
+                if (typeof accesspointslist[i].latitude !== 'undefined' && accesspointslist[i].latitude !== null && typeof accesspointslist[i].longitude !== 'undefined' && accesspointslist[i].longitude !== null) {
+                    var point = new google.maps.LatLng(
+                            parseFloat(accesspointslist[i].latitude),
+                            parseFloat(accesspointslist[i].longitude));
+                    var html = "<p align=\"left\"><b>Access point MAC (" + ap_mac + ")</b><p/> " +
+                            "<p align=\"left\"><b>Info: (</b>Building: <i>" + ap_building + "</i>   -   Floor: <i>" + ap_floor + "</i><b>)</b><p/>" +
+                            "<p align=\"left\"><b>Total Measurements: </b>" + measurement_count + "<p/>" +
+                            "<p align=\"left\"><b>Download rate: </b>" + measurement_download_rate_avg + " Kbps (avg), " +
+                            measurement_download_rate_max + " Kbps (max), " + measurement_download_rate_min + " Kbps (min)<p/>" +
+                            "<p align=\"left\"><b>Upload rate: </b>" + measurement_upload_rate_avg + " Kbps (avg), " +
+                            measurement_upload_rate_max + " Kbps (max), " + measurement_upload_rate_min + " Kbps (min)<p/>" +
+                            "<p align=\"left\"><b>Round Trip Time: </b>" + measurement_local_ping_avg + " ms (avg), " +
+                            measurement_local_ping_max + " ms (max), " + measurement_local_ping_min + " ms (min)<p/>";
+                    var marker = new google.maps.Marker({
+                        map: map,
+                        position: point,
+                        icon: '../../static/images/mm_20_blue.png'
+                    });
+                    bindInfoWindow(marker, map, infoWindow, html);
+                }
+            }
+        }
+
+        function bindInfoWindow(marker, map, infoWindow, html) {
+            google.maps.event.addListener(marker, 'click', function() {
+                infoWindow.setContent(html);
+                infoWindow.open(map, marker);
+            });
+        }
+
+        function doNothing() {}
+
+    /*]]>*/
+    </script>
+</head>
+
+
+<body onload="load()">
+    <div th:replace="fragments/header :: header">
+    </div>
+
+    <div class="container" style="padding-top: 10ex; padding-bottom: 10ex;">
+        <h3>Measurements Map</h3>
+        <!--<div class="panel-body">
+            <div th:unless="${#lists.isEmpty(accesspointsMap)}">
+                <table class="table table-striped table-bordered table-condensed"
+                       style="word-wrap: break-word; table-layout: fixed;">
+                    <thead>
+                    <td>ID</td>
+                    <td>MAC Address</td>
+                    <td>Latitude</td>
+                    <td>Longitude</td>
+                    <td>Building</td>
+                    <td>Floor</td>
+                    <td>Notes</td>
+                    <td>Count</td>
+                    <td>D.avg</td>
+                    <td>D.min</td>
+                    <td>D.max</td>
+                    <td>U.avg</td>
+                    <td>U.min</td>
+                    <td>U.max</td>
+                    <td>P.avg</td>
+                    <td>P.min</td>
+                    <td>P.max</td>
+                    </thead>
+                    <tbody>
+                    <tr data-th-each="u : ${accesspointsMap}">
+                        <td data-th-text="${u.apid}"></td>
+                        <td data-th-text="${u.mac}"></td>
+                        <td data-th-text="${u.latitude}"></td>
+                        <td data-th-text="${u.longitude}"></td>
+                        <td data-th-text="${u.building}"></td>
+                        <td data-th-text="${u.floor}"></td>
+                        <td data-th-text="${u.notes}"></td>
+                        <td data-th-text="${u.measurementscount}"></td>
+                        <td data-th-text="${u.downloadavg}"></td>
+                        <td data-th-text="${u.downloadmin}"></td>
+                        <td data-th-text="${u.downloadmax}"></td>
+                        <td data-th-text="${u.uploadavg}"></td>
+                        <td data-th-text="${u.uploadmin}"></td>
+                        <td data-th-text="${u.uploadmax}"></td>
+                        <td data-th-text="${u.pingavg}"></td>
+                        <td data-th-text="${u.pingmin}"></td>
+                        <td data-th-text="${u.pingmax}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:unless="!${#lists.isEmpty(accesspointsMap)}" class="alert alert-warning text-center">
+                <strong>No Access Points found</strong>
+            </div>
+        </div>-->
+        <div class="row">
+            <div class="col-md-12" align="center">
+                <div class="row">
+                    <div id="map" style="width:800px;height:500px;background:grey"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div th:replace="fragments/footer :: footer"></div>
+</body>
+
+
+</html>

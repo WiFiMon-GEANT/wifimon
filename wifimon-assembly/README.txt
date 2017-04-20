@@ -16,7 +16,7 @@ components.
 sudo apt-get install postgresql postgresql-contrib phppgadmin
 
 
-********** POSTGRESQL DATABASE AND TABLES (7 steps) **********
+********** POSTGRESQL DATABASE AND TABLES (8 steps) **********
 
 ***** Step 1: Create database and user *****
 su postgres
@@ -62,7 +62,28 @@ password_hash text NOT NULL,
 role text NOT NULL
 );
 
-***** Step 5: radacct table *****
+***** Step 5: Create accesspoints table *****
+CREATE TABLE accesspoints (
+apid serial PRIMARY KEY,
+mac text NOT NULL,
+latitude text,
+longitude text,
+building text,
+floor text,
+notes text,
+measurementscount int,
+downloadavg double precision,
+downloadmin double precision,
+downloadmax double precision,
+uploadavg double precision,
+uploadmin double precision,
+uploadmax double precision,
+pingavg double precision,
+pingmin double precision,
+pingmax double precision
+);
+
+***** Step 6: radacct table *****
 SQL accounting for the freeRADIUS server should be enabled and the records should
 be inserted in the radacct table of nettest_database. This table should have
 the following columns and types:
@@ -125,22 +146,24 @@ CREATE TABLE radacct (
     radacctid serial PRIMARY KEY
 );
 
-***** Step 6: Setting privileges commands (if necessary) *****
+***** Step 7: Setting privileges commands (if necessary) *****
 su postgres
 psql
 GRANT USAGE ON SCHEMA public to nettest_user;
 GRANT CONNECT ON DATABASE nettest_database to nettest_user;
 \c nettest_database
 GRANT USAGE ON SCHEMA public to nettest_user;
-GRANT SELECT ON measurements, radacct, subnets, users TO nettest_user;
-GRANT INSERT ON measurements, radacct, subnets, users TO nettest_user;
-GRANT DELETE ON measurements, radacct, subnets, users TO nettest_user;
+GRANT SELECT ON measurements, radacct, subnets, users, accesspoints TO nettest_user;
+GRANT INSERT ON measurements, radacct, subnets, users, accesspoints TO nettest_user;
+GRANT DELETE ON measurements, radacct, subnets, users, accesspoints TO nettest_user;
+GRANT UPDATE ON accesspoints TO nettest_user;
 GRANT USAGE, SELECT ON SEQUENCE measurements_measurement_id_seq TO nettest_user;
 GRANT USAGE, SELECT ON SEQUENCE radacct_radacctid_seq TO nettest_user;
 GRANT USAGE, SELECT ON SEQUENCE subnets_subnet_id_seq TO nettest_user;
 GRANT USAGE, SELECT ON SEQUENCE users_id_seq TO nettest_user;
+GRANT USAGE, SELECT, UPDATE ON SEQUENCE accesspoints_apid_seq TO nettest_user;
 
-***** Step 7: Create an admin account to login *****
+***** Step 8: Create an admin account to login *****
 su postgres
 psql
 \c nettest_database

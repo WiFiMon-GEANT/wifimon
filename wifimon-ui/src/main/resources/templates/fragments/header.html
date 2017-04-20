@@ -19,8 +19,14 @@
             <ul class="nav navbar-nav">
                 <li th:class="${classActiveSettingsHome}"><a href="#" th:href="@{/}">Monitoring Results</a></li>
                 <li th:class="${classActiveSettingsTimeline}"><a href="#" th:href="@{/secure/grafana}">Timeline</a></li>
-                <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsConfig}"><a href="#" th:href="@{/secure/subnets}">Configuration</a></li>
-                <li sec:authorize="hasRole('ADMIN')" th:classappend="${classActiveUsers}"><a href="#" th:href="@{/admin/users}">Users</a></li>
+                <li th:class="${classActiveSettingsMap}"><a href="#" th:href="@{/secure/map}">Map</a></li>
+                <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsConfig}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Configuration<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/secure/subnets}">Subnets</a></li>
+                        <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/accesspoints}">Access Points</a></li>
+                        <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/users}">Users</a></li>
+                    </ul>
+                </li>
                 <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsGuide}"><a href="#" th:href="@{/secure/guide}">Guide</a></li>
                 <li th:class="${classActiveSettingsHelp}"><a href="#" th:href="@{/secure/help}">Help</a></li>
             </ul>

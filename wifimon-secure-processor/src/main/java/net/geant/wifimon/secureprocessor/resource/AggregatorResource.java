@@ -1,9 +1,11 @@
 package net.geant.wifimon.secureprocessor.resource;
 
 import net.geant.wifimon.model.dto.NetTestMeasurement;
+import net.geant.wifimon.model.entity.Accesspoint;
 import net.geant.wifimon.model.entity.GenericMeasurement;
 import net.geant.wifimon.model.entity.Radius;
 import net.geant.wifimon.model.entity.Subnet;
+import net.geant.wifimon.secureprocessor.repository.AccesspointsRepository;
 import net.geant.wifimon.secureprocessor.repository.GenericMeasurementRepository;
 import net.geant.wifimon.secureprocessor.repository.RadiusRepository;
 import net.geant.wifimon.secureprocessor.repository.SubnetRepository;
@@ -23,9 +25,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created by kokkinos on 2/9/2016.
+ * Created by kokkinos on 12/02/16.
  */
-
 @Component
 @Path("/wifimon")
 public class AggregatorResource {
@@ -42,15 +43,27 @@ public class AggregatorResource {
     @Autowired
     SubnetRepository subnetRepository;
 
+    @Autowired
+    AccesspointsRepository accesspointsRepository;
+
+
     @POST
     @Path("/add")
     public Response correlate(final NetTestMeasurement measurement, @Context HttpServletRequest request) {
         String agent = request.getHeader("User-Agent");
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
+        //deleting radacct records older than 1 day
+        Integer integer = radiusRepository.deleteOldRecords();
         Radius r = radiusRepository.find(ip, new Date());
+        if (r != null) {
+            Accesspoint ap = accesspointsRepository.find(r.getCalledStationId());
+            return addGrafanaMeasurement(addMeasurement(measurement, r, ap, ip, agent));
+        }else {
+            return addGrafanaMeasurement(addMeasurement(measurement, r, ip, agent));
+        }
 //        if (r == null) return Response.serverError().build();
-        return addGrafanaMeasurement(addMeasurement(measurement, r, ip, agent));
+
     }
 
     @POST
@@ -98,6 +111,35 @@ public class AggregatorResource {
         } catch (Exception e) {
             return Response.serverError().build();
         }
+    }
+
+    private GenericMeasurement addMeasurement(NetTestMeasurement measurement, Radius radius, Accesspoint accesspoint, String ip, String agent) {
+        GenericMeasurement m = new GenericMeasurement();
+        m.setDate(new Date());
+        m.setDownloadRate(measurement.getDownloadThroughput());
+        m.setUploadRate(measurement.getUploadThroughput());
+        m.setLocalPing(measurement.getLocalPing());
+        m.setLatitude(Double.valueOf(measurement.getLatitude()));
+        m.setLongitude(Double.valueOf(measurement.getLongitude()));
+        m.setLocationMethod(measurement.getLocationMethod());
+        m.setClientIp(ip);
+        m.setUserAgent(agent);
+        m.setStartTime(radius != null ? radius.getStartTime() : null);
+        m.setUsername(radius != null ? radius.getUsername() : null);
+        m.setFramedIpAddress(radius != null ? radius.getFramedIpAddress() : null);
+        m.setSessionId(radius != null ? radius.getSessionId() : null);
+        m.setCallingStationId(radius != null ? radius.getCallingStationId() : null);
+        m.setCalledStationId(radius != null ? radius.getCalledStationId() : null);
+        m.setNasPortId(radius != null ? radius.getNasPortId() : null);
+        m.setNasPortType(radius != null ? radius.getNasPortType() : null);
+        m.setNasIpAddress(radius != null ? radius.getNasIpAddress() : null);
+        m.setApMac(accesspoint != null ? accesspoint.getMac() : null);
+        m.setApLatitude(accesspoint != null ? accesspoint.getLatitude() : null);
+        m.setApLongitude(accesspoint != null ? accesspoint.getLongitude() : null);
+        m.setApBuilding(accesspoint != null ? accesspoint.getBuilding() : null);
+        m.setApFloor(accesspoint != null ? accesspoint.getFloor() : null);
+        m.setApNotes(accesspoint != null ? accesspoint.getNotes() : null);
+        return measurementRepository.save(m);
     }
 
     private GenericMeasurement addMeasurement(NetTestMeasurement measurement, Radius radius, String ip, String agent) {
