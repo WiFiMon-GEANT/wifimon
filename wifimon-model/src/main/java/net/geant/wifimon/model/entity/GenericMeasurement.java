@@ -38,6 +38,7 @@ public class GenericMeasurement implements Serializable {
     private String nasPortId;
     private String nasPortType;
     private String nasIpAddress;
+    private String testTool;
     private String apMac;
     private String apLatitude;
     private String apLongitude;
@@ -220,6 +221,15 @@ public class GenericMeasurement implements Serializable {
         this.nasIpAddress = nasIpAddress;
     }
 
+    @Column(name = "testtool")
+    public String getTestTool() {
+        return testTool;
+    }
+
+    public void setTestTool(String testTool) {
+        this.testTool = testTool;
+    }
+
     @Column(name = "apmac")
     public String getApMac() {
         return apMac;
@@ -329,6 +339,8 @@ public class GenericMeasurement implements Serializable {
             return false;
         if (apNotes != null ? !apNotes.equals(that.apNotes) : that.apNotes!= null)
             return false;
+        if (testTool != null ? !testTool.equals(that.testTool) : that.testTool!= null)
+            return false;
         return nasIpAddress != null ? nasIpAddress.equals(that.nasIpAddress) : that.nasIpAddress == null;
 
 
@@ -354,6 +366,7 @@ public class GenericMeasurement implements Serializable {
         result = 31 * result + (nasPortId != null ? nasPortId.hashCode() : 0);
         result = 31 * result + (nasPortType != null ? nasPortType.hashCode() : 0);
         result = 31 * result + (nasIpAddress != null ? nasIpAddress.hashCode() : 0);
+        result = 31 * result + (testTool != null ? testTool.hashCode() : 0);
         result = 31 * result + (apMac != null ? apMac.hashCode() : 0);
         result = 31 * result + (apLatitude != null ? apLatitude.hashCode() : 0);
         result = 31 * result + (apLongitude != null ? apLongitude.hashCode() : 0);

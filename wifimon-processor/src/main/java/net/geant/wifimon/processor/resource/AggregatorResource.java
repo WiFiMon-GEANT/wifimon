@@ -105,6 +105,7 @@ public class AggregatorResource {
                     .field("UploadThroughtput",
                             measurement.getUploadRate() == -1 ? -1d : measurement.getUploadRate() * 8 * 1000)
                     .field("ping", measurement.getLocalPing() == -1 ? -1d : measurement.getLocalPing())
+                    .tag("testTool", measurement.getTestTool() != null ? measurement.getTestTool() : "N/A")
                     .build();
             influxDB.write("wifimon", "default", point);
             return Response.ok().build();
@@ -133,6 +134,7 @@ public class AggregatorResource {
         m.setNasPortId(radius != null ? radius.getNasPortId() : null);
         m.setNasPortType(radius != null ? radius.getNasPortType() : null);
         m.setNasIpAddress(radius != null ? radius.getNasIpAddress() : null);
+        m.setTestTool(measurement.getTestTool());
         m.setApMac(accesspoint != null ? accesspoint.getMac() : null);
         m.setApLatitude(accesspoint != null ? accesspoint.getLatitude() : null);
         m.setApLongitude(accesspoint != null ? accesspoint.getLongitude() : null);
@@ -162,6 +164,7 @@ public class AggregatorResource {
         m.setNasPortId(radius != null ? radius.getNasPortId() : null);
         m.setNasPortType(radius != null ? radius.getNasPortType() : null);
         m.setNasIpAddress(radius != null ? radius.getNasIpAddress() : null);
+        m.setTestTool(measurement.getTestTool());
         return measurementRepository.save(m);
     }
 
