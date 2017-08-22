@@ -9,12 +9,23 @@
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key= AIzaSyCXdo_Op4uqweUGFkXgO_8EA230aLEEhTs&amp;callback=map"></script>
     <script th:inline="javascript">
-    /*<![CDATA[*/
+        /*<![CDATA[*/
 
         function load() {
+            var mapzoomsettings = /*[[${mapSettings}]]*/;
+            if (typeof mapzoomsettings == 'undefined' || mapzoomsettings == null || mapzoomsettings[0] == null) {
+                var map_zoom = 3;
+                var map_center_latitude = 50;
+                var map_center_longitude = 20;
+            }else{
+                var map_zoom = mapzoomsettings[0].mapzoom;
+                var map_center_latitude = Number(mapzoomsettings[0].maplatitude);
+                var map_center_longitude = Number(mapzoomsettings[0].maplongitude);
+            }
+
             var map = new google.maps.Map(document.getElementById("map"), {
-                center: new google.maps.LatLng(50, 20),
-                zoom: 3,
+                center: new google.maps.LatLng(map_center_latitude, map_center_longitude),
+                zoom: map_zoom,
                 mapTypeId: 'roadmap'
             });
             var infoWindow = new google.maps.InfoWindow;
@@ -119,78 +130,69 @@
 
         function doNothing() {}
 
-    /*]]>*/
+        /*]]>*/
     </script>
 </head>
 
 
 <body onload="load()">
-    <div th:replace="fragments/header :: header">
-    </div>
+<div th:replace="fragments/header :: header"></div>
 
-    <div class="container" style="padding-top: 10ex; padding-bottom: 10ex;">
-        <h3>Measurements Map</h3>
-        <!--<div class="panel-body">
-            <div th:unless="${#lists.isEmpty(accesspointsMap)}">
-                <table class="table table-striped table-bordered table-condensed"
-                       style="word-wrap: break-word; table-layout: fixed;">
-                    <thead>
-                    <td>ID</td>
-                    <td>MAC Address</td>
-                    <td>Latitude</td>
-                    <td>Longitude</td>
-                    <td>Building</td>
-                    <td>Floor</td>
-                    <td>Notes</td>
-                    <td>Count</td>
-                    <td>D.avg</td>
-                    <td>D.min</td>
-                    <td>D.max</td>
-                    <td>U.avg</td>
-                    <td>U.min</td>
-                    <td>U.max</td>
-                    <td>P.avg</td>
-                    <td>P.min</td>
-                    <td>P.max</td>
-                    </thead>
-                    <tbody>
-                    <tr data-th-each="u : ${accesspointsMap}">
-                        <td data-th-text="${u.apid}"></td>
-                        <td data-th-text="${u.mac}"></td>
-                        <td data-th-text="${u.latitude}"></td>
-                        <td data-th-text="${u.longitude}"></td>
-                        <td data-th-text="${u.building}"></td>
-                        <td data-th-text="${u.floor}"></td>
-                        <td data-th-text="${u.notes}"></td>
-                        <td data-th-text="${u.measurementscount}"></td>
-                        <td data-th-text="${u.downloadavg}"></td>
-                        <td data-th-text="${u.downloadmin}"></td>
-                        <td data-th-text="${u.downloadmax}"></td>
-                        <td data-th-text="${u.uploadavg}"></td>
-                        <td data-th-text="${u.uploadmin}"></td>
-                        <td data-th-text="${u.uploadmax}"></td>
-                        <td data-th-text="${u.pingavg}"></td>
-                        <td data-th-text="${u.pingmin}"></td>
-                        <td data-th-text="${u.pingmax}"></td>
-                    </tr>
-                    </tbody>
-                </table>
+<div class="container" style="padding-top: 10ex; padding-bottom: 10ex;">
+    <h3>Measurements Map</h3>
+
+    <!--TODO Add table with statistics-->
+
+    <div class="row">
+        <div class="col-md-12" align="center">
+            <div class="row">
+                <div id="map" style="width:650px;height:400px;background:grey"></div>
             </div>
-            <div th:unless="!${#lists.isEmpty(accesspointsMap)}" class="alert alert-warning text-center">
-                <strong>No Access Points found</strong>
+        </div>
+    </div>
+    <p></p>
+    <div class="row">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="pull-left"><h4>Map zoom options</h4></span>
+                <span class="pull-right">
+                    <a href="#" th:unless="${#lists.isEmpty(mapSettings)}" th:href="@{/secure/editMapSettings}" class="btn btn-success" title="Edit map zoom settings">
+                        <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                    </a>
+                    <a href="#" th:unless="!${#lists.isEmpty(mapSettings)}" th:href="@{/secure/editMapSettings}" class="btn btn-success" title="Insert map zoom settings">
+                        <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+                    </a>
+                </span>
+                <div class="clearfix"></div>
             </div>
-        </div>-->
-        <div class="row">
-            <div class="col-md-12" align="center">
-                <div class="row">
-                    <div id="map" style="width:800px;height:500px;background:grey"></div>
+            <div class="panel-body">
+                <div th:unless="${#lists.isEmpty(mapSettings)}">
+                    <table class="table table-striped table-bordered table-condensed"
+                           style="word-wrap: break-word; table-layout: fixed;">
+                        <thead>
+                        <td>Zoom Level</td>
+                        <td>Center Latitude</td>
+                        <td>Center Longitude</td>
+                        </thead>
+                        <tbody>
+                        <tr data-th-each="u : ${mapSettings}">
+                            <td data-th-text="${u.mapzoom}"></td>
+                            <td data-th-text="${u.maplatitude}"></td>
+                            <td data-th-text="${u.maplongitude}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div th:unless="!${#lists.isEmpty(mapSettings)}" class="alert alert-warning text-center">
+                    <strong>Map zoom settings not set</strong>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
 
-    <div th:replace="fragments/footer :: footer"></div>
+<div th:replace="fragments/footer :: footer"></div>
 </body>
 
 
