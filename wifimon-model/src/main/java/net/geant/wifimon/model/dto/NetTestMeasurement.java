@@ -21,6 +21,7 @@ public class NetTestMeasurement implements Serializable {
     private String calledStationId;
     private String nasPortType;
     private String nasIpAddress;
+    private String testTool;
 
     public Long getDate() {
         return date;
@@ -134,6 +135,14 @@ public class NetTestMeasurement implements Serializable {
         this.nasIpAddress = nasIpAddress;
     }
 
+    public String getTestTool() {
+        return testTool;
+    }
+
+    public void setTestTool(String testTool) {
+        this.testTool = testTool;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -169,6 +178,8 @@ public class NetTestMeasurement implements Serializable {
             return false;
         if (nasPortType != null ? !nasPortType.equals(that.nasPortType) : that.nasPortType != null)
             return false;
+        if (testTool != null ? !testTool.equals(that.testTool) : that.testTool!= null)
+            return false;
         return nasIpAddress != null ? nasIpAddress.equals(that.nasIpAddress) : that.nasIpAddress == null;
 
     }
@@ -189,6 +200,7 @@ public class NetTestMeasurement implements Serializable {
         result = 31 * result + (calledStationId != null ? calledStationId.hashCode() : 0);
         result = 31 * result + (nasPortType != null ? nasPortType.hashCode() : 0);
         result = 31 * result + (nasIpAddress != null ? nasIpAddress.hashCode() : 0);
+        result = 31 * result + (testTool != null ? testTool.hashCode() : 0);
         return result;
     }
 

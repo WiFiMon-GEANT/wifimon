@@ -5,11 +5,16 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import net.geant.wifimon.agent.repository.AccesspointRepository;
 import net.geant.wifimon.agent.repository.GenericMeasurementRepository;
+import net.geant.wifimon.agent.repository.MapSettingsRepository;
+import net.geant.wifimon.agent.repository.VisualOptionsRepository;
 import net.geant.wifimon.agent.service.AccesspointService;
 import net.geant.wifimon.agent.util.UiConstants;
 import net.geant.wifimon.model.dto.GrafanaSnapshotResponse;
 import net.geant.wifimon.model.entity.Accesspoint;
 import net.geant.wifimon.model.entity.GenericMeasurement;
+import net.geant.wifimon.model.entity.MapSettings;
+import net.geant.wifimon.model.entity.Units;
+import net.geant.wifimon.model.entity.UserData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +58,12 @@ public class MeasurementsController implements UiConstants {
     AccesspointRepository accesspointRepository;
 
     @Autowired
+    VisualOptionsRepository visualOptionsRepository;
+
+    @Autowired
+    MapSettingsRepository mapSettingsRepository;
+
+    @Autowired
     Client client;
 
     @Value("${grafana.port}") @NotNull
@@ -62,6 +73,22 @@ public class MeasurementsController implements UiConstants {
     public String afterLogin(@RequestParam(value = "move", required = false) String move, Model model,
                              HttpSession session) {
         Integer page = (Integer) session.getAttribute("page");
+        String userdata;
+        String measurementUnits;
+        if (visualOptionsRepository.countEntries() < 1) {
+            userdata = UserData.Show.toString();
+            measurementUnits = Units.KBps.toString();
+        }else{
+            userdata = visualOptionsRepository.getLastEntry().getUserdata().toString();
+            measurementUnits = visualOptionsRepository.getLastEntry().getUnits().toString();
+        }
+
+        boolean userDataView = ((userdata == "Show") ? true : false);
+        boolean selectUnitsMBps = ((measurementUnits == "MBps") ? true : false);
+        boolean selectUnitsMbps = ((measurementUnits == "Mbps") ? true : false);
+        boolean selectUnitsKBps = ((measurementUnits == "KBps") ? true : false);
+        boolean selectUnitsKbps = ((measurementUnits == "Kbps") ? true : false);
+
         if (page != null && move != null && !move.isEmpty()) {
             if ("front".equals(move)) page++;
             if ("back".equals(move)) page--;
@@ -77,6 +104,11 @@ public class MeasurementsController implements UiConstants {
         }
         session.setAttribute("page", page);
         model.addAttribute("measurements", measurementPage.getContent());
+        model.addAttribute("userdataview", userDataView);
+        model.addAttribute("selectUnitsMBps", selectUnitsMBps);
+        model.addAttribute("selectUnitsMbps", selectUnitsMbps);
+        model.addAttribute("selectUnitsKBps", selectUnitsKBps);
+        model.addAttribute("selectUnitsKbps", selectUnitsKbps);
         model.addAttribute("page", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("classActiveSettingsHome","active");
@@ -89,9 +121,22 @@ public class MeasurementsController implements UiConstants {
         WebResource webResource = client
                 .resource("https://admin:admin@localhost:" + grafanaPort + "/api/snapshots");
         ClientResponse response = null;
+        boolean userdataview;
+        String userdata;
         try {
-            response = webResource.accept("application/json").type("application/json")
-                    .post(ClientResponse.class, SNAPSHOT_JSON_REQUEST);
+            if (visualOptionsRepository.countEntries() < 1) {
+                response = webResource.accept("application/json").type("application/json")
+                        .post(ClientResponse.class, SNAPSHOT_JSON_REQUEST);
+            }else{
+                userdata = visualOptionsRepository.getLastEntry().getUserdata().toString();
+                if (userdata == "Show"){
+                    response = webResource.accept("application/json").type("application/json")
+                            .post(ClientResponse.class, SNAPSHOT_JSON_REQUEST);
+                }else {
+                    response = webResource.accept("application/json").type("application/json")
+                            .post(ClientResponse.class, SNAPSHOT_JSON_REQUEST_STRIPPED);
+                }
+            }
         } catch (Exception e) {
             LOG.error("An error occurred on creating grafana snapshot", e);
         }
@@ -174,7 +219,9 @@ public class MeasurementsController implements UiConstants {
             }
         }
         List<Accesspoint> accesspointsList = accesspointRepository.getAll();
+        List<MapSettings> mapSettings = mapSettingsRepository.getAll();
         model.addAttribute("accesspointsMap", accesspointsList);
+        model.addAttribute("mapSettings", mapSettings);
         model.addAttribute("classActiveSettingsMap","active");
         return "secure/map";
     }
