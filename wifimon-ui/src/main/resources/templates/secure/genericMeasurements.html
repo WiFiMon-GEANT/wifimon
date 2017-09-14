@@ -25,70 +25,54 @@
             <div th:if="!${#lists.isEmpty(measurements)}">
                 <table class="table table-striped table-bordered table-condensed"
                        style="word-wrap: break-word; table-layout: fixed;">
-                    <!--TABLE WITH USER-RELATED DATA-->
                     <thead>
                     <td>Id</td>
                     <td>Test Date/Time (UTC)</td>
                     <td>Start Time (UTC)</td>
-                    <td>Username</td>
-                    <td>Download Rate (KB/s)</td>
-                    <td>Upload Rate (KB/s)</td>
+                    <td th:if="${userdataview}">Username</td>
+                    <td th:if="${selectUnitsMBps}">Download Rate (MBps)</td>
+                    <td th:if="${selectUnitsMbps}">Download Rate (Mbps)</td>
+                    <td th:if="${selectUnitsKBps}">Download Rate (KBps)</td>
+                    <td th:if="${selectUnitsKbps}">Download Rate (Kbps)</td>
+                    <td th:if="${selectUnitsMBps}">Upload Rate (MBps)</td>
+                    <td th:if="${selectUnitsMbps}">Upload Rate (Mbps)</td>
+                    <td th:if="${selectUnitsKBps}">Upload Rate (KBps)</td>
+                    <td th:if="${selectUnitsKbps}">Upload Rate (Kbps)</td>
                     <td>Ping (ms)</td>
                     <td>Client IP Address</td>
-                    <td>Client IP (Logs)</td>
-                    <td>Client MAC Address</td>
+                    <td th:if="${userdataview}">Client IP (Logs)</td>
+                    <td th:if="${userdataview}">Client MAC Address</td>
                     <td>AP IP Address</td>
                     <td>AP MAC Address</td>
                     <td>NAS Port Type</td>
                     <td>Tool</td>
-                    <td>User Agent</td>
+                    <td th:if="${userdataview}">User Agent</td>
                     </thead>
                     <tbody>
                     <tr data-th-each="m : ${measurements}">
                         <td data-th-text="${m.id}"></td>
                         <td data-th-text="${m.date}"></td>
                         <td data-th-text="${m.startTime}">...</td>
-                        <td data-th-text="${m.username}">...</td>
-                        <td data-th-text="${m.downloadRate}"></td>
-                        <td data-th-text="${m.uploadRate}"></td>
-                        <td data-th-text="${m.localPing}"></td>
+                        <td th:if="${userdataview}" data-th-text="${m.username}">...</td>
+                        <td th:if="${selectUnitsMBps}" data-th-text="${#numbers.formatDecimal(m.downloadRate / 1000,1,1,'POINT')}"></td>
+                        <td th:if="${selectUnitsMbps}" data-th-text="${#numbers.formatDecimal(m.downloadRate * 8 /1000,1,1,'POINT')}"></td>
+                        <td th:if="${selectUnitsKBps}" data-th-text="${#numbers.formatDecimal(m.downloadRate,1,1,'POINT')}"></td>
+                        <td th:if="${selectUnitsKbps}" data-th-text="${#numbers.formatDecimal(m.downloadRate * 8,1,1,'POINT')}"></td>
+                        <td th:if="${selectUnitsMBps}" data-th-text="${#numbers.formatDecimal(m.uploadRate / 1000,1,1,'POINT')}"></td>
+                        <td th:if="${selectUnitsMbps}" data-th-text="${#numbers.formatDecimal(m.uploadRate * 8 /1000,1,1,'POINT')}"></td>
+                        <td th:if="${selectUnitsKBps}" data-th-text="${#numbers.formatDecimal(m.uploadRate,1,1,'POINT')}"></td>
+                        <td th:if="${selectUnitsKbps}" data-th-text="${#numbers.formatDecimal(m.uploadRate * 8,1,1,'POINT')}"></td>
+                        <td data-th-text="${#numbers.formatDecimal(m.localPing,1,1,'POINT')}"></td>
                         <td data-th-text="${m.clientIp}">...</td>
-                        <td data-th-text="${m.framedIpAddress}">...</td>
-                        <td data-th-text="${m.callingStationId}">...</td>
+                        <td th:if="${userdataview}" data-th-text="${m.framedIpAddress}">...</td>
+                        <td th:if="${userdataview}" data-th-text="${m.callingStationId}">...</td>
                         <td data-th-text="${m.nasIpAddress}">...</td>
                         <td data-th-text="${m.calledStationId}">...</td>
                         <td data-th-text="${m.nasPortType}">...</td>
                         <td data-th-text="${m.testTool}">...</td>
-                        <td data-th-text="${m.userAgent}">...</td>
+                        <td th:if="${userdataview}" data-th-text="${m.userAgent}">...</td>
                     </tr>
                     </tbody>
-
-                    <!--TABLE WITHOUT USER-RELATED DATA-->
-
-                    <!--
-                        <thead>
-                        <td>Id</td>
-                        <td>Test Date/Time (UTC)</td>
-                        <td>Download Rate (KB/s)</td>
-                        <td>Upload Rate (KB/s)</td>
-                        <td>Ping (ms)</td>
-                        <td>Client IP Address</td>
-                        <td>Tool</td>
-                        <td>User Agent</td>
-                        </thead>
-                        <tbody>
-                        <tr data-th-each="m : ${measurements}">
-                            <td data-th-text="${m.id}"></td>
-                            <td data-th-text="${m.date}"></td>
-                            <td data-th-text="${m.downloadRate}"></td>
-                            <td data-th-text="${m.uploadRate}"></td>
-                            <td data-th-text="${m.localPing}"></td>
-                            <td data-th-text="${m.clientIp}">...</td>
-                            <td data-th-text="${m.testTool}">...</td>
-                            <td data-th-text="${m.userAgent}">...</td>
-                        </tr>
-                        </tbody>
-                    -->
                 </table>
 
                 <ul class="pagination pull-right">
@@ -105,11 +89,8 @@
             <div th:if="${#lists.isEmpty(measurements)}" class="alert alert-warning text-center">
                 <strong>No Monitoring results</strong>
             </div>
-
         </div>
     </div>
-
-
 </div>
 <div th:replace="fragments/footer :: footer">
 </div>

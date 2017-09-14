@@ -25,6 +25,8 @@
                         <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/secure/subnets}">Subnets</a></li>
                         <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/accesspoints}">Access Points</a></li>
                         <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/users}">Users</a></li>
+                        <!--TODO 2017/06/27 Allow visualization options tab -->
+                        <!--li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/options}">Options</a></li-->
                     </ul>
                 </li>
                 <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsGuide}"><a href="#" th:href="@{/secure/guide}">Guide</a></li>

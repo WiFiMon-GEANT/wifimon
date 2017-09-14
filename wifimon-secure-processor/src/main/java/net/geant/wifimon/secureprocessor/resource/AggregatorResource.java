@@ -9,6 +9,7 @@ import net.geant.wifimon.secureprocessor.repository.AccesspointsRepository;
 import net.geant.wifimon.secureprocessor.repository.GenericMeasurementRepository;
 import net.geant.wifimon.secureprocessor.repository.RadiusRepository;
 import net.geant.wifimon.secureprocessor.repository.SubnetRepository;
+import net.geant.wifimon.secureprocessor.repository.VisualOptionsRepository;
 import org.apache.commons.net.util.SubnetUtils;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.Point;
@@ -46,6 +47,9 @@ public class AggregatorResource {
     @Autowired
     AccesspointsRepository accesspointsRepository;
 
+    @Autowired
+    VisualOptionsRepository visualOptionsRepository;
+
 
     @POST
     @Path("/add")
@@ -53,9 +57,67 @@ public class AggregatorResource {
         String agent = request.getHeader("User-Agent");
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
-        //deleting radacct records older than 1 day
-        Integer integer = radiusRepository.deleteOldRecords();
         Radius r = radiusRepository.find(ip, new Date());
+
+        Integer radiuslife = visualOptionsRepository.findRadiuslife();
+        if (radiuslife != null){
+            if (radiuslife == 1) {
+                Integer integer = radiusRepository.deleteOldRecords1();
+            } else if (radiuslife == 2){
+                Integer integer = radiusRepository.deleteOldRecords2();
+            } else if (radiuslife == 3){
+                Integer integer = radiusRepository.deleteOldRecords3();
+            } else if (radiuslife == 4){
+                Integer integer = radiusRepository.deleteOldRecords4();
+            } else if (radiuslife == 5){
+                Integer integer = radiusRepository.deleteOldRecords5();
+            } else if (radiuslife == 6){
+                Integer integer = radiusRepository.deleteOldRecords6();
+            } else if (radiuslife == 7){
+                Integer integer = radiusRepository.deleteOldRecords7();
+            } else if (radiuslife == 8){
+                Integer integer = radiusRepository.deleteOldRecords8();
+            } else if (radiuslife == 9){
+                Integer integer = radiusRepository.deleteOldRecords9();
+            } else if (radiuslife == 10){
+                Integer integer = radiusRepository.deleteOldRecords10();
+            } else if (radiuslife == 11){
+                Integer integer = radiusRepository.deleteOldRecords11();
+            } else if (radiuslife == 12){
+                Integer integer = radiusRepository.deleteOldRecords12();
+            } else if (radiuslife == 13){
+                Integer integer = radiusRepository.deleteOldRecords13();
+            } else if (radiuslife == 14){
+                Integer integer = radiusRepository.deleteOldRecords14();
+            } else if (radiuslife == 15){
+                Integer integer = radiusRepository.deleteOldRecords15();
+            } else if (radiuslife == 16){
+                Integer integer = radiusRepository.deleteOldRecords16();
+            } else if (radiuslife == 17){
+                Integer integer = radiusRepository.deleteOldRecords17();
+            } else if (radiuslife == 18){
+                Integer integer = radiusRepository.deleteOldRecords18();
+            } else if (radiuslife == 19){
+                Integer integer = radiusRepository.deleteOldRecords19();
+            } else if (radiuslife == 20){
+                Integer integer = radiusRepository.deleteOldRecords20();
+            } else if (radiuslife == 21){
+                Integer integer = radiusRepository.deleteOldRecords21();
+            } else if (radiuslife == 22){
+                Integer integer = radiusRepository.deleteOldRecords22();
+            } else if (radiuslife == 23){
+                Integer integer = radiusRepository.deleteOldRecords23();
+            } else if (radiuslife == 24){
+                Integer integer = radiusRepository.deleteOldRecords24();
+            } else {
+                //By default delete radius entries after 6 hours
+                Integer integer = radiusRepository.deleteOldRecords6();
+            }
+        }else {
+            //By default delete radius entries after 6 hours
+            Integer integer = radiusRepository.deleteOldRecords6();
+        }
+
         if (r != null) {
             Accesspoint ap = accesspointsRepository.find(r.getCalledStationId());
             return addGrafanaMeasurement(addMeasurement(measurement, r, ap, ip, agent));
