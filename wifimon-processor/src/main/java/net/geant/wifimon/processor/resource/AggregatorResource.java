@@ -4,6 +4,7 @@ import net.geant.wifimon.model.dto.NetTestMeasurement;
 import net.geant.wifimon.model.entity.Accesspoint;
 import net.geant.wifimon.model.entity.GenericMeasurement;
 import net.geant.wifimon.model.entity.Radius;
+import net.geant.wifimon.model.entity.RadiusStripped;
 import net.geant.wifimon.model.entity.Subnet;
 import net.geant.wifimon.processor.repository.AccesspointsRepository;
 import net.geant.wifimon.processor.repository.GenericMeasurementRepository;
@@ -11,9 +12,21 @@ import net.geant.wifimon.processor.repository.RadiusRepository;
 import net.geant.wifimon.processor.repository.SubnetRepository;
 import net.geant.wifimon.processor.repository.VisualOptionsRepository;
 import org.apache.commons.net.util.SubnetUtils;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortOrder;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.Point;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,8 +34,11 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -50,6 +66,19 @@ public class AggregatorResource {
     @Autowired
     VisualOptionsRepository visualOptionsRepository;
 
+    @Autowired
+    Environment environment;
+
+    private static final String ES_CLUSTERNAME = "elasticsearch.clustername";
+    private static final String ES_HOST = "elasticsearch.host";
+    private static final String ES_PORT = "elasticsearch.port";
+    private static final String ES_INDEXNAME_MEASUREMENT = "elasticsearch.indexnamemeasurement";
+    private static final String ES_TYPE_MEASUREMENT = "elasticsearch.typenamemeasurement";
+    private static final String ES_INDEXNAME_RADIUS = "elasticsearch.indexnameradius";
+    private static final String ES_TYPE_RADIUS = "elasticsearch.typenameradius";
+    private static final String ES_INDEXNAME_DHCP = "elasticsearch.indexnamedhcp";
+    private static final String ES_TYPE_DHCP = "elasticsearch.typenamedhcp";
+
 
     @POST
     @Path("/add")
@@ -58,7 +87,14 @@ public class AggregatorResource {
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
         Radius r = radiusRepository.find(ip, new Date());
-
+        String grafanasupport= visualOptionsRepository.findGrafanasupport();
+        if (grafanasupport == null || grafanasupport.isEmpty()) {
+            grafanasupport = "False";
+        }
+        String elasticsearchsupport= visualOptionsRepository.findElasticsearchsupport();
+        if (elasticsearchsupport == null || elasticsearchsupport.isEmpty()) {
+            elasticsearchsupport = "False";
+        }
         Integer radiuslife = visualOptionsRepository.findRadiuslife();
         if (radiuslife != null){
             if (radiuslife == 1) {
@@ -120,9 +156,31 @@ public class AggregatorResource {
 
         if (r != null) {
             Accesspoint ap = accesspointsRepository.find(r.getCalledStationId());
-            return addGrafanaMeasurement(addMeasurement(measurement, r, ap, ip, agent));
+            if (grafanasupport.equals("True") && elasticsearchsupport.equals("False")) {
+                return addGrafanaMeasurement(addMeasurement(measurement, r, ap, ip, agent));
+            }else if (grafanasupport.equals("False") && elasticsearchsupport.equals("True")){
+                return addElasticMeasurement(addMeasurement(measurement, r, ap, ip, agent));
+            }else if (grafanasupport.equals("True") && elasticsearchsupport.equals("True")){
+                GenericMeasurement genericMeasurement = addMeasurement(measurement, r, ap, ip, agent);
+                addGrafanaMeasurement(genericMeasurement);
+                return addElasticMeasurement(genericMeasurement);
+            }else{
+                addMeasurement(measurement, r, ap, ip, agent);
+                return Response.ok(true).build();
+            }
         }else {
-            return addGrafanaMeasurement(addMeasurement(measurement, r, ip, agent));
+            if (grafanasupport.equals("True") && elasticsearchsupport.equals("False")) {
+                return addGrafanaMeasurement(addMeasurement(measurement, r, ip, agent));
+            }else if (grafanasupport.equals("False") && elasticsearchsupport.equals("True")){
+                return addElasticMeasurement(addMeasurement(measurement, r, ip, agent));
+            }else if (grafanasupport.equals("True") && elasticsearchsupport.equals("True")){
+                GenericMeasurement genericMeasurement = addMeasurement(measurement, r, ip, agent);
+                addGrafanaMeasurement(genericMeasurement);
+                return addElasticMeasurement(genericMeasurement);
+            }else{
+                GenericMeasurement genericMeasurement = addMeasurement(measurement, r, ip, agent);
+                return Response.ok(true).build();
+            }
         }
 //        if (r == null) return Response.serverError().build();
 
@@ -191,18 +249,22 @@ public class AggregatorResource {
         m.setUsername(radius != null ? radius.getUsername() : null);
         m.setFramedIpAddress(radius != null ? radius.getFramedIpAddress() : null);
         m.setSessionId(radius != null ? radius.getSessionId() : null);
-        m.setCallingStationId(radius != null ? radius.getCallingStationId() : null);
-        m.setCalledStationId(radius != null ? radius.getCalledStationId() : null);
+        m.setCallingStationId(radius != null ? radius.getCallingStationId().replace(":","-").toUpperCase() : null);
+        m.setCalledStationId(radius != null ? radius.getCalledStationId().replace(":","-").toUpperCase() : null);
         m.setNasPortId(radius != null ? radius.getNasPortId() : null);
         m.setNasPortType(radius != null ? radius.getNasPortType() : null);
         m.setNasIpAddress(radius != null ? radius.getNasIpAddress() : null);
         m.setTestTool(measurement.getTestTool());
-        m.setApMac(accesspoint != null ? accesspoint.getMac() : null);
+        m.setApMac(accesspoint != null ? accesspoint.getMac().replace(":","-").toUpperCase() : null);
         m.setApLatitude(accesspoint != null ? accesspoint.getLatitude() : null);
         m.setApLongitude(accesspoint != null ? accesspoint.getLongitude() : null);
         m.setApBuilding(accesspoint != null ? accesspoint.getBuilding() : null);
         m.setApFloor(accesspoint != null ? accesspoint.getFloor() : null);
         m.setApNotes(accesspoint != null ? accesspoint.getNotes() : null);
+
+        RadiusStripped radiusStrippedIp = retrieveLastRadiusEntryByIp(ip);
+        RadiusStripped radiusStrippedMac = retrieveLastRadiusEntryByMac("A1:b2-cc-33-d0-da");
+
         return measurementRepository.save(m);
     }
 
@@ -221,13 +283,210 @@ public class AggregatorResource {
         m.setUsername(radius != null ? radius.getUsername() : null);
         m.setFramedIpAddress(radius != null ? radius.getFramedIpAddress() : null);
         m.setSessionId(radius != null ? radius.getSessionId() : null);
-        m.setCallingStationId(radius != null ? radius.getCallingStationId() : null);
-        m.setCalledStationId(radius != null ? radius.getCalledStationId() : null);
+        m.setCallingStationId(radius != null ? radius.getCallingStationId().replace(":","-").toUpperCase() : null);
+        m.setCalledStationId(radius != null ? radius.getCalledStationId().replace(":","-").toUpperCase() : null);
         m.setNasPortId(radius != null ? radius.getNasPortId() : null);
         m.setNasPortType(radius != null ? radius.getNasPortType() : null);
         m.setNasIpAddress(radius != null ? radius.getNasIpAddress() : null);
         m.setTestTool(measurement.getTestTool());
+
+        RadiusStripped radiusStrippedIp = retrieveLastRadiusEntryByIp(ip);
+        RadiusStripped radiusStrippedMac = retrieveLastRadiusEntryByMac("A1:b2-cc-33-d0-da");
+
         return measurementRepository.save(m);
+    }
+
+    private Response addElasticMeasurement(GenericMeasurement measurement) {
+        // addElasticMeasurement for Kibana 4.1.2
+        String UserAgent = measurement.getUserAgent();
+        String userOS = new String();
+        if (UserAgent.toUpperCase().contains("WINDOWS")){
+            userOS = "Windows";
+        }else if (UserAgent.toUpperCase().contains("MAC")){
+            userOS = "Mac OS X and iOS";
+        }else if (UserAgent.toUpperCase().contains("X11")){
+            userOS = "Linux";
+        }else if (UserAgent.toUpperCase().contains("ANDROID")){
+            userOS = "Android";
+        }else{
+            userOS = "N/A";
+        }
+
+        String userBrowser = new String();
+        if (UserAgent.toUpperCase().contains("CHROME") && !UserAgent.toUpperCase().contains("EDGE")){
+            userBrowser = "Chrome";
+        }else if (UserAgent.toUpperCase().contains("SAFARI") && !UserAgent.toUpperCase().contains("CHROME")){
+            userBrowser = "Safari";
+        }else if (UserAgent.toUpperCase().contains("FIREFOX")){
+            userBrowser = "Firefox";
+        }else if (UserAgent.toUpperCase().contains("MSIE")){
+            userBrowser = "Internet Explorer";
+        }else if (UserAgent.toUpperCase().contains("EDGE")){
+            userBrowser = "Microsoft Edge";
+        }else{
+            userBrowser = "N/A";
+        }
+
+        Long timestamp = System.currentTimeMillis();
+
+        String jsonString = "{" +
+                "\"timestamp\" : " + timestamp + "," +
+                "\"downloadThroughput\" : " + measurement.getDownloadRate() + "," +
+                "\"uploadThroughput\" : " + measurement.getUploadRate() + "," +
+                "\"localPing\" : " + measurement.getLocalPing() + "," +
+                "\"location\" : \"" + measurement.getLatitude() + "," + measurement.getLongitude() + "\"," +
+                "\"locationMethod\" : \"" + measurement.getLocationMethod() + "\"," +
+                "\"clientIp\" : \"" + measurement.getClientIp() + "\"," +
+                "\"userAgent\" : \"" + measurement.getUserAgent() + "\"," +
+                "\"userBrowser\" : \"" + userBrowser + "\"," +
+                "\"userOS\" : \"" + userOS + "\"," +
+                "\"username\" : \"" + measurement.getUsername() + "\"," +
+                "\"callingStationId\" : \"" + measurement.getCallingStationId() + "\"," +
+                "\"calledStationId\" : \"" + measurement.getCalledStationId() + "\"," +
+                "\"nasPortType\" : \"" + measurement.getNasPortType() + "\"," +
+                "\"nasIpAddress\" : \"" + measurement.getNasIpAddress() + "\"," +
+                "\"testTool\" : \"" + measurement.getTestTool() + "\"" +
+                "}";
+
+        TransportClient client = null;
+        try {
+            client = new PreBuiltTransportClient(Settings.EMPTY)
+                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        IndexResponse indexResponse = client.prepareIndex(environment.getProperty(ES_INDEXNAME_MEASUREMENT), environment.getProperty(ES_TYPE_MEASUREMENT))
+                .setSource(jsonString, XContentType.JSON)
+                .get();
+
+        client.close();
+
+        return Response.ok().build();
+    }
+
+    private RadiusStripped retrieveLastRadiusEntryByIp(String ip) {
+
+        RadiusStripped r = new RadiusStripped();
+
+        TransportClient client = null;
+        try {
+            client = new PreBuiltTransportClient(Settings.EMPTY)
+                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        SearchResponse response = client.prepareSearch(environment.getProperty(ES_INDEXNAME_RADIUS))
+                .setTypes(environment.getProperty(ES_TYPE_RADIUS))
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .addSort("timestamp", SortOrder.DESC)
+                .setFrom(0)
+                .setFetchSource(new String[]{"username", "timestamp",
+                        "nas_port", "source_host", "calling_station_id", "result",
+                        "trace_id", "nas_identifier", "called_station_id", "nas_ip_address",
+                        "framed_ip_address", "acct_status_type"}, null)
+                .setPostFilter(QueryBuilders.termQuery("framed_ip_address", ip))
+                .setQuery(QueryBuilders.termQuery("acct_status_type", "Start"))
+                .setSize(1).setExplain(true)
+                .get();
+
+        if (response.getHits().getTotalHits() > 0) {
+            for (SearchHit hit : response.getHits()) {
+                Map map = hit.getSource();
+                r.setUserName(((map.get("username") != null) ? map.get("username").toString() : "N/A"));
+                r.setTimestamp(((map.get("timestamp") != null) ? map.get("timestamp").toString() : "N/A"));
+                r.setNasPort(((map.get("nas_port") != null) ? map.get("nas_port").toString() : "N/A"));
+                r.setSourceHost(((map.get("source_host") != null) ? map.get("source_host").toString() : "N/A"));
+                r.setCallingStationId(((map.get("calling_station_id") != null) ? map.get("calling_station_id").toString() : "N/A"));
+                r.setResult(((map.get("result") != null) ? map.get("result").toString() : "N/A"));
+                r.setTraceId(((map.get("trace_id") != null) ? map.get("trace_id").toString() : "N/A"));
+                r.setNasIdentifier(((map.get("nas_identifier") != null) ? map.get("nas_identifier").toString() : "N/A"));
+                r.setCalledStationId(((map.get("called_station_id") != null) ? map.get("called_station_id").toString() : "N/A"));
+                r.setNasIpAddress(((map.get("nas_ip_address") != null) ? map.get("nas_ip_address").toString() : "N/A"));
+                r.setFramedIpAddress(((map.get("framed_ip_address") != null) ? map.get("framed_ip_address").toString() : "N/A"));
+                r.setAcctStatusType(((map.get("acct_status_type") != null) ? map.get("acct_status_type").toString() : "N/A"));
+                break;
+            }
+        }else {
+            r.setUserName("N/A");
+            r.setTimestamp("N/A");
+            r.setNasPort("N/A");
+            r.setSourceHost("N/A");
+            r.setCallingStationId("N/A");
+            r.setResult("N/A");
+            r.setTraceId("N/A");
+            r.setNasIdentifier("N/A");
+            r.setCalledStationId("N/A");
+            r.setNasIpAddress("N/A");
+            r.setFramedIpAddress("N/A");
+            r.setAcctStatusType("N/A");
+        }
+
+
+        client.close();
+        return r;
+    }
+
+    private RadiusStripped retrieveLastRadiusEntryByMac(String mac) {
+
+        RadiusStripped r = new RadiusStripped();
+
+        TransportClient client = null;
+        try {
+            client = new PreBuiltTransportClient(Settings.EMPTY)
+                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        SearchResponse response = client.prepareSearch(environment.getProperty(ES_INDEXNAME_RADIUS))
+                .setTypes(environment.getProperty(ES_TYPE_RADIUS))
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .addSort("timestamp", SortOrder.DESC)
+                .setFrom(0)
+                .setFetchSource(new String[]{"username", "timestamp",
+                        "nas_port", "source_host", "calling_station_id", "result",
+                        "trace_id", "nas_identifier", "called_station_id", "nas_ip_address",
+                        "framed_ip_address", "acct_status_type"}, null)
+                .setPostFilter(QueryBuilders.wildcardQuery("calling_station_id", "*" + mac.replace(":","-").toLowerCase() + "*"))
+                .setSize(1).setExplain(true)
+                .get();
+
+        if (response.getHits().getTotalHits() > 0) {
+            for (SearchHit hit : response.getHits()) {
+                Map map = hit.getSource();
+                r.setUserName(((map.get("username") != null) ? map.get("username").toString() : "N/A"));
+                r.setTimestamp(((map.get("timestamp") != null) ? map.get("timestamp").toString() : "N/A"));
+                r.setNasPort(((map.get("nas_port") != null) ? map.get("nas_port").toString() : "N/A"));
+                r.setSourceHost(((map.get("source_host") != null) ? map.get("source_host").toString() : "N/A"));
+                r.setCallingStationId(((map.get("calling_station_id") != null) ? map.get("calling_station_id").toString() : "N/A"));
+                r.setResult(((map.get("result") != null) ? map.get("result").toString() : "N/A"));
+                r.setTraceId(((map.get("trace_id") != null) ? map.get("trace_id").toString() : "N/A"));
+                r.setNasIdentifier(((map.get("nas_identifier") != null) ? map.get("nas_identifier").toString() : "N/A"));
+                r.setCalledStationId(((map.get("called_station_id") != null) ? map.get("called_station_id").toString() : "N/A"));
+                r.setNasIpAddress(((map.get("nas_ip_address") != null) ? map.get("nas_ip_address").toString() : "N/A"));
+                r.setFramedIpAddress(((map.get("framed_ip_address") != null) ? map.get("framed_ip_address").toString() : "N/A"));
+                r.setAcctStatusType(((map.get("acct_status_type") != null) ? map.get("acct_status_type").toString() : "N/A"));
+                break;
+            }
+        }else {
+            r.setUserName("N/A");
+            r.setTimestamp("N/A");
+            r.setNasPort("N/A");
+            r.setSourceHost("N/A");
+            r.setCallingStationId("N/A");
+            r.setResult("N/A");
+            r.setTraceId("N/A");
+            r.setNasIdentifier("N/A");
+            r.setCalledStationId("N/A");
+            r.setNasIpAddress("N/A");
+            r.setFramedIpAddress("N/A");
+            r.setAcctStatusType("N/A");
+        }
+
+        client.close();
+        return r;
     }
 
     private SubnetUtils.SubnetInfo fromSubnetString(String subnet) {

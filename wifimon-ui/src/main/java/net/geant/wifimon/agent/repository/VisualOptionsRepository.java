@@ -26,8 +26,8 @@ public interface VisualOptionsRepository extends JpaRepository<VisualOptions, Lo
     @Query(value = "DELETE FROM options WHERE optionsid < :optionsid RETURNING 1", nativeQuery = true)
     Integer deletePreviousEntries(@Param("optionsid") Long optionsid);
 
-    @Query(value = "UPDATE options SET userdata = :userdata, units = :units, radiuslife = :radiuslife RETURNING 1", nativeQuery = true)
-    Integer updateEntry(@Param("userdata") String userdata, @Param("units") String units, @Param("radiuslife") Integer radiuslife);
+    @Query(value = "UPDATE options SET userdata = :userdata, units = :units, radiuslife = :radiuslife, grafanasupport = :grafanasupport, elasticsearchsupport = :elasticsearchsupport, correlationmethod = :correlationmethod RETURNING 1", nativeQuery = true)
+    Integer updateEntry(@Param("userdata") String userdata, @Param("units") String units, @Param("radiuslife") Integer radiuslife, @Param("grafanasupport") String grafanasupport, @Param("elasticsearchsupport") String elasticsearchsupport, @Param("correlationmethod") String correlationmethod);
 
     @Query(value = "SELECT COUNT(*) FROM options", nativeQuery = true)
     Integer countEntries();
