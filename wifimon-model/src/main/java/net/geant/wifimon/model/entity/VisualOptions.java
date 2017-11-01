@@ -21,6 +21,9 @@ public class VisualOptions implements Serializable {
     private UserData userdata;
     private Units units;
     private Integer radiuslife;
+    private ElasticSearchSupport elasticsearchsupport;
+    private GrafanaSupport grafanasupport;
+    private CorrelationMethod correlationmethod;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,6 +46,26 @@ public class VisualOptions implements Serializable {
         this.userdata = userdata;
     }
 
+    @Column(name = "elasticsearchsupport", nullable = false)
+    @Enumerated(EnumType.STRING)
+    public ElasticSearchSupport getElasticsearchsupport() {
+        return elasticsearchsupport;
+    }
+
+    public void setElasticsearchsupport(ElasticSearchSupport elasticsearchsupport) {
+        this.elasticsearchsupport = elasticsearchsupport;
+    }
+
+    @Column(name = "grafanasupport", nullable = false)
+    @Enumerated(EnumType.STRING)
+    public GrafanaSupport getGrafanasupport() {
+        return grafanasupport;
+    }
+
+    public void setGrafanasupport(GrafanaSupport grafanasupport) {
+        this.grafanasupport = grafanasupport;
+    }
+
     @Column(name = "units", nullable = false)
     @Enumerated(EnumType.STRING)
     public Units getUnits() {
@@ -60,5 +83,15 @@ public class VisualOptions implements Serializable {
 
     public void setRadiuslife(Integer radiuslife) {
         this.radiuslife = radiuslife;
+    }
+
+    @Column(name = "correlationmethod", nullable = false)
+    @Enumerated(EnumType.STRING)
+    public CorrelationMethod getCorrelationmethod() {
+        return correlationmethod;
+    }
+
+    public void setCorrelationmethod(CorrelationMethod correlationmethod) {
+        this.correlationmethod = correlationmethod;
     }
 }
