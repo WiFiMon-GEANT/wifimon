@@ -48,6 +48,9 @@ public class VisualoptionController {
             visualOptionsUpdateFormModel.setRadiuslife(visualOptionsRepository.getLastEntry().getRadiuslife());
             visualOptionsUpdateFormModel.setUnits(visualOptionsRepository.getLastEntry().getUnits());
             visualOptionsUpdateFormModel.setUserdata(visualOptionsRepository.getLastEntry().getUserdata());
+            visualOptionsUpdateFormModel.setGrafanasupport(visualOptionsRepository.getLastEntry().getGrafanasupport());
+            visualOptionsUpdateFormModel.setElasticsearchsupport(visualOptionsRepository.getLastEntry().getElasticsearchsupport());
+            visualOptionsUpdateFormModel.setCorrelationmethod(visualOptionsRepository.getLastEntry().getCorrelationmethod());
         }
         return EDIT_VO_VIEW;
     }
@@ -60,7 +63,8 @@ public class VisualoptionController {
         if (count == 0){
             visualOptionsService.create(visualOptionsUpdateFormModel);
         }else{
-            Integer i = visualOptionsRepository.updateEntry(visualOptionsUpdateFormModel.getUserdata().toString(), visualOptionsUpdateFormModel.getUnits().toString(), visualOptionsUpdateFormModel.getRadiuslife());
+            Integer i = visualOptionsRepository.updateEntry(visualOptionsUpdateFormModel.getUserdata().toString(), visualOptionsUpdateFormModel.getUnits().toString(), visualOptionsUpdateFormModel.getRadiuslife(), visualOptionsUpdateFormModel.getGrafanasupport().toString(), visualOptionsUpdateFormModel.getElasticsearchsupport().toString(),
+                                                            visualOptionsUpdateFormModel.getCorrelationmethod().toString());
         }
         return String.join("/", "redirect:", VisualoptionsController.VO_VIEW);
     }

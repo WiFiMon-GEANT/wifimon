@@ -31,7 +31,6 @@ public class VisualOptionsUpdateFormValidator implements Validator {
     public void validate(Object target, Errors errors) {
         VisualOptionsUpdateFormModel form = (VisualOptionsUpdateFormModel) target;
         validateRadiuslife(errors, form);
-
     }
 
     private void validateRadiuslife(Errors errors, VisualOptionsUpdateFormModel form) {

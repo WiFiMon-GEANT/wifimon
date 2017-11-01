@@ -44,6 +44,9 @@ public class VisualOptionsServiceImpl implements VisualOptionsService{
         visualOptions.setRadiuslife(form.getRadiuslife());
         visualOptions.setUnits(form.getUnits());
         visualOptions.setUserdata(form.getUserdata());
+        visualOptions.setGrafanasupport(form.getGrafanasupport());
+        visualOptions.setElasticsearchsupport(form.getElasticsearchsupport());
+        visualOptions.setCorrelationmethod(form.getCorrelationmethod());
         return visualOptionsRepository.save(visualOptions);
     }
 }
