@@ -14,13 +14,6 @@ public class NetTestMeasurement implements Serializable {
     private String latitude;
     private String longitude;
     private String locationMethod;
-    private String clientIp;
-    private String userAgent;
-    private String username;
-    private String callingStationId;
-    private String calledStationId;
-    private String nasPortType;
-    private String nasIpAddress;
     private String testTool;
 
     public Long getDate() {
@@ -79,62 +72,6 @@ public class NetTestMeasurement implements Serializable {
         this.locationMethod = locationMethod;
     }
 
-    public String getClientIp() {
-        return clientIp;
-    }
-
-    public void setClientIp(String clientIp) {
-        this.clientIp = clientIp;
-    }
-
-    public String getUserAgent() {
-        return userAgent;
-    }
-
-    public void setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getCallingStationId() {
-        return callingStationId;
-    }
-
-    public void setCallingStationId(String callingStationId) {
-        this.callingStationId = callingStationId;
-    }
-
-    public String getCalledStationId() {
-        return calledStationId;
-    }
-
-    public void setCalledStationId(String calledStationId) {
-        this.calledStationId = calledStationId;
-    }
-
-    public String getNasPortType() {
-        return nasPortType;
-    }
-
-    public void setNasPortType(String nasPortType) {
-        this.nasPortType = nasPortType;
-    }
-
-    public String getNasIpAddress() {
-        return nasIpAddress;
-    }
-
-    public void setNasIpAddress(String nasIpAddress) {
-        this.nasIpAddress = nasIpAddress;
-    }
-
     public String getTestTool() {
         return testTool;
     }
@@ -166,21 +103,7 @@ public class NetTestMeasurement implements Serializable {
             return false;
         if (locationMethod != null ? !locationMethod.equals(that.locationMethod) : that.locationMethod != null)
             return false;
-        if (clientIp != null ? !clientIp.equals(that.clientIp) : that.clientIp != null)
-            return false;
-        if (userAgent != null ? !userAgent.equals(that.userAgent) : that.userAgent != null)
-            return false;
-        if (username != null ? !username.equals(that.username) : that.username != null)
-            return false;
-        if (callingStationId != null ? !callingStationId.equals(that.callingStationId) : that.callingStationId != null)
-            return false;
-        if (calledStationId != null ? !calledStationId.equals(that.calledStationId) : that.calledStationId != null)
-            return false;
-        if (nasPortType != null ? !nasPortType.equals(that.nasPortType) : that.nasPortType != null)
-            return false;
-        if (testTool != null ? !testTool.equals(that.testTool) : that.testTool!= null)
-            return false;
-        return nasIpAddress != null ? nasIpAddress.equals(that.nasIpAddress) : that.nasIpAddress == null;
+        return testTool != null ? testTool.equals(that.testTool) : that.testTool == null;
 
     }
 
@@ -193,13 +116,6 @@ public class NetTestMeasurement implements Serializable {
         result = 31 * result + (latitude != null ? latitude.hashCode() : 0);
         result = 31 * result + (longitude != null ? longitude.hashCode() : 0);
         result = 31 * result + (locationMethod != null ? locationMethod.hashCode() : 0);
-        result = 31 * result + (clientIp != null ? clientIp.hashCode() : 0);
-        result = 31 * result + (userAgent != null ? userAgent.hashCode() : 0);
-        result = 31 * result + (username != null ? username.hashCode() : 0);
-        result = 31 * result + (callingStationId != null ? callingStationId.hashCode() : 0);
-        result = 31 * result + (calledStationId != null ? calledStationId.hashCode() : 0);
-        result = 31 * result + (nasPortType != null ? nasPortType.hashCode() : 0);
-        result = 31 * result + (nasIpAddress != null ? nasIpAddress.hashCode() : 0);
         result = 31 * result + (testTool != null ? testTool.hashCode() : 0);
         return result;
     }

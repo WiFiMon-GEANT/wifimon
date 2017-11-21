@@ -38,36 +38,6 @@ public class Accesspoint implements Serializable {
     @Column(name = "notes", nullable = true)
     private String notes;
 
-    @Column(name = "measurementscount", nullable = true)
-    private Integer measurementscount;
-
-    @Column(name = "downloadavg", nullable = true)
-    private Double downloadavg;
-
-    @Column(name = "downloadmin", nullable = true)
-    private Double downloadmin;
-
-    @Column(name = "downloadmax", nullable = true)
-    private Double downloadmax;
-
-    @Column(name = "uploadavg", nullable = true)
-    private Double uploadavg;
-
-    @Column(name = "uploadmin", nullable = true)
-    private Double uploadmin;
-
-    @Column(name = "uploadmax", nullable = true)
-    private Double uploadmax;
-
-    @Column(name = "pingavg", nullable = true)
-    private Double pingavg;
-
-    @Column(name = "pingmin", nullable = true)
-    private Double pingmin;
-
-    @Column(name = "pingmax", nullable = true)
-    private Double pingmax;
-
 
     public Long getApid() {
         return apid;
@@ -123,86 +93,6 @@ public class Accesspoint implements Serializable {
 
     public void setNotes(String notes) {
         this.notes = notes;
-    }
-
-    public Integer getMeasurementscount() {
-        return measurementscount;
-    }
-
-    public void setMeasurementscount(Integer measurementscount) {
-        this.measurementscount = measurementscount;
-    }
-
-    public Double getDownloadavg() {
-        return downloadavg;
-    }
-
-    public void setDownloadavg(Double downloadavg) {
-        this.downloadavg = downloadavg;
-    }
-
-    public Double getDownloadmin() {
-        return downloadmin;
-    }
-
-    public void setDownloadmin(Double downloadmin) {
-        this.downloadmin = downloadmin;
-    }
-
-    public Double getDownloadmax() {
-        return downloadmax;
-    }
-
-    public void setDownloadmax(Double downloadmax) {
-        this.downloadmax = downloadmax;
-    }
-
-    public Double getUploadavg() {
-        return uploadavg;
-    }
-
-    public void setUploadavg(Double uploadavg) {
-        this.uploadavg = uploadavg;
-    }
-
-    public Double getUploadmin() {
-        return uploadmin;
-    }
-
-    public void setUploadmin(Double uploadmin) {
-        this.uploadmin = uploadmin;
-    }
-
-    public Double getUploadmax() {
-        return uploadmax;
-    }
-
-    public void setUploadmax(Double uploadmax) {
-        this.uploadmax = uploadmax;
-    }
-
-    public Double getPingavg() {
-        return pingavg;
-    }
-
-    public void setPingavg(Double pingavg) {
-        this.pingavg = pingavg;
-    }
-
-    public Double getPingmin() {
-        return pingmin;
-    }
-
-    public void setPingmin(Double pingmin) {
-        this.pingmin = pingmin;
-    }
-
-    public Double getPingmax() {
-        return pingmax;
-    }
-
-    public void setPingmax(Double pingmax) {
-        this.pingmax = pingmax;
     }
 
 

@@ -9,12 +9,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  */
 public interface VisualOptionsRepository extends PagingAndSortingRepository<VisualOptions, Long> {
 
-    @Query(value = "SELECT options.radiuslife FROM options ORDER BY optionsid desc limit 1", nativeQuery = true)
-    Integer findRadiuslife();
-
-    @Query(value = "SELECT options.grafanasupport FROM options ORDER BY optionsid desc limit 1", nativeQuery = true)
-    String findGrafanasupport();
-
-    @Query(value = "SELECT options.elasticsearchsupport FROM options ORDER BY optionsid desc limit 1", nativeQuery = true)
-    String findElasticsearchsupport();
+    @Query(value = "SELECT options.correlationmethod FROM options ORDER BY optionsid desc limit 1", nativeQuery = true)
+    String findCorrelationmethod();
 }
+
