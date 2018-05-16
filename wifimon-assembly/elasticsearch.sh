@@ -49,7 +49,7 @@ curl -XPUT 'localhost:9200/radiuslogs?pretty' -H 'Content-Type: application/json
       }
    },
    "mappings" : {
-      "logs" : {
+      "radiuslog" : {
          "properties" : {
             "timestamp" : { "type" : "date"},
             "username" : { "type" : "keyword"},

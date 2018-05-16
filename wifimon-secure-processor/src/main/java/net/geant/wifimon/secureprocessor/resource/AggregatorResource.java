@@ -1,5 +1,7 @@
 package net.geant.wifimon.secureprocessor.resource;
 
+import com.floragunn.searchguard.ssl.SearchGuardSSLPlugin;
+import com.floragunn.searchguard.ssl.util.SSLConfigConstants;
 import net.geant.wifimon.model.dto.AggregatedMeasurement;
 import net.geant.wifimon.model.dto.NetTestMeasurement;
 import net.geant.wifimon.model.entity.Accesspoint;
@@ -9,6 +11,7 @@ import net.geant.wifimon.model.entity.Subnet;
 import net.geant.wifimon.secureprocessor.repository.AccesspointsRepository;
 import net.geant.wifimon.secureprocessor.repository.SubnetRepository;
 import net.geant.wifimon.secureprocessor.repository.VisualOptionsRepository;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.net.util.SubnetUtils;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -64,6 +67,13 @@ public class AggregatorResource {
     private static final String ES_TYPE_RADIUS = "elasticsearch.typenameradius";
     private static final String ES_INDEXNAME_DHCP = "elasticsearch.indexnamedhcp";
     private static final String ES_TYPE_DHCP = "elasticsearch.typenamedhcp";
+    private static final String SG_SSL_ENABLED = "sg.ssl.enabled";
+    private static final String SG_SSL_KEYSTORE_FILEPATH = "sg.ssl.transport.keystore.filepath";
+    private static final String SG_SSL_KEYSTORE_PASSWORD= "sg.ssl.transport.keystore.password";
+    private static final String SG_SSL_TRUSTSTORE_FILEPATH= "sg.ssl.transport.truststore.filepath";
+    private static final String SG_SSL_TRUSTSTORE_PASSWORD= "sg.ssl.transport.truststore.password";
+    private static final String SG_SSL_USER_USERNAME= "sg.ssl.transport.user.username";
+    private static final String SG_SSL_USER_PASSWORD= "sg.ssl.transport.user.password";
 
 
     @POST
@@ -85,7 +95,7 @@ public class AggregatorResource {
     @POST
     @Path("/add")
     public Response correlate(final NetTestMeasurement measurement, @Context HttpServletRequest request) {
-        String agent = request.getHeader("User-Agent");
+        String agent = request.getHeader("User-Agent") != null || !request.getHeader("User-Agent").isEmpty() ?  request.getHeader("User-Agent") : "N/A";
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
 
@@ -229,11 +239,34 @@ public class AggregatorResource {
                 "}";*/
 
         TransportClient client = null;
-        try {
-            client = new PreBuiltTransportClient(Settings.EMPTY)
-                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+
+        if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
+            Settings.Builder settingsBuilder =
+                    Settings.builder()
+                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_FILEPATH, environment.getProperty(SG_SSL_KEYSTORE_FILEPATH))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_FILEPATH, environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_PASSWORD, environment.getProperty(SG_SSL_KEYSTORE_PASSWORD))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_PASSWORD, environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD));
+            Settings settings = settingsBuilder.build();
+            try {
+                client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+            client.threadPool().getThreadContext().putHeader("Authorization", "Basic "+ Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
+        }else {
+            Settings.Builder settingsBuilder =
+                    Settings.builder()
+                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME));
+            Settings settings = settingsBuilder.build();
+            try {
+                client = new PreBuiltTransportClient(settings)
+                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
         }
 
         IndexResponse indexResponse = client.prepareIndex(environment.getProperty(ES_INDEXNAME_MEASUREMENT), environment.getProperty(ES_TYPE_MEASUREMENT))
@@ -250,11 +283,34 @@ public class AggregatorResource {
         RadiusStripped r = new RadiusStripped();
 
         TransportClient client = null;
-        try {
-            client = new PreBuiltTransportClient(Settings.EMPTY)
-                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+
+        if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
+            Settings.Builder settingsBuilder =
+                    Settings.builder()
+                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_FILEPATH, environment.getProperty(SG_SSL_KEYSTORE_FILEPATH))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_FILEPATH, environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_PASSWORD, environment.getProperty(SG_SSL_KEYSTORE_PASSWORD))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_PASSWORD, environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD));
+            Settings settings = settingsBuilder.build();
+            try {
+                client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+            client.threadPool().getThreadContext().putHeader("Authorization", "Basic "+ Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
+        }else {
+            Settings.Builder settingsBuilder =
+                    Settings.builder()
+                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME));
+            Settings settings = settingsBuilder.build();
+            try {
+                client = new PreBuiltTransportClient(settings)
+                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
         }
 
         SearchResponse response = client.prepareSearch(environment.getProperty(ES_INDEXNAME_RADIUS))
@@ -301,11 +357,34 @@ public class AggregatorResource {
         RadiusStripped r = new RadiusStripped();
 
         TransportClient client = null;
-        try {
-            client = new PreBuiltTransportClient(Settings.EMPTY)
-                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+
+        if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
+            Settings.Builder settingsBuilder =
+                    Settings.builder()
+                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_FILEPATH, environment.getProperty(SG_SSL_KEYSTORE_FILEPATH))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_FILEPATH, environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_PASSWORD, environment.getProperty(SG_SSL_KEYSTORE_PASSWORD))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_PASSWORD, environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD));
+            Settings settings = settingsBuilder.build();
+            try {
+                client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+            client.threadPool().getThreadContext().putHeader("Authorization", "Basic "+ Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
+        }else {
+            Settings.Builder settingsBuilder =
+                    Settings.builder()
+                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME));
+            Settings settings = settingsBuilder.build();
+            try {
+                client = new PreBuiltTransportClient(settings)
+                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
         }
 
         SearchResponse response = client.prepareSearch(environment.getProperty(ES_INDEXNAME_RADIUS))

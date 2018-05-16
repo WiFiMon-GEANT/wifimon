@@ -12,7 +12,7 @@ public class LoginController {
 
     @RequestMapping(value = "/")
     public String afterLogin(Model model) {
-        return "redirect:/secure/measurements/generic";
+        return "redirect:/secure/overview";
     }
     
 }
