@@ -41,12 +41,9 @@ public class VisualOptionsServiceImpl implements VisualOptionsService{
     @Override
     public VisualOptions create(VisualOptionsUpdateFormModel form) {
         VisualOptions visualOptions = new VisualOptions();
-        visualOptions.setRadiuslife(form.getRadiuslife());
-        visualOptions.setUnits(form.getUnits());
         visualOptions.setUserdata(form.getUserdata());
-        visualOptions.setGrafanasupport(form.getGrafanasupport());
-        visualOptions.setElasticsearchsupport(form.getElasticsearchsupport());
         visualOptions.setCorrelationmethod(form.getCorrelationmethod());
+        visualOptions.setUservisualoption(form.getUservisualoption());
         return visualOptionsRepository.save(visualOptions);
     }
 }

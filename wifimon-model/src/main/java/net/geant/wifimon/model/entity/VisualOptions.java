@@ -20,6 +20,7 @@ public class VisualOptions implements Serializable {
     private Long optionsid;
     private UserData userdata;
     private CorrelationMethod correlationmethod;
+    private UserVisualOption uservisualoption;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,5 +51,15 @@ public class VisualOptions implements Serializable {
 
     public void setCorrelationmethod(CorrelationMethod correlationmethod) {
         this.correlationmethod = correlationmethod;
+    }
+
+    @Column(name = "uservisualoption", nullable = false)
+    @Enumerated(EnumType.STRING)
+    public UserVisualOption getUservisualoption() {
+        return uservisualoption;
+    }
+
+    public void setUservisualoption(UserVisualOption uservisualoption) {
+        this.uservisualoption = uservisualoption;
     }
 }

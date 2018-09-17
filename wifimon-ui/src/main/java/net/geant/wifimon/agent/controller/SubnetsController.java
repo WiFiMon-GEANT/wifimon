@@ -36,27 +36,27 @@ public class SubnetsController {
 //        binder.setDisallowedFields("id");
     }
 
-    @RequestMapping(value = "/secure/subnets", method = RequestMethod.GET)
+    @RequestMapping(value = "/admin/subnets", method = RequestMethod.GET)
     public String subnets(@ModelAttribute("sub") final Subnet sub) {
-        return "secure/subnets";
+        return "admin/subnets";
     }
 
-    @RequestMapping(value = "/secure/subnets", method = RequestMethod.POST)
+    @RequestMapping(value = "/admin/subnets", method = RequestMethod.POST)
     public String addSubnet(@ModelAttribute("sub") @Valid final Subnet sub,
                             final BindingResult bindingResult,
                             final ModelMap model) {
         if (bindingResult.hasErrors()) {
-            return "secure/subnets";
+            return "admin/subnets";
         }
         subnetRepository.save(sub);
         model.clear();
-        return "redirect:/secure/subnets";
+        return "redirect:/admin/subnets";
     }
 
-    @RequestMapping(value = "/secure/subnets/delete/{id}")
+    @RequestMapping(value = "/admin/subnets/delete/{id}")
     public String deleteSubnet(@PathVariable final String id) {
         subnetRepository.delete(Long.valueOf(id));
-        return "redirect:/secure/subnets";
+        return "redirect:/admin/subnets";
     }
 
     @ModelAttribute("subnets")

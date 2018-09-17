@@ -68,10 +68,15 @@ public class AggregatorResource {
     private static final String ES_INDEXNAME_DHCP = "elasticsearch.indexnamedhcp";
     private static final String ES_TYPE_DHCP = "elasticsearch.typenamedhcp";
     private static final String SG_SSL_ENABLED = "sg.ssl.enabled";
+    private static final String SG_SSL_CERT_TYPE = "sg.ssl.certificate.type";
     private static final String SG_SSL_KEYSTORE_FILEPATH = "sg.ssl.transport.keystore.filepath";
     private static final String SG_SSL_KEYSTORE_PASSWORD= "sg.ssl.transport.keystore.password";
     private static final String SG_SSL_TRUSTSTORE_FILEPATH= "sg.ssl.transport.truststore.filepath";
     private static final String SG_SSL_TRUSTSTORE_PASSWORD= "sg.ssl.transport.truststore.password";
+    private static final String SG_SSL_PEMKEY_FILEPATH= "sg.ssl.transport.pemkey.filepath";
+    private static final String SG_SSL_PEMKEY_PASSWORD= "sg.ssl.transport.pemkey.password";
+    private static final String SG_SSL_PEMCERT_FILEPATH= "sg.ssl.transport.pemcert.filepath";
+    private static final String SG_SSL_PEMTRUSTEDCAS_FILEPATH= "sg.ssl.transport.pemtrustedcas.filepath";
     private static final String SG_SSL_USER_USERNAME= "sg.ssl.transport.user.username";
     private static final String SG_SSL_USER_PASSWORD= "sg.ssl.transport.user.password";
 
@@ -241,21 +246,38 @@ public class AggregatorResource {
         TransportClient client = null;
 
         if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
-            Settings.Builder settingsBuilder =
+            if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
+                Settings.Builder settingsBuilder =
+                    Settings.builder()
+                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_FILEPATH, environment.getProperty(SG_SSL_PEMKEY_FILEPATH))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_PASSWORD, environment.getProperty(SG_SSL_PEMKEY_PASSWORD))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMCERT_FILEPATH, environment.getProperty(SG_SSL_PEMCERT_FILEPATH))
+                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMTRUSTEDCAS_FILEPATH, environment.getProperty(SG_SSL_PEMTRUSTEDCAS_FILEPATH));
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                Settings.Builder settingsBuilder =
                     Settings.builder()
                             .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
                             .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_FILEPATH, environment.getProperty(SG_SSL_KEYSTORE_FILEPATH))
                             .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_FILEPATH, environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH))
                             .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_PASSWORD, environment.getProperty(SG_SSL_KEYSTORE_PASSWORD))
                             .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_PASSWORD, environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD));
-            Settings settings = settingsBuilder.build();
-            try {
-                client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
-                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
             }
-            client.threadPool().getThreadContext().putHeader("Authorization", "Basic "+ Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
+            client.threadPool().getThreadContext().putHeader("Authorization", "Basic " + Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
         }else {
             Settings.Builder settingsBuilder =
                     Settings.builder()
@@ -285,21 +307,38 @@ public class AggregatorResource {
         TransportClient client = null;
 
         if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
-            Settings.Builder settingsBuilder =
-                    Settings.builder()
-                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
-                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_FILEPATH, environment.getProperty(SG_SSL_KEYSTORE_FILEPATH))
-                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_FILEPATH, environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH))
-                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_PASSWORD, environment.getProperty(SG_SSL_KEYSTORE_PASSWORD))
-                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_PASSWORD, environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD));
-            Settings settings = settingsBuilder.build();
-            try {
-                client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
-                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
+            if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
+                Settings.Builder settingsBuilder =
+                        Settings.builder()
+                                .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_FILEPATH, environment.getProperty(SG_SSL_PEMKEY_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_PASSWORD, environment.getProperty(SG_SSL_PEMKEY_PASSWORD))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMCERT_FILEPATH, environment.getProperty(SG_SSL_PEMCERT_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMTRUSTEDCAS_FILEPATH, environment.getProperty(SG_SSL_PEMTRUSTEDCAS_FILEPATH));
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                Settings.Builder settingsBuilder =
+                        Settings.builder()
+                                .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_FILEPATH, environment.getProperty(SG_SSL_KEYSTORE_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_FILEPATH, environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_PASSWORD, environment.getProperty(SG_SSL_KEYSTORE_PASSWORD))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_PASSWORD, environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD));
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
             }
-            client.threadPool().getThreadContext().putHeader("Authorization", "Basic "+ Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
+            client.threadPool().getThreadContext().putHeader("Authorization", "Basic " + Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
         }else {
             Settings.Builder settingsBuilder =
                     Settings.builder()
@@ -359,21 +398,38 @@ public class AggregatorResource {
         TransportClient client = null;
 
         if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
-            Settings.Builder settingsBuilder =
-                    Settings.builder()
-                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
-                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_FILEPATH, environment.getProperty(SG_SSL_KEYSTORE_FILEPATH))
-                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_FILEPATH, environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH))
-                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_PASSWORD, environment.getProperty(SG_SSL_KEYSTORE_PASSWORD))
-                            .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_PASSWORD, environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD));
-            Settings settings = settingsBuilder.build();
-            try {
-                client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
-                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
+            if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
+                Settings.Builder settingsBuilder =
+                        Settings.builder()
+                                .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_FILEPATH, environment.getProperty(SG_SSL_PEMKEY_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_PASSWORD, environment.getProperty(SG_SSL_PEMKEY_PASSWORD))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMCERT_FILEPATH, environment.getProperty(SG_SSL_PEMCERT_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMTRUSTEDCAS_FILEPATH, environment.getProperty(SG_SSL_PEMTRUSTEDCAS_FILEPATH));
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                Settings.Builder settingsBuilder =
+                        Settings.builder()
+                                .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_FILEPATH, environment.getProperty(SG_SSL_KEYSTORE_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_FILEPATH, environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_PASSWORD, environment.getProperty(SG_SSL_KEYSTORE_PASSWORD))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_PASSWORD, environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD));
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
             }
-            client.threadPool().getThreadContext().putHeader("Authorization", "Basic "+ Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
+            client.threadPool().getThreadContext().putHeader("Authorization", "Basic " + Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
         }else {
             Settings.Builder settingsBuilder =
                     Settings.builder()
