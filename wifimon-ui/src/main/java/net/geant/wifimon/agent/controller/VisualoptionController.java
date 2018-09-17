@@ -21,7 +21,7 @@ import javax.validation.Valid;
 @Controller
 public class VisualoptionController {
 
-    public static final String EDIT_VO_VIEW = "secure/editOptions";
+    public static final String EDIT_VO_VIEW = "admin/editOptions";
 
     private final VisualOptionsService visualOptionsService;
     private final VisualOptionsUpdateFormValidator visualOptionsUpdateFormValidator;
@@ -41,21 +41,18 @@ public class VisualoptionController {
     }
 
 
-    @RequestMapping(value = "/secure/editOptions", method = RequestMethod.GET)
+    @RequestMapping(value = "/admin/editOptions", method = RequestMethod.GET)
     public String getVisualoptionsCreatePage(@ModelAttribute("visualOptionsEditModel") final VisualOptionsUpdateFormModel visualOptionsUpdateFormModel) {
         Integer count  = visualOptionsRepository.countEntries();
         if (count > 0){
-            visualOptionsUpdateFormModel.setRadiuslife(visualOptionsRepository.getLastEntry().getRadiuslife());
-            visualOptionsUpdateFormModel.setUnits(visualOptionsRepository.getLastEntry().getUnits());
             visualOptionsUpdateFormModel.setUserdata(visualOptionsRepository.getLastEntry().getUserdata());
-            visualOptionsUpdateFormModel.setGrafanasupport(visualOptionsRepository.getLastEntry().getGrafanasupport());
-            visualOptionsUpdateFormModel.setElasticsearchsupport(visualOptionsRepository.getLastEntry().getElasticsearchsupport());
             visualOptionsUpdateFormModel.setCorrelationmethod(visualOptionsRepository.getLastEntry().getCorrelationmethod());
+            visualOptionsUpdateFormModel.setUservisualoption(visualOptionsRepository.getLastEntry().getUservisualoption());
         }
         return EDIT_VO_VIEW;
     }
 
-    @RequestMapping(value = "/secure/editOptions", method = RequestMethod.POST)
+    @RequestMapping(value = "/admin/editOptions", method = RequestMethod.POST)
     public String handleVisualoptionsCreateForm(@Valid @ModelAttribute("visualOptionsEditModel") final VisualOptionsUpdateFormModel visualOptionsUpdateFormModel,
                                               BindingResult bindingResult) {
         if (bindingResult.hasErrors()) return EDIT_VO_VIEW;
@@ -63,7 +60,8 @@ public class VisualoptionController {
         if (count == 0){
             visualOptionsService.create(visualOptionsUpdateFormModel);
         }else{
-            Integer i = visualOptionsRepository.updateEntry(visualOptionsUpdateFormModel.getUserdata().toString(), visualOptionsUpdateFormModel.getUnits().toString(), visualOptionsUpdateFormModel.getRadiuslife(), visualOptionsUpdateFormModel.getGrafanasupport().toString(), visualOptionsUpdateFormModel.getElasticsearchsupport().toString(),
+            Integer i = visualOptionsRepository.updateEntry(visualOptionsUpdateFormModel.getUserdata().toString(),
+                                                            visualOptionsUpdateFormModel.getUservisualoption().toString(),
                                                             visualOptionsUpdateFormModel.getCorrelationmethod().toString());
         }
         return String.join("/", "redirect:", VisualoptionsController.VO_VIEW);
@@ -73,7 +71,5 @@ public class VisualoptionController {
     public String populateCssClass() {
         return  "active";
     }
-
-
 }
 

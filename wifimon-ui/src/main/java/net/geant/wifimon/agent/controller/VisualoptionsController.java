@@ -14,7 +14,7 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class VisualoptionsController {
 
-    public static final String VO_VIEW = "secure/options";
+    public static final String VO_VIEW = "admin/options";
 
     private final VisualOptionsService visualOptionsService;
 
@@ -23,7 +23,7 @@ public class VisualoptionsController {
         this.visualOptionsService = visualOptionsService;
     }
 
-    @RequestMapping("/secure/options")
+    @RequestMapping("/admin/options")
     public ModelAndView getVisualoptionsPage() {
         return new ModelAndView(VO_VIEW, "options", visualOptionsService.getLastVisualOption());
     }

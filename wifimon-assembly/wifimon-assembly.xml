@@ -30,11 +30,6 @@
             <filtered>true</filtered>
         </file>
         <file>
-            <source>grafana-dashboard.sh</source>
-            <outputDirectory></outputDirectory>
-            <filtered>true</filtered>
-        </file>
-        <file>
             <source>kibana-import.json</source>
             <outputDirectory></outputDirectory>
             <filtered>true</filtered>

@@ -1,5 +1,69 @@
 #!/bin/sh
-# create index with timestamp enabled
-# curl -XPOST localhost:9200/wifimon -d '{"settings" : {"number_of_shards" : 1},"mappings" : {"measurement" : {"_source" : {"enabled" : false}, "_timestamp" : {"enabled" : true, "store" : "yes" },"properties":{"calledStationId":{"type":"string","index": "not_analyzed"},"userOS":{"type":"string","index": "not_analyzed"},"userBrowser":{"type":"string","index": "not_analyzed"},"callingStationId":{"type":"string","index": "not_analyzed"},"clientIp":{"type":"string","index": "not_analyzed"},"downloadThroughput":{"type":"double"},"location":{"type":"geo_point"},"localPing":{"type":"double"},"locationMethod":{"type":"string","index": "not_analyzed"},"nasIpAddress":{"type":"string","index": "not_analyzed"},"nasPortType":{"type":"string","index": "not_analyzed"},"testTool":{"type":"string","index": "not_analyzed"},"uploadThroughput":{"type":"double"},"userAgent":{"type":"string","index": "not_analyzed"},"username":{"type":"string","index": "not_analyzed"}}}}}'
-curl -XPUT 'localhost:9200/wifimon?pretty' -H 'Content-Type: application/json' -d' {"mappings" : { "measurement" : { "properties" : { "calledStationId" : { "type" : "keyword" }, "callingStationId" : { "type" : "keyword" }, "clientIp" : { "type" : "keyword" }, "downloadThroughput" : { "type" : "float" }, "localPing" : { "type" : "float" }, "location" : { "type" : "geo_point" }, "locationMethod" : { "type" : "keyword" }, "nasIpAddress" : { "type" : "keyword" }, "nasPortType" : { "type" : "keyword" }, "testTool" : { "type" : "keyword" }, "timestamp" : { "type" : "date" }, "uploadThroughput" : { "type" : "float" }, "userAgent" : { "type" : "keyword" }, "userBrowser" : { "type" : "keyword" }, "userOS" : { "type" : "keyword" }, "username" : { "type" : "keyword" } } } } }'
-curl -XPUT 'localhost:9200/radiuslogs?pretty' -H 'Content-Type: application/json' -d' {"mappings" : { "logs" : { "properties" : { "timestamp" : { "type" : "date"}, "username" : { "type" : "keyword"}, "nas_port" : { "type" : "keyword"}, "source_host" : { "type" : "keyword"}, "calling_station_id" : { "type" : "keyword"}, "result" : { "type" : "keyword"}, "trace_id" : { "type" : "keyword"}, "nas_identifier" : { "type" : "keyword"}, "called_station_id" : { "type" : "keyword"}, "nas_ip_address" : { "type" : "ip"}, "framed_ip_address" : { "type" : "ip"}, "acct_status_type" : { "type" : "keyword"} } } } }'
+# create index wifimon and radiuslogs for Elasticsearch
+curl -XPUT 'localhost:9200/wifimon?pretty' -H 'Content-Type: application/json' -d'
+{  "mappings" : {
+      "measurement" : {
+         "properties" : {
+            "timestamp" : { "type" : "date" },
+            "downloadThroughput" : { "type" : "float" },
+            "uploadThroughput" : { "type" : "float" },
+            "localPing" : { "type" : "float" },
+            "location" : { "type" : "geo_point" },
+            "locationMethod" : { "type" : "keyword" },
+            "clientIp" : { "type" : "keyword" },
+            "userAgent" : { "type" : "keyword" },
+            "userBrowser" : { "type" : "keyword" },
+            "userOS" : { "type" : "keyword" },
+            "testTool" : { "type" : "keyword" },
+            "username" : { "type" : "keyword" },
+            "nasPort" : { "type" : "keyword" },
+            "callingStationId" : { "type" : "keyword" },
+            "nasIdentifier" : { "type" : "keyword" },
+            "calledStationId" : { "type" : "keyword" },
+            "nasIpAddress" : { "type" : "keyword" },
+            "apBuilding" : { "type" : "keyword" },
+            "apFloor" : { "type" : "keyword" },
+            "apLocation" : { "type" : "geo_point" },
+            "apNotes" : { "type" : "keyword" }
+         }
+      }
+   }
+}'
+
+curl -XPUT 'localhost:9200/radiuslogs?pretty' -H 'Content-Type: application/json' -d'
+{  "settings": {
+      "analysis": {
+         "normalizer": {
+            "my_normalizer": {
+               "type": "custom",
+               "char_filter": ["replace_filter"],
+               "filter": ["lowercase"]
+            }
+         },
+         "char_filter": {
+            "replace_filter": {
+               "type": "mapping",
+               "mappings": [": => -"]
+            }
+         }
+      }
+   },
+   "mappings" : {
+      "radiuslog" : {
+         "properties" : {
+            "timestamp" : { "type" : "date"},
+            "username" : { "type" : "keyword"},
+            "nas_port" : { "type" : "keyword"},
+            "source_host" : { "type" : "keyword"},
+            "calling_station_id" : { "type" : "keyword" , "normalizer": "my_normalizer"},
+            "result" : { "type" : "keyword"},
+            "trace_id" : { "type" : "keyword"},
+            "nas_identifier" : { "type" : "keyword"},
+            "called_station_id" : { "type" : "keyword"},
+            "nas_ip_address" : { "type" : "ip"},
+            "framed_ip_address" : { "type" : "ip"},
+            "acct_status_type" : { "type" : "keyword"}
+         }
+      }
+   }
+}'

@@ -1,13 +1,7 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
-  <head>
-  </head>
-  <body>
+
     <div class="navbar navbar-inverse navbar-fixed-top" th:fragment="header">
         <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
@@ -17,38 +11,47 @@
         <div class="container">
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li th:class="${classActiveSettingsHome}"><a href="#" th:href="@{/}">Monitoring Results</a></li>
-                <li th:class="${classActiveSettingsTimeline}"><a href="#" th:href="@{/secure/grafana}">Grafana</a></li>
-                <li th:class="${classActiveSettingsElastic}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">ElasticSearch<span class="caret"></span></a>
+                <li th:class="${classActiveSettingsElasticOverview}"><a href="#" th:href="@{/}">Overview</a></li>
+                <li th:class="${classActiveSettingsElasticMeasurements}"><a href="#" th:href="@{/secure/measurements}">Measurements</a></li>
+                <!--<li th:class="${classActiveSettingsTimeline}"><a href="#" th:href="@{/secure/grafana}">Grafana</a></li>-->
+                <li th:class="${classActiveSettingsElasticTimeseries}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Timeseries<span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li><a href="#" th:href="@{/secure/elasticsearch/overview}">Overview</a></li>
-                        <li><a href="#" th:href="@{/secure/elasticsearch/pieStatistics}">Pie Statistics</a></li>
-                        <li><a href="#" th:href="@{/secure/elasticsearch/tableStatistics}">Table Statistics</a></li>
-                        <li><a href="#" th:href="@{/secure/elasticsearch/map}">Measurements Map</a></li>
-                        <li><a href="#" th:href="@{/secure/elasticsearch/downloadTimeseries}">Download Timeseries</a></li>
-                        <li><a href="#" th:href="@{/secure/elasticsearch/uploadTimeseries}">Upload Timeseries</a></li>
-                        <li><a href="#" th:href="@{/secure/elasticsearch/pingTimeseries}">Ping Timeseries</a></li>
+                        <li><a href="#" th:href="@{/secure/timeseries/downloadTimeseries}">Download Timeseries</a></li>
+                        <li><a href="#" th:href="@{/secure/timeseries/uploadTimeseries}">Upload Timeseries</a></li>
+                        <li><a href="#" th:href="@{/secure/timeseries/pingTimeseries}">Ping Timeseries</a></li>
                     </ul>
                 </li>
-                <li th:class="${classActiveSettingsMap}"><a href="#" th:href="@{/secure/map}">Map</a></li>
+                <li th:class="${classActiveSettingsElasticStatistics}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Statistics<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" th:href="@{/secure/statistics/pieStatistics}">Pie Statistics</a></li>
+                        <li><a href="#" th:href="@{/secure/statistics/tableStatistics}">Table Statistics</a></li>
+                    </ul>
+                </li>
+                <li th:class="${classActiveSettingsElasticMap}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Maps<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" th:href="@{/secure/maps/clients}">Clients Map</a></li>
+                        <li><a href="#" th:href="@{/secure/maps/aps}">APs Map</a></li>
+                    </ul>
+                </li>
+                <!--<li th:class="${classActiveSettingsMap}"><a href="#" th:href="@{/secure/map}">Map</a></li>-->
                 <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsConfig}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Configuration<span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/secure/subnets}">Subnets</a></li>
+                        <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/subnets}">Subnets</a></li>
                         <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/accesspoints}">Access Points</a></li>
                         <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/users}">Users</a></li>
-                        <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/secure/options}">Options</a></li>
+                        <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/options}">Other Options</a></li>
                     </ul>
                 </li>
                 <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsGuide}"><a href="#" th:href="@{/secure/guide}">Guide</a></li>
                 <li th:class="${classActiveSettingsHelp}"><a href="#" th:href="@{/secure/help}">Help</a></li>
             </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="pull-right">
+                    <a th:title="Logout" href="/logout" th:href="@{/logout}"><span sec:authentication="name"></span>&nbsp;<span class="glyphicon glyphicon-log-out"></span></a>
+                </li>
+            </ul>
 
-            <p class="navbar-text navbar-right">
-                <span sec:authentication="name"></span>&nbsp;
-                <a th:title="Logout" href="/logout" th:href="@{/logout}" class="navbar-link"><span class="glyphicon glyphicon-log-out"></span></a>
-            </p>
+
         </div>
         </div>
     </div>
-  </body>
-</html>

@@ -1,16 +1,17 @@
 package net.geant.wifimon.processor.resource;
 
+import com.floragunn.searchguard.ssl.SearchGuardSSLPlugin;
+import com.floragunn.searchguard.ssl.util.SSLConfigConstants;
+import net.geant.wifimon.model.dto.AggregatedMeasurement;
 import net.geant.wifimon.model.dto.NetTestMeasurement;
 import net.geant.wifimon.model.entity.Accesspoint;
-import net.geant.wifimon.model.entity.GenericMeasurement;
-import net.geant.wifimon.model.entity.Radius;
+import net.geant.wifimon.model.entity.CorrelationMethod;
 import net.geant.wifimon.model.entity.RadiusStripped;
 import net.geant.wifimon.model.entity.Subnet;
 import net.geant.wifimon.processor.repository.AccesspointsRepository;
-import net.geant.wifimon.processor.repository.GenericMeasurementRepository;
-import net.geant.wifimon.processor.repository.RadiusRepository;
 import net.geant.wifimon.processor.repository.SubnetRepository;
 import net.geant.wifimon.processor.repository.VisualOptionsRepository;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.net.util.SubnetUtils;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -23,8 +24,6 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
-import org.influxdb.InfluxDB;
-import org.influxdb.dto.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -36,7 +35,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,15 +45,6 @@ import java.util.stream.Collectors;
 @Component
 @Path("/wifimon")
 public class AggregatorResource {
-
-    @Autowired
-    private InfluxDB influxDB;
-
-    @Autowired
-    GenericMeasurementRepository measurementRepository;
-
-    @Autowired
-    RadiusRepository radiusRepository;
 
     @Autowired
     SubnetRepository subnetRepository;
@@ -78,113 +67,19 @@ public class AggregatorResource {
     private static final String ES_TYPE_RADIUS = "elasticsearch.typenameradius";
     private static final String ES_INDEXNAME_DHCP = "elasticsearch.indexnamedhcp";
     private static final String ES_TYPE_DHCP = "elasticsearch.typenamedhcp";
+    private static final String SG_SSL_ENABLED = "sg.ssl.enabled";
+    private static final String SG_SSL_CERT_TYPE = "sg.ssl.certificate.type";
+    private static final String SG_SSL_KEYSTORE_FILEPATH = "sg.ssl.transport.keystore.filepath";
+    private static final String SG_SSL_KEYSTORE_PASSWORD= "sg.ssl.transport.keystore.password";
+    private static final String SG_SSL_TRUSTSTORE_FILEPATH= "sg.ssl.transport.truststore.filepath";
+    private static final String SG_SSL_TRUSTSTORE_PASSWORD= "sg.ssl.transport.truststore.password";
+    private static final String SG_SSL_PEMKEY_FILEPATH= "sg.ssl.transport.pemkey.filepath";
+    private static final String SG_SSL_PEMKEY_PASSWORD= "sg.ssl.transport.pemkey.password";
+    private static final String SG_SSL_PEMCERT_FILEPATH= "sg.ssl.transport.pemcert.filepath";
+    private static final String SG_SSL_PEMTRUSTEDCAS_FILEPATH= "sg.ssl.transport.pemtrustedcas.filepath";
+    private static final String SG_SSL_USER_USERNAME= "sg.ssl.transport.user.username";
+    private static final String SG_SSL_USER_PASSWORD= "sg.ssl.transport.user.password";
 
-
-    @POST
-    @Path("/add")
-    public Response correlate(final NetTestMeasurement measurement, @Context HttpServletRequest request) {
-        String agent = request.getHeader("User-Agent");
-        String ip = request.getRemoteAddr();
-        if (ip == null || ip.isEmpty()) return Response.serverError().build();
-        Radius r = radiusRepository.find(ip, new Date());
-        String grafanasupport= visualOptionsRepository.findGrafanasupport();
-        if (grafanasupport == null || grafanasupport.isEmpty()) {
-            grafanasupport = "False";
-        }
-        String elasticsearchsupport= visualOptionsRepository.findElasticsearchsupport();
-        if (elasticsearchsupport == null || elasticsearchsupport.isEmpty()) {
-            elasticsearchsupport = "False";
-        }
-        Integer radiuslife = visualOptionsRepository.findRadiuslife();
-        if (radiuslife != null){
-            if (radiuslife == 1) {
-                Integer integer = radiusRepository.deleteOldRecords1();
-            } else if (radiuslife == 2){
-                Integer integer = radiusRepository.deleteOldRecords2();
-            } else if (radiuslife == 3){
-                Integer integer = radiusRepository.deleteOldRecords3();
-            } else if (radiuslife == 4){
-                Integer integer = radiusRepository.deleteOldRecords4();
-            } else if (radiuslife == 5){
-                Integer integer = radiusRepository.deleteOldRecords5();
-            } else if (radiuslife == 6){
-                Integer integer = radiusRepository.deleteOldRecords6();
-            } else if (radiuslife == 7){
-                Integer integer = radiusRepository.deleteOldRecords7();
-            } else if (radiuslife == 8){
-                Integer integer = radiusRepository.deleteOldRecords8();
-            } else if (radiuslife == 9){
-                Integer integer = radiusRepository.deleteOldRecords9();
-            } else if (radiuslife == 10){
-                Integer integer = radiusRepository.deleteOldRecords10();
-            } else if (radiuslife == 11){
-                Integer integer = radiusRepository.deleteOldRecords11();
-            } else if (radiuslife == 12){
-                Integer integer = radiusRepository.deleteOldRecords12();
-            } else if (radiuslife == 13){
-                Integer integer = radiusRepository.deleteOldRecords13();
-            } else if (radiuslife == 14){
-                Integer integer = radiusRepository.deleteOldRecords14();
-            } else if (radiuslife == 15){
-                Integer integer = radiusRepository.deleteOldRecords15();
-            } else if (radiuslife == 16){
-                Integer integer = radiusRepository.deleteOldRecords16();
-            } else if (radiuslife == 17){
-                Integer integer = radiusRepository.deleteOldRecords17();
-            } else if (radiuslife == 18){
-                Integer integer = radiusRepository.deleteOldRecords18();
-            } else if (radiuslife == 19){
-                Integer integer = radiusRepository.deleteOldRecords19();
-            } else if (radiuslife == 20){
-                Integer integer = radiusRepository.deleteOldRecords20();
-            } else if (radiuslife == 21){
-                Integer integer = radiusRepository.deleteOldRecords21();
-            } else if (radiuslife == 22){
-                Integer integer = radiusRepository.deleteOldRecords22();
-            } else if (radiuslife == 23){
-                Integer integer = radiusRepository.deleteOldRecords23();
-            } else if (radiuslife == 24){
-                Integer integer = radiusRepository.deleteOldRecords24();
-            } else {
-                //By default delete radius entries after 6 hours
-                Integer integer = radiusRepository.deleteOldRecords6();
-            }
-        }else {
-            //By default delete radius entries after 6 hours
-            Integer integer = radiusRepository.deleteOldRecords6();
-        }
-
-        if (r != null) {
-            Accesspoint ap = accesspointsRepository.find(r.getCalledStationId());
-            if (grafanasupport.equals("True") && elasticsearchsupport.equals("False")) {
-                return addGrafanaMeasurement(addMeasurement(measurement, r, ap, ip, agent));
-            }else if (grafanasupport.equals("False") && elasticsearchsupport.equals("True")){
-                return addElasticMeasurement(addMeasurement(measurement, r, ap, ip, agent));
-            }else if (grafanasupport.equals("True") && elasticsearchsupport.equals("True")){
-                GenericMeasurement genericMeasurement = addMeasurement(measurement, r, ap, ip, agent);
-                addGrafanaMeasurement(genericMeasurement);
-                return addElasticMeasurement(genericMeasurement);
-            }else{
-                addMeasurement(measurement, r, ap, ip, agent);
-                return Response.ok(true).build();
-            }
-        }else {
-            if (grafanasupport.equals("True") && elasticsearchsupport.equals("False")) {
-                return addGrafanaMeasurement(addMeasurement(measurement, r, ip, agent));
-            }else if (grafanasupport.equals("False") && elasticsearchsupport.equals("True")){
-                return addElasticMeasurement(addMeasurement(measurement, r, ip, agent));
-            }else if (grafanasupport.equals("True") && elasticsearchsupport.equals("True")){
-                GenericMeasurement genericMeasurement = addMeasurement(measurement, r, ip, agent);
-                addGrafanaMeasurement(genericMeasurement);
-                return addElasticMeasurement(genericMeasurement);
-            }else{
-                GenericMeasurement genericMeasurement = addMeasurement(measurement, r, ip, agent);
-                return Response.ok(true).build();
-            }
-        }
-//        if (r == null) return Response.serverError().build();
-
-    }
 
     @POST
     @Path("/subnet")
@@ -202,101 +97,66 @@ public class AggregatorResource {
         return Response.ok(false).build();
     }
 
-    private Response addGrafanaMeasurement(GenericMeasurement measurement) {
-        try {
-            Point point = Point.measurement("nettest")
-                    .tag("ip", measurement.getClientIp() != null ? measurement.getClientIp() : "N/A")
-                    .tag("UserAgent", measurement.getUserAgent() != null ? measurement.getUserAgent() : "N/A")
-                    .tag("longitude",
-                         measurement.getLongitude() != null ? String.valueOf(measurement.getLongitude()) : "N/A")
-                    .tag("latitude",
-                         measurement.getLatitude() != null ? String.valueOf(measurement.getLatitude()) : "N/A")
-                    .tag("locationMethod",
-                         measurement.getLocationMethod() != null ? measurement.getLocationMethod() : "N/A")
-                    .tag("username", measurement.getUsername() != null ? measurement.getUsername() : "N/A")
-                    .tag("callingStationId",
-                         measurement.getCallingStationId() != null ? measurement.getCallingStationId() : "N/A")
-                    .tag("calledStationId",
-                         measurement.getCalledStationId() != null ? measurement.getCalledStationId() : "N/A")
-                    .tag("nasPortType", measurement.getNasPortType() != null ? measurement.getNasPortType() : "N/A")
-                    .tag("nasIpAddress", measurement.getNasIpAddress() != null ? measurement.getNasIpAddress() : "N/A")
-                    .field("DownloadThroughtput",
-                           measurement.getDownloadRate() == -1 ? -1d : measurement.getDownloadRate() * 8 * 1000)
-                    .field("UploadThroughtput",
-                           measurement.getUploadRate() == -1 ? -1d : measurement.getUploadRate() * 8 * 1000)
-                    .field("ping", measurement.getLocalPing() == -1 ? -1d : measurement.getLocalPing())
-                    .tag("testTool", measurement.getTestTool() != null ? measurement.getTestTool() : "N/A")
-                    .build();
-            influxDB.write("wifimon", "default", point);
-            return Response.ok().build();
-        } catch (Exception e) {
-            return Response.serverError().build();
+    @POST
+    @Path("/add")
+    public Response correlate(final NetTestMeasurement measurement, @Context HttpServletRequest request) {
+        String agent = request.getHeader("User-Agent") != null || !request.getHeader("User-Agent").isEmpty() ?  request.getHeader("User-Agent") : "N/A";
+        String ip = request.getRemoteAddr();
+        if (ip == null || ip.isEmpty()) return Response.serverError().build();
+
+        String correlationmethod = visualOptionsRepository.findCorrelationmethod();
+        if (correlationmethod == null || correlationmethod.isEmpty()) {
+            correlationmethod = "Radius_only";
+        }
+
+        RadiusStripped r = new RadiusStripped();
+        Accesspoint ap = new Accesspoint();
+
+        if (correlationmethod.equals(CorrelationMethod.DHCP_and_Radius.toString())){
+            //TODO Complete the else for correlation with DHCP and Radius
+            String callingStationIdTemp = "A1:b2-cc-33-d0-da".substring(0,17);
+            r = retrieveLastRadiusEntryByMac(callingStationIdTemp);
+        }else{
+            r = retrieveLastRadiusEntryByIp(ip);
+        }
+
+        if (r != null) {
+            String calledStationIdTemp = r.getCalledStationId().substring(0,17).toUpperCase().replace("-",":");
+            ap = accesspointsRepository.find(calledStationIdTemp);
+            return addElasticMeasurement(joinMeasurement(measurement, r, ap, ip, agent));
+        }
+        else {
+            return addElasticMeasurement(joinMeasurement(measurement, r, null, ip, agent));
         }
     }
 
-    private GenericMeasurement addMeasurement(NetTestMeasurement measurement, Radius radius, Accesspoint accesspoint, String ip, String agent) {
-        GenericMeasurement m = new GenericMeasurement();
-        m.setDate(new Date());
-        m.setDownloadRate(measurement.getDownloadThroughput());
-        m.setUploadRate(measurement.getUploadThroughput());
+    private AggregatedMeasurement joinMeasurement(NetTestMeasurement measurement, RadiusStripped radius, Accesspoint accesspoint, String ip, String agent) {
+        AggregatedMeasurement m = new AggregatedMeasurement();
+        m.setTimestamp(System.currentTimeMillis());
+        m.setDownloadThroughput(measurement.getDownloadThroughput());
+        m.setUploadThroughput(measurement.getUploadThroughput());
         m.setLocalPing(measurement.getLocalPing());
-        m.setLatitude(Double.valueOf(measurement.getLatitude()));
-        m.setLongitude(Double.valueOf(measurement.getLongitude()));
+        m.setLatitude(measurement.getLatitude() != null ? Double.valueOf(measurement.getLatitude()) : null);
+        m.setLongitude(measurement.getLongitude() != null ? Double.valueOf(measurement.getLongitude()): null);
         m.setLocationMethod(measurement.getLocationMethod());
         m.setClientIp(ip);
         m.setUserAgent(agent);
-        m.setStartTime(radius != null ? radius.getStartTime() : null);
-        m.setUsername(radius != null ? radius.getUsername() : null);
-        m.setFramedIpAddress(radius != null ? radius.getFramedIpAddress() : null);
-        m.setSessionId(radius != null ? radius.getSessionId() : null);
-        m.setCallingStationId(radius != null ? radius.getCallingStationId().replace(":","-").toUpperCase() : null);
-        m.setCalledStationId(radius != null ? radius.getCalledStationId().replace(":","-").toUpperCase() : null);
-        m.setNasPortId(radius != null ? radius.getNasPortId() : null);
-        m.setNasPortType(radius != null ? radius.getNasPortType() : null);
-        m.setNasIpAddress(radius != null ? radius.getNasIpAddress() : null);
         m.setTestTool(measurement.getTestTool());
-        m.setApMac(accesspoint != null ? accesspoint.getMac().replace(":","-").toUpperCase() : null);
-        m.setApLatitude(accesspoint != null ? accesspoint.getLatitude() : null);
-        m.setApLongitude(accesspoint != null ? accesspoint.getLongitude() : null);
+        m.setUserName(radius != null ? radius.getUserName() : null);
+        m.setNasPort(radius != null ? radius.getNasPort() : null);
+        m.setCallingStationId(radius != null ? radius.getCallingStationId() : null);
+        m.setNasIdentifier(radius != null ? radius.getNasIdentifier() : null);
+        m.setCalledStationId(radius != null ? radius.getCalledStationId() : null);
+        m.setNasIpAddress(radius != null  ? radius.getNasIpAddress() : null);
         m.setApBuilding(accesspoint != null ? accesspoint.getBuilding() : null);
         m.setApFloor(accesspoint != null ? accesspoint.getFloor() : null);
+        m.setApLatitude(accesspoint != null ? Double.valueOf(accesspoint.getLatitude()) : null);
+        m.setApLongitude(accesspoint != null ? Double.valueOf(accesspoint.getLongitude()) : null);
         m.setApNotes(accesspoint != null ? accesspoint.getNotes() : null);
-
-        RadiusStripped radiusStrippedIp = retrieveLastRadiusEntryByIp(ip);
-        RadiusStripped radiusStrippedMac = retrieveLastRadiusEntryByMac("A1:b2-cc-33-d0-da");
-
-        return measurementRepository.save(m);
+        return m;
     }
 
-    private GenericMeasurement addMeasurement(NetTestMeasurement measurement, Radius radius, String ip, String agent) {
-        GenericMeasurement m = new GenericMeasurement();
-        m.setDate(new Date());
-        m.setDownloadRate(measurement.getDownloadThroughput());
-        m.setUploadRate(measurement.getUploadThroughput());
-        m.setLocalPing(measurement.getLocalPing());
-        m.setLatitude(Double.valueOf(measurement.getLatitude()));
-        m.setLongitude(Double.valueOf(measurement.getLongitude()));
-        m.setLocationMethod(measurement.getLocationMethod());
-        m.setClientIp(ip);
-        m.setUserAgent(agent);
-        m.setStartTime(radius != null ? radius.getStartTime() : null);
-        m.setUsername(radius != null ? radius.getUsername() : null);
-        m.setFramedIpAddress(radius != null ? radius.getFramedIpAddress() : null);
-        m.setSessionId(radius != null ? radius.getSessionId() : null);
-        m.setCallingStationId(radius != null ? radius.getCallingStationId().replace(":","-").toUpperCase() : null);
-        m.setCalledStationId(radius != null ? radius.getCalledStationId().replace(":","-").toUpperCase() : null);
-        m.setNasPortId(radius != null ? radius.getNasPortId() : null);
-        m.setNasPortType(radius != null ? radius.getNasPortType() : null);
-        m.setNasIpAddress(radius != null ? radius.getNasIpAddress() : null);
-        m.setTestTool(measurement.getTestTool());
-
-        RadiusStripped radiusStrippedIp = retrieveLastRadiusEntryByIp(ip);
-        RadiusStripped radiusStrippedMac = retrieveLastRadiusEntryByMac("A1:b2-cc-33-d0-da");
-
-        return measurementRepository.save(m);
-    }
-
-    private Response addElasticMeasurement(GenericMeasurement measurement) {
+    private Response addElasticMeasurement(AggregatedMeasurement measurement) {
         // addElasticMeasurement for Kibana 4.1.2
         String UserAgent = measurement.getUserAgent();
         String userOS = new String();
@@ -327,12 +187,42 @@ public class AggregatorResource {
             userBrowser = "N/A";
         }
 
-        Long timestamp = System.currentTimeMillis();
+        String downloadThroughputJson = measurement.getDownloadThroughput() != null ? "\"downloadThroughput\" : " + measurement.getDownloadThroughput() + ", " : "";
+        String uploadThroughputJson = measurement.getUploadThroughput() != null ? "\"uploadThroughput\" : " + measurement.getUploadThroughput() + ", " : "";
+        String localPingJson = measurement.getLocalPing() != null ? "\"localPing\" : " + measurement.getLocalPing() + ", " : "";
+        String locationJson = measurement.getLatitude() != null ? "\"location\" : \"" + measurement.getLatitude() + "," + measurement.getLongitude() + "\", " : "";
+        String locationMethodJson = measurement.getLocationMethod() != null ? "\"locationMethod\" : \"" + measurement.getLocationMethod() + "\", " : "";
+        String clientIpJson = measurement.getClientIp() != null ? "\"clientIp\" : \"" + measurement.getClientIp() + "\", " : "";
+        String userAgentJson =measurement.getUserAgent() != null ? "\"userAgent\" : \"" + measurement.getUserAgent() + "\", " : "";
+        String userBrowserJson = userBrowser != null ? "\"userBrowser\" : \"" + userBrowser + "\", " : "";
+        String userOSJson = userOS != null ? "\"userOS\" : \"" + userOS + "\", " : "";
+        String testToolJson = measurement.getTestTool() != null ? "\"testTool\" : \"" + measurement.getTestTool() + "\", " : "";
+        String usernameJson = measurement.getUserName() != null ? "\"username\" : \"" + measurement.getUserName() + "\", " : "";
+        String nasPortJson = measurement.getNasPort() != null ? "\"nasPort\" : \"" + measurement.getNasPort() + "\", " : "";
+        String callingStationIdJson = measurement.getCallingStationId() != null ? "\"callingStationId\" : \"" + measurement.getCallingStationId() + "\", " : "";
+        String nasIdentifierJson = measurement.getNasIdentifier() != null ? "\"nasIdentifier\" : \"" + measurement.getNasIdentifier() + "\", " : "";
+        String calledStationIdJson = measurement.getCalledStationId() != null ? "\"calledStationId\" : \"" + measurement.getCalledStationId() + "\", " : "";
+        String nasIpAddressJson = measurement.getNasIpAddress() != null ? "\"nasIpAddress\" : \"" + measurement.getNasIpAddress() + "\", " : "";
+        String apBuildingJson = measurement.getApBuilding() != null ? "\"apBuilding\" : \"" + measurement.getApBuilding() + "\", " : "";
+        String apFloorJson = measurement.getApFloor() != null ? "\"apFloor\" : \"" + measurement.getApFloor() + "\", " : "";
+        String apLocationJson = measurement.getApLatitude() != null ? "\"apLocation\" : \"" + measurement.getApLatitude() + "," + measurement.getApLongitude() + "\", " : "";
+        String apNotesJson = measurement.getApNotes() != null ? "\"apNotes\" : \"" + measurement.getApNotes() + "\"" : "";
 
-        String jsonString = "{" +
-                "\"timestamp\" : " + timestamp + "," +
-                "\"downloadThroughput\" : " + measurement.getDownloadRate() + "," +
-                "\"uploadThroughput\" : " + measurement.getUploadRate() + "," +
+        String jsonStringDraft = "{" +
+                "\"timestamp\" : " + measurement.getTimestamp() + ", " +
+                downloadThroughputJson + uploadThroughputJson + localPingJson +
+                locationJson + locationMethodJson + clientIpJson +
+                userAgentJson + userBrowserJson + userOSJson +
+                testToolJson + usernameJson + nasPortJson +
+                callingStationIdJson + nasIdentifierJson + calledStationIdJson +
+                nasIpAddressJson + apBuildingJson + apFloorJson + apLocationJson +
+                apNotesJson + "}";
+
+        String jsonString = jsonStringDraft.replace("\", }", "\"}");
+        /*String jsonString = "{" +
+                "\"timestamp\" : " + measurement.getTimestamp() + "," +
+                "\"downloadThroughput\" : " + measurement.getDownloadThroughput() + "," +
+                "\"uploadThroughput\" : " + measurement.getUploadThroughput() + "," +
                 "\"localPing\" : " + measurement.getLocalPing() + "," +
                 "\"location\" : \"" + measurement.getLatitude() + "," + measurement.getLongitude() + "\"," +
                 "\"locationMethod\" : \"" + measurement.getLocationMethod() + "\"," +
@@ -340,20 +230,65 @@ public class AggregatorResource {
                 "\"userAgent\" : \"" + measurement.getUserAgent() + "\"," +
                 "\"userBrowser\" : \"" + userBrowser + "\"," +
                 "\"userOS\" : \"" + userOS + "\"," +
-                "\"username\" : \"" + measurement.getUsername() + "\"," +
+                "\"testTool\" : \"" + measurement.getTestTool() + "\"," +
+                "\"username\" : \"" + measurement.getUserName() + "\"," +
+                "\"nasPort\" : \"" + measurement.getNasPort() + "\"," +
                 "\"callingStationId\" : \"" + measurement.getCallingStationId() + "\"," +
+                "\"nasIdentifier\" : \"" + measurement.getNasIdentifier() + "\"," +
                 "\"calledStationId\" : \"" + measurement.getCalledStationId() + "\"," +
-                "\"nasPortType\" : \"" + measurement.getNasPortType() + "\"," +
                 "\"nasIpAddress\" : \"" + measurement.getNasIpAddress() + "\"," +
-                "\"testTool\" : \"" + measurement.getTestTool() + "\"" +
-                "}";
+                "\"apBuilding\" : \"" + measurement.getApBuilding() + "\"," +
+                "\"apFloor\" : \"" + measurement.getApFloor() + "\"," +
+                "\"apLocation\" : \"" + measurement.getApLatitude() + "," + measurement.getApLongitude() + "\"," +
+                "\"apNotes\" : \"" + measurement.getApNotes() + "\"" +
+                "}";*/
 
         TransportClient client = null;
-        try {
-            client = new PreBuiltTransportClient(Settings.EMPTY)
-                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+
+        if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
+            if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
+                Settings.Builder settingsBuilder =
+                        Settings.builder()
+                                .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_FILEPATH, environment.getProperty(SG_SSL_PEMKEY_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_PASSWORD, environment.getProperty(SG_SSL_PEMKEY_PASSWORD))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMCERT_FILEPATH, environment.getProperty(SG_SSL_PEMCERT_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMTRUSTEDCAS_FILEPATH, environment.getProperty(SG_SSL_PEMTRUSTEDCAS_FILEPATH));
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                Settings.Builder settingsBuilder =
+                        Settings.builder()
+                                .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_FILEPATH, environment.getProperty(SG_SSL_KEYSTORE_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_FILEPATH, environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_PASSWORD, environment.getProperty(SG_SSL_KEYSTORE_PASSWORD))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_PASSWORD, environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD));
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }
+            client.threadPool().getThreadContext().putHeader("Authorization", "Basic " + Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
+        }else {
+            Settings.Builder settingsBuilder =
+                    Settings.builder()
+                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME));
+            Settings settings = settingsBuilder.build();
+            try {
+                client = new PreBuiltTransportClient(settings)
+                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
         }
 
         IndexResponse indexResponse = client.prepareIndex(environment.getProperty(ES_INDEXNAME_MEASUREMENT), environment.getProperty(ES_TYPE_MEASUREMENT))
@@ -370,11 +305,51 @@ public class AggregatorResource {
         RadiusStripped r = new RadiusStripped();
 
         TransportClient client = null;
-        try {
-            client = new PreBuiltTransportClient(Settings.EMPTY)
-                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+
+        if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
+            if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
+                Settings.Builder settingsBuilder =
+                        Settings.builder()
+                                .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_FILEPATH, environment.getProperty(SG_SSL_PEMKEY_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_PASSWORD, environment.getProperty(SG_SSL_PEMKEY_PASSWORD))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMCERT_FILEPATH, environment.getProperty(SG_SSL_PEMCERT_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMTRUSTEDCAS_FILEPATH, environment.getProperty(SG_SSL_PEMTRUSTEDCAS_FILEPATH));
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                Settings.Builder settingsBuilder =
+                        Settings.builder()
+                                .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_FILEPATH, environment.getProperty(SG_SSL_KEYSTORE_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_FILEPATH, environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_PASSWORD, environment.getProperty(SG_SSL_KEYSTORE_PASSWORD))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_PASSWORD, environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD));
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }
+            client.threadPool().getThreadContext().putHeader("Authorization", "Basic " + Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
+        }else {
+            Settings.Builder settingsBuilder =
+                    Settings.builder()
+                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME));
+            Settings settings = settingsBuilder.build();
+            try {
+                client = new PreBuiltTransportClient(settings)
+                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
         }
 
         SearchResponse response = client.prepareSearch(environment.getProperty(ES_INDEXNAME_RADIUS))
@@ -409,20 +384,8 @@ public class AggregatorResource {
                 break;
             }
         }else {
-            r.setUserName("N/A");
-            r.setTimestamp("N/A");
-            r.setNasPort("N/A");
-            r.setSourceHost("N/A");
-            r.setCallingStationId("N/A");
-            r.setResult("N/A");
-            r.setTraceId("N/A");
-            r.setNasIdentifier("N/A");
-            r.setCalledStationId("N/A");
-            r.setNasIpAddress("N/A");
-            r.setFramedIpAddress("N/A");
-            r.setAcctStatusType("N/A");
+            r = null;
         }
-
 
         client.close();
         return r;
@@ -433,11 +396,51 @@ public class AggregatorResource {
         RadiusStripped r = new RadiusStripped();
 
         TransportClient client = null;
-        try {
-            client = new PreBuiltTransportClient(Settings.EMPTY)
-                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+
+        if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
+            if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
+                Settings.Builder settingsBuilder =
+                        Settings.builder()
+                                .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_FILEPATH, environment.getProperty(SG_SSL_PEMKEY_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMKEY_PASSWORD, environment.getProperty(SG_SSL_PEMKEY_PASSWORD))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMCERT_FILEPATH, environment.getProperty(SG_SSL_PEMCERT_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_PEMTRUSTEDCAS_FILEPATH, environment.getProperty(SG_SSL_PEMTRUSTEDCAS_FILEPATH));
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                Settings.Builder settingsBuilder =
+                        Settings.builder()
+                                .put("cluster.name", environment.getProperty(ES_CLUSTERNAME))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_FILEPATH, environment.getProperty(SG_SSL_KEYSTORE_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_FILEPATH, environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_KEYSTORE_PASSWORD, environment.getProperty(SG_SSL_KEYSTORE_PASSWORD))
+                                .put(SSLConfigConstants.SEARCHGUARD_SSL_TRANSPORT_TRUSTSTORE_PASSWORD, environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD));
+                Settings settings = settingsBuilder.build();
+                try {
+                    client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+                            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }
+            client.threadPool().getThreadContext().putHeader("Authorization", "Basic " + Base64.encodeBase64((environment.getProperty(SG_SSL_USER_USERNAME) + ":" + environment.getProperty(SG_SSL_USER_PASSWORD)).getBytes()));
+        }else {
+            Settings.Builder settingsBuilder =
+                    Settings.builder()
+                            .put("cluster.name", environment.getProperty(ES_CLUSTERNAME));
+            Settings settings = settingsBuilder.build();
+            try {
+                client = new PreBuiltTransportClient(settings)
+                        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(environment.getProperty(ES_HOST)), Integer.parseInt(environment.getProperty(ES_PORT))));
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
         }
 
         SearchResponse response = client.prepareSearch(environment.getProperty(ES_INDEXNAME_RADIUS))
@@ -471,18 +474,7 @@ public class AggregatorResource {
                 break;
             }
         }else {
-            r.setUserName("N/A");
-            r.setTimestamp("N/A");
-            r.setNasPort("N/A");
-            r.setSourceHost("N/A");
-            r.setCallingStationId("N/A");
-            r.setResult("N/A");
-            r.setTraceId("N/A");
-            r.setNasIdentifier("N/A");
-            r.setCalledStationId("N/A");
-            r.setNasIpAddress("N/A");
-            r.setFramedIpAddress("N/A");
-            r.setAcctStatusType("N/A");
+            r = null;
         }
 
         client.close();

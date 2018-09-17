@@ -19,11 +19,8 @@ public class VisualOptions implements Serializable {
 
     private Long optionsid;
     private UserData userdata;
-    private Units units;
-    private Integer radiuslife;
-    private ElasticSearchSupport elasticsearchsupport;
-    private GrafanaSupport grafanasupport;
     private CorrelationMethod correlationmethod;
+    private UserVisualOption uservisualoption;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,45 +43,6 @@ public class VisualOptions implements Serializable {
         this.userdata = userdata;
     }
 
-    @Column(name = "elasticsearchsupport", nullable = false)
-    @Enumerated(EnumType.STRING)
-    public ElasticSearchSupport getElasticsearchsupport() {
-        return elasticsearchsupport;
-    }
-
-    public void setElasticsearchsupport(ElasticSearchSupport elasticsearchsupport) {
-        this.elasticsearchsupport = elasticsearchsupport;
-    }
-
-    @Column(name = "grafanasupport", nullable = false)
-    @Enumerated(EnumType.STRING)
-    public GrafanaSupport getGrafanasupport() {
-        return grafanasupport;
-    }
-
-    public void setGrafanasupport(GrafanaSupport grafanasupport) {
-        this.grafanasupport = grafanasupport;
-    }
-
-    @Column(name = "units", nullable = false)
-    @Enumerated(EnumType.STRING)
-    public Units getUnits() {
-        return units;
-    }
-
-    public void setUnits(Units units) {
-        this.units = units;
-    }
-
-    @Column(name = "radiuslife", nullable = false)
-    public Integer getRadiuslife() {
-        return radiuslife;
-    }
-
-    public void setRadiuslife(Integer radiuslife) {
-        this.radiuslife = radiuslife;
-    }
-
     @Column(name = "correlationmethod", nullable = false)
     @Enumerated(EnumType.STRING)
     public CorrelationMethod getCorrelationmethod() {
@@ -93,5 +51,15 @@ public class VisualOptions implements Serializable {
 
     public void setCorrelationmethod(CorrelationMethod correlationmethod) {
         this.correlationmethod = correlationmethod;
+    }
+
+    @Column(name = "uservisualoption", nullable = false)
+    @Enumerated(EnumType.STRING)
+    public UserVisualOption getUservisualoption() {
+        return uservisualoption;
+    }
+
+    public void setUservisualoption(UserVisualOption uservisualoption) {
+        this.uservisualoption = uservisualoption;
     }
 }
