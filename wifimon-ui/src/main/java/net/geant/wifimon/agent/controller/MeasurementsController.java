@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
- * Created by kanakisn on 8/5/15.
+ * Created by kanakisn on 8/5/15. Modified by Nikos Kostopoulos on 8/27/2019 (added HWProbes sections)
  */
 
 @Controller
