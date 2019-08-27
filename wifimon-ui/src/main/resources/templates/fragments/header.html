@@ -21,6 +21,13 @@
                         <li><a href="#" th:href="@{/secure/timeseries/pingTimeseries}">Ping Timeseries</a></li>
                     </ul>
                 </li>
+		<li th:class="${classActiveSettingsElasticHWProbes}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">HWProbes<span class="caret"></span></a>
+		    <ul class="dropdown-menu">
+			<li><a href="#" th:href="@{/secure/HWProbes/downloadTimeseries}">Download Timeseries</a></li>
+			<li><a href="#" th:href="@{/secure/HWProbes/uploadTimeseries}">Upload Timeseries</a></li>
+			<li><a href="#" th:href="@{/secure/HWProbes/pingTimeseries}">Ping Timeseries</a></li>
+		    </ul>
+		</li>
                 <li th:class="${classActiveSettingsElasticStatistics}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Statistics<span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="#" th:href="@{/secure/statistics/pieStatistics}">Pie Statistics</a></li>

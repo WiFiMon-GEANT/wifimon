@@ -77,20 +77,19 @@
                 <div class="panel-body">
                     <strong>Scripts to embed in your website</strong><br/>
                     <i><code>
-                        &lt;script type="text/javascript" src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/nettest/jquery-1.11.2.min.js"&gt;&lt;/script&gt;<br/>
-                        &lt;script type="text/javascript" src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/nettest/nettest-swfobject.js"&gt;&lt;/script&gt;<br/>
-                        &lt;script type="text/javascript" src="https://www.google.com/jsapi"&gt;&lt;/script&gt;<br/>
+                        &lt;script type="text/javascript" src="https://wifimon.switch.ch/wifimon/js/nettest/jquery-1.11.2.min.js"&gt;&lt;/script&gt;<br/>
+                        &lt;script type="text/javascript" src="https://wifimon.switch.ch/wifimon/js/nettest/nettest-swfobject.js"&gt;&lt;/script&gt;<br/>
+                        &lt;script type="text/javascript" src="https://wifimon.switch.ch/jsapi"&gt;&lt;/script&gt;<br/>
                         &lt;script type="text/javascript" id="settings" agentIp="<span style="color:blue">xxx.xxx.xxx.xxx</span>" testtool="NetTest" imagesLocation="" cookieTimeInMinutes="" <br/>
-                        &nbsp;&nbsp;&nbsp;&nbsp;src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/nettest/runtests.js" defer&gt;&lt;/script&gt;<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;src="https://wifimon.switch.ch/wifimon/js/nettest/runtests.js" defer&gt;&lt;/script&gt;<br/>
                     </code></i>
                     <br/>
                     <strong>Changes</strong>
                     <ul>
                         <li><var>agentIp (required)</var>: Replace "<i><code><span style="color:blue">xxx.xxx.xxx.xxx</span></code></i>"
                             with the IP address (or domain name) of the server where the WiFiMon agent is installed</li>
-                        <li><var>imagesLocation (optional)</var>: Public link to the folder where the images are downloaded to
-                            perform the nettest measurements. If empty, "https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/images/" is assumed
-                            (see also the second note below)</li>
+                        <li><var>imagesLocation</var>: Public link to the folder where the images are downloaded to
+                            perform the nettest measurements. Please, see also the second note below.</li>
                         <li><var>cookieTimeInMinutes (optional)</var>: Duration time (in minutes) to set the cookie in order to prevent
                             repeated measurements. If empty, "1.5" is assumed</li>
                     </ul>
@@ -99,7 +98,7 @@
                     <ul>
                         <li>If your website already includes the <var>jquery.min.js</var>, you have to delete the first line</li>
                         <li>With the above javascript lines, the images (that NetTest is using) and scripts are downloaded from
-                            our Apache Server, which is located in Athens, Greece.
+                            our Apache Server, which is located in Zurich, Switzerland.
                             Therefore, the download/upload rates and RTT will be relative to this Server. For more
                             accurate results you can setup your Apache Server to host the images and scripts
                             <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal1"><span class="glyphicon glyphicon-info-sign"></span></button></li>
@@ -127,22 +126,21 @@
                 <div class="panel-body">
                     <strong>Scripts to embed in your website</strong><br/>
                     <i><code>
-                        &lt;script type="text/javascript" src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/boomerang/jquery-1.11.2.min.js"&gt;&lt;/script&gt;<br/>
+                        &lt;script type="text/javascript" src="https://wifimon.switch.ch/wifimon/js/boomerang/jquery-1.11.2.min.js"&gt;&lt;/script&gt;<br/>
                         &lt;script type="text/javascript" src="https://www.google.com/jsapi"&gt;&lt;/script&gt;<br/>
-                        &lt;script type="text/javascript" src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/boomerang/boomerang.js"&gt;&lt;/script&gt;<br/>
-                        &lt;script type="text/javascript" src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/boomerang/bw.js"&gt;&lt;/script&gt;<br/>
-                        &lt;script type="text/javascript" src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/boomerang/rt.js"&gt;&lt;/script&gt;<br/>
+                        &lt;script type="text/javascript" src="https://wifimon.switch.ch/wifimon/js/boomerang/boomerang.js"&gt;&lt;/script&gt;<br/>
+                        &lt;script type="text/javascript" src="https://wifimon.switch.ch/wifimon/js/boomerang/bw.js"&gt;&lt;/script&gt;<br/>
+                        &lt;script type="text/javascript" src="https://wifimon.switch.ch/wifimon/js/boomerang/rt.js"&gt;&lt;/script&gt;<br/>
                         &lt;script type="text/javascript" id="settings" agentIp="<span style="color:blue">xxx.xxx.xxx.xxx</span>" testtool="boomerang" imagesLocation="" cookieTimeInMinutes="" <br/>
-                        &nbsp;&nbsp;&nbsp;&nbsp;src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/boomerang/boomerang-trigger.js" defer&gt;&lt;/script&gt;<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;src="https://wifimon.switch.ch/wifimon/js/boomerang/boomerang-trigger.js" defer&gt;&lt;/script&gt;<br/>
                     </code></i>
                     <br/>
                     <strong>Changes</strong>
                     <ul>
                         <li><var>agentIp (required)</var>: Replace "<i><code><span style="color:blue">xxx.xxx.xxx.xxx</span></code></i>" with the IP
                             address (or domain name) of the server where the WiFiMon agent is installed</li>
-                        <li><var>imagesLocation (optional)</var>: Public link to the folder where the images are downloaded to perform the
-                            boomerang measurements. If empty, "https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/images/" is assumed
-                            (see also the second note below)</li>
+                        <li><var>imagesLocation</var>: Public link to the folder where the images are downloaded to perform the
+                            boomerang measurements. Please, see also the second note below.</li>
                         <li><var>cookieTimeInMinutes (optional)</var>: Duration time (in minutes) to set the cookie in order to prevent
                             repeated measurements. If empty, "1.5" is assumed</li>
                     </ul>
@@ -151,7 +149,7 @@
                     <ul>
                         <li>If your website already includes the <var>jquery.min.js</var>, you have to delete the first line</li>
                         <li>With the above javascript lines, the images (that boomerang is using) and scripts are downloaded from our Apache Server,
-                            which is located in Athens, Greece. Therefore, the download/upload rates and RTT will be relative to this Server. For more
+                            which is located in Zurich, Switzerland. Therefore, the download/upload rates and RTT will be relative to this Server. For more
                             accurate results you can setup your Apache Server to host the images and scripts
                             <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal2"><span class="glyphicon glyphicon-info-sign"></span></button></li>
                         <li>If the above scripts are to be embedded only to http websites the <var>hostingWebsite="http"</var> attribute can be added at the last script (i.e. <i><code>... id="settings" <strong><span style="color:blue">hostingWebsite="http"</span></strong> agentIp="xxx.xxx.xxx.xxx" ...</code></i>). This will direct the measurements to the agent running on port 9000 (http).</li>
@@ -181,10 +179,10 @@
                         &lt;html&gt;<br/>
                         &lt;head&gt;<br/>
                         &lt;title&gt;Speed worker&lt;/title&gt;<br/>
-                        &lt;script type="text/javascript" src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/speedtest/jquery-1.11.2.min.js"&gt;&lt;/script&gt;<br/>
+                        &lt;script type="text/javascript" src="https://wifimon.switch.ch/wifimon/js/speedtest/jquery-1.11.2.min.js"&gt;&lt;/script&gt;<br/>
                         &lt;script type="text/javascript" src="https://www.google.com/jsapi"&gt;&lt;/script&gt;<br/>
                         &lt;script type="text/javascript" id="settings" agentIp="<span style="color:blue">xxx.xxx.xxx.xxx</span>" testtool="speedtest" cookieTimeInMinutes="" <br/>
-                        &nbsp;&nbsp;&nbsp;&nbsp;src="https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/js/speedtest/speedworker-post.js"&gt;&lt;/script&gt;<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;src="https://wifimon.switch.ch/wifimon/js/speedtest/speedworker-post.js"&gt;&lt;/script&gt;<br/>
                         &lt;/head&gt;<br/>
                         &lt;body&gt;<br/>
                         &lt;/body&gt;<br/>
@@ -206,7 +204,7 @@
                     <strong>Notes</strong>
                     <ul>
                         <li>If your website already includes the <var>jquery.min.js</var>, you have to delete the first script from your proxy html page</li>
-                        <li>With the above configuration, the download/upload rates and RTT will be relative to our server, located in Athens, Greece. For more
+                        <li>With the above configuration, the download/upload rates and RTT will be relative to our server, located in Zurich, Switzerland. For more
                             accurate results you can setup your Apache Server to host the necessary files to run speedtest/HTML5
                             <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal3"><span class="glyphicon glyphicon-info-sign"></span></button></li>
                         <li>If the above scripts are to be embedded only to http websites the <var>hostingWebsite="http"</var> attribute can be added at the last script (i.e. <i><code>... id="settings" <strong><span style="color:blue">hostingWebsite="http"</span></strong> agentIp="xxx.xxx.xxx.xxx" ...</code></i>). This will direct the measurements to the agent running on port 9000 (http).</li>

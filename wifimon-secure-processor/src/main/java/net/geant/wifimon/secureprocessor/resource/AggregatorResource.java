@@ -280,7 +280,6 @@ public class AggregatorResource {
 
         String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
-	System.out.println("BEFORE INITIALIZING CLIENT");
 
         if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
             if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
@@ -292,9 +291,7 @@ public class AggregatorResource {
 	        restHighLevelClient = initHttpClient();
 	}
 
-	System.out.println("BEFORE INDEXING MEASUREMENT");
 	indexMeasurement(restHighLevelClient, jsonString);
-	System.out.println("AFTER INDEXING MEASUREMENT");
 	closeConnection();
 
         return Response.ok().build();
@@ -460,7 +457,6 @@ public class AggregatorResource {
 	    System.out.println(e);
         }
 
-	System.out.println("MY CLIENT IS INITIALIZED");
         return restHighLevelClient;
     }
 

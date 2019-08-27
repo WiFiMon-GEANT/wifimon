@@ -38,7 +38,6 @@ public class SubnetsController {
 
     @RequestMapping(value = "/admin/subnets", method = RequestMethod.GET)
     public String subnets(@ModelAttribute("sub") final Subnet sub) {
-	System.out.println(sub);
         return "admin/subnets";
     }
 
@@ -49,7 +48,6 @@ public class SubnetsController {
         if (bindingResult.hasErrors()) {
             return "admin/subnets";
         }
-	System.out.println(sub);
         subnetRepository.save(sub);
         model.clear();
         return "redirect:/admin/subnets";
@@ -57,7 +55,6 @@ public class SubnetsController {
 
     @RequestMapping(value = "/admin/subnets/delete/{id}")
     public String deleteSubnet(@PathVariable final String id) {
-	System.out.println(id);
         subnetRepository.deleteById(Long.valueOf(id));
         return "redirect:/admin/subnets";
     }
