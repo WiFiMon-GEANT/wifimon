@@ -87,6 +87,11 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.ScoreSortBuilder;
 
+// Added 19/09/2019
+import java.security.Key;
+import javax.crypto.spec.SecretKeySpec;
+
+
 /**
  * Created by kokkinos on 12/02/16, Transport client upgraded to High Level REST Client by Kostopoulos on 31/03/19.
  */
@@ -127,6 +132,7 @@ public class AggregatorResource {
     private static final String SG_SSL_TRUSTSTORE_FILEPATH = "sg.ssl.http.truststore.filepath";
     private static final String SG_SSL_TRUSTSTORE_PASSWORD = "sg.ssl.http.truststore.password";
     private static final String SG_SSL_KEY_PASSWORD = "sg.ssl.http.key.password";
+    private static final String ES_IP_ENCRYPTION_KEY = "elasticsearch.ip_encryption_key";
 
     // properties added by me
     private static RestHighLevelClient restHighLevelClient;
@@ -155,6 +161,36 @@ public class AggregatorResource {
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
 
+	// Adding 19/09/2019
+	// In the following, we find the registered subnet corresponding to the requester IP
+	List<Subnet> subnets = subnetRepository.findAll();
+	if (subnets == null || subnets.isEmpty()) return Response.ok(false).build();
+	List<SubnetUtils.SubnetInfo> s = subnets.stream().
+		map(it -> it.fromSubnetString()).collect(Collectors.toList());
+
+	String foundSubnet = new String();
+	for (SubnetUtils.SubnetInfo si : s) {
+		if (si.isInRange(ip)) {
+			foundSubnet = si.toString();
+		}
+	}
+
+	// Trim excessive whitespace from received Subnet Utils information
+	String subnetInfoWithoutWhitespace = foundSubnet.replaceAll("\\s+", " ");
+	// Split Subnet Utils information based on remaining spaces
+	String[] splitSubnetInfo = subnetInfoWithoutWhitespace.split(" ");
+	// Get the third String from the list above
+	String subnet3 = splitSubnetInfo[2];
+	// This String is inside brackets. We will remove these brackets
+	String requesterSubnet = subnet3.replace("[", "");
+	requesterSubnet = requesterSubnet.replace("]", "");
+
+	// Encrypt Requester IP
+	String encryptedIP = encryptString(ip);
+	System.out.println("Encrypted String");
+	System.out.println(encryptedIP);
+
+	// What is the correlation method defined by the administrator in the WiFiMon GUI?
         String correlationmethod = visualOptionsRepository.findCorrelationmethod();
         if (correlationmethod == null || correlationmethod.isEmpty()) {
             correlationmethod = "Radius_only";
@@ -163,6 +199,7 @@ public class AggregatorResource {
         RadiusStripped r = new RadiusStripped();
         Accesspoint ap = new Accesspoint();
 
+	// Perform correlations and insert new measurements in the elasticsearch cluster
         if (correlationmethod.equals(CorrelationMethod.DHCP_and_Radius.toString())){
             //TODO Complete the else for correlation with DHCP and Radius
             String callingStationIdTemp = "A1:b2-cc-33-d0-da".substring(0,17);
@@ -175,11 +212,10 @@ public class AggregatorResource {
            if (r != null) {
                String calledStationIdTemp = r.getCalledStationId().substring(0,17).toUpperCase().replace("-",":");
                ap = accesspointsRepository.find(calledStationIdTemp);
-		
-               response = addElasticMeasurement(joinMeasurement(measurement, r, ap, ip, agent));
+               response = addElasticMeasurement(joinMeasurement(measurement, r, ap, ip, agent), requesterSubnet, encryptedIP);
            }
            else {
-               response = addElasticMeasurement(joinMeasurement(measurement, r, null, ip, agent));
+               response = addElasticMeasurement(joinMeasurement(measurement, r, null, ip, agent), requesterSubnet, encryptedIP);
        	   }
         }
 	catch (IOException e) {
@@ -216,9 +252,11 @@ public class AggregatorResource {
         return m;
     }
 
-    private Response addElasticMeasurement(AggregatedMeasurement measurement) throws IOException {
-        // addElasticMeasurement for Kibana 4.1.2
+    private Response addElasticMeasurement(AggregatedMeasurement measurement, String requesterSubnet, String encryptedIP) throws IOException {
+        // addElasticMeasurement for Kibana 6.2.4
         String UserAgent = measurement.getUserAgent();
+
+	// Section for User Operating System
         String userOS = new String();
         if (UserAgent.toUpperCase().contains("WINDOWS")){
             userOS = "Windows";
@@ -232,6 +270,7 @@ public class AggregatorResource {
             userOS = "N/A";
         }
 
+	// Section for User Browser
         String userBrowser = new String();
         if (UserAgent.toUpperCase().contains("CHROME") && !UserAgent.toUpperCase().contains("EDGE")){
             userBrowser = "Chrome";
@@ -247,6 +286,7 @@ public class AggregatorResource {
             userBrowser = "N/A";
         }
 
+	// Define Strings for the different measurememt fields
         String downloadThroughputJson = measurement.getDownloadThroughput() != null ? "\"downloadThroughput\" : " + measurement.getDownloadThroughput() + ", " : "";
         String uploadThroughputJson = measurement.getUploadThroughput() != null ? "\"uploadThroughput\" : " + measurement.getUploadThroughput() + ", " : "";
         String localPingJson = measurement.getLocalPing() != null ? "\"localPing\" : " + measurement.getLocalPing() + ", " : "";
@@ -257,6 +297,8 @@ public class AggregatorResource {
         String userBrowserJson = userBrowser != null ? "\"userBrowser\" : \"" + userBrowser + "\", " : "";
         String userOSJson = userOS != null ? "\"userOS\" : \"" + userOS + "\", " : "";
         String testToolJson = measurement.getTestTool() != null ? "\"testTool\" : \"" + measurement.getTestTool() + "\", " : "";
+	String requesterSubnetJson = requesterSubnet != null ? "\"requsterSubnet\" : \"" + requesterSubnet + "\", " : "";
+	String encryptedIPJson = encryptedIP != null ? "\"encryptedIP\" : \"" + encryptedIP + "\", " : "";
         String usernameJson = measurement.getUserName() != null ? "\"username\" : \"" + measurement.getUserName() + "\", " : "";
         String nasPortJson = measurement.getNasPort() != null ? "\"nasPort\" : \"" + measurement.getNasPort() + "\", " : "";
         String callingStationIdJson = measurement.getCallingStationId() != null ? "\"callingStationId\" : \"" + measurement.getCallingStationId() + "\", " : "";
@@ -268,19 +310,20 @@ public class AggregatorResource {
         String apLocationJson = measurement.getApLatitude() != null ? "\"apLocation\" : \"" + measurement.getApLatitude() + "," + measurement.getApLongitude() + "\", " : "";
         String apNotesJson = measurement.getApNotes() != null ? "\"apNotes\" : \"" + measurement.getApNotes() + "\"" : "";
 
+	// Build the Json String to store in the elasticsearch
         String jsonStringDraft = "{" +
                 "\"timestamp\" : " + measurement.getTimestamp() + ", " +
                 downloadThroughputJson + uploadThroughputJson + localPingJson +
                 locationJson + locationMethodJson + clientIpJson +
                 userAgentJson + userBrowserJson + userOSJson +
-                testToolJson + usernameJson + nasPortJson +
+                testToolJson + requesterSubnetJson + encryptedIPJson + usernameJson + nasPortJson +
                 callingStationIdJson + nasIdentifierJson + calledStationIdJson +
                 nasIpAddressJson + apBuildingJson + apFloorJson + apLocationJson +
                 apNotesJson + "}";
 
         String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
-
+	// Initialize High Level REST Client
         if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
             if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
 		restHighLevelClient = initPemClient();
@@ -291,6 +334,7 @@ public class AggregatorResource {
 	        restHighLevelClient = initHttpClient();
 	}
 
+	// Store measurements in elasticsearch
 	indexMeasurement(restHighLevelClient, jsonString);
 	closeConnection();
 
@@ -442,6 +486,7 @@ public class AggregatorResource {
            }
     }
 
+    // Initialize High Level REST Client for HTTP
     public RestHighLevelClient initHttpClient() {
 	RestHighLevelClient restHighLevelClient = null;
 
@@ -460,6 +505,7 @@ public class AggregatorResource {
         return restHighLevelClient;
     }
 
+    // Close High Level REST Client
     public void closeConnection() throws IOException {
 	 try {
              restHighLevelClient.close();
@@ -468,6 +514,27 @@ public class AggregatorResource {
 	     System.out.println("Exception caught. In detail: ");
              System.out.println(e);
 	 }
+    }
+
+    // This method encrypts a String based on the AES algorithm
+    public String encryptString(String stringToEncrypt) {
+	 try {
+	 	String key = environment.getProperty(ES_IP_ENCRYPTION_KEY);
+	 	// Create Key and Cipher
+	 	Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
+	 	Cipher cipher = Cipher.getInstance("AES");
+	 	// Encrypt the Text
+	 	cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+	 	byte[] encrypted = cipher.doFinal(stringToEncrypt.getBytes());
+		String encrypted2 = new String(encrypted);
+		return encrypted2;
+	}
+	catch(Exception e)
+	{
+		System.out.println("Exception caught. In detail: ");
+		System.out.println(e);
+		return "";
+	}
     }
 
     // This method initializes a High Level REST Client using PEM Certificates
