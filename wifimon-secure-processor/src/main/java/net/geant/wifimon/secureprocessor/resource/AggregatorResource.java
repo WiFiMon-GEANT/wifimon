@@ -87,13 +87,14 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.ScoreSortBuilder;
 
-// Added 19/09/2019
-import java.security.Key;
+// Added 01/10/2019
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
 
 
 /**
- * Created by kokkinos on 12/02/16, Transport client upgraded to High Level REST Client by Kostopoulos on 31/03/19.
+ * Created by Kokkinos on 12/02/16, Transport client upgraded to High Level REST Client by Kostopoulos on 31/03/19.
  */
 @Component
 @Path("/wifimon")
@@ -132,7 +133,10 @@ public class AggregatorResource {
     private static final String SG_SSL_TRUSTSTORE_FILEPATH = "sg.ssl.http.truststore.filepath";
     private static final String SG_SSL_TRUSTSTORE_PASSWORD = "sg.ssl.http.truststore.password";
     private static final String SG_SSL_KEY_PASSWORD = "sg.ssl.http.key.password";
-    private static final String ES_IP_ENCRYPTION_KEY = "elasticsearch.ip_encryption_key";
+
+    // Added 01/10/2019
+    private static final String AES_KEY = "aes.key";
+    private static final String AES_IV = "aes.iv";
 
     // properties added by me
     private static RestHighLevelClient restHighLevelClient;
@@ -186,7 +190,19 @@ public class AggregatorResource {
 	requesterSubnet = requesterSubnet.replace("]", "");
 
 	// Encrypt Requester IP
-	String encryptedIP = encryptString(ip);
+	byte[] ipToEncrypt = ip.getBytes();
+	byte[] key = DatatypeConverter.parseHexBinary(environment.getProperty(AES_KEY));
+	byte[] iv = DatatypeConverter.parseHexBinary(environment.getProperty(AES_IV));
+	AesCBC aes = new AesCBC(key, iv);
+	String encryptedIP = "";
+	try {
+		encryptedIP = DatatypeConverter.printBase64Binary(aes.encrypt(ipToEncrypt));
+	} catch(Exception e) {
+		System.out.println("Exception Caught. In detail: ");
+		System.out.println(e);
+		System.exit(1);
+	}
+
 	System.out.println("Encrypted String");
 	System.out.println(encryptedIP);
 
@@ -297,7 +313,7 @@ public class AggregatorResource {
         String userBrowserJson = userBrowser != null ? "\"userBrowser\" : \"" + userBrowser + "\", " : "";
         String userOSJson = userOS != null ? "\"userOS\" : \"" + userOS + "\", " : "";
         String testToolJson = measurement.getTestTool() != null ? "\"testTool\" : \"" + measurement.getTestTool() + "\", " : "";
-	String requesterSubnetJson = requesterSubnet != null ? "\"requsterSubnet\" : \"" + requesterSubnet + "\", " : "";
+	String requesterSubnetJson = requesterSubnet != null ? "\"requesterSubnet\" : \"" + requesterSubnet + "\", " : "";
 	String encryptedIPJson = encryptedIP != null ? "\"encryptedIP\" : \"" + encryptedIP + "\", " : "";
         String usernameJson = measurement.getUserName() != null ? "\"username\" : \"" + measurement.getUserName() + "\", " : "";
         String nasPortJson = measurement.getNasPort() != null ? "\"nasPort\" : \"" + measurement.getNasPort() + "\", " : "";
@@ -516,27 +532,6 @@ public class AggregatorResource {
 	 }
     }
 
-    // This method encrypts a String based on the AES algorithm
-    public String encryptString(String stringToEncrypt) {
-	 try {
-	 	String key = environment.getProperty(ES_IP_ENCRYPTION_KEY);
-	 	// Create Key and Cipher
-	 	Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
-	 	Cipher cipher = Cipher.getInstance("AES");
-	 	// Encrypt the Text
-	 	cipher.init(Cipher.ENCRYPT_MODE, aesKey);
-	 	byte[] encrypted = cipher.doFinal(stringToEncrypt.getBytes());
-		String encrypted2 = new String(encrypted);
-		return encrypted2;
-	}
-	catch(Exception e)
-	{
-		System.out.println("Exception caught. In detail: ");
-		System.out.println(e);
-		return "";
-	}
-    }
-
     // This method initializes a High Level REST Client using PEM Certificates
     public RestHighLevelClient initPemClient() {
 
@@ -634,6 +629,47 @@ public class AggregatorResource {
 
           return restHighLevelClient;
        }
+
+	// From: https://stackoverflow.com/questions/46835158/aes-256-cbc-in-java
+       // A class to encrypt Strings using AES 256 CBC algorithm
+      public static final class AesCBC {
+    		private byte[] key;
+    		private byte[] iv;
+
+    		private static final String ALGORITHM="AES";
+
+    		public AesCBC(byte[] key, byte[] iv) {
+        		this.key = key;
+        		this.iv = iv;
+    		}
+
+		// Encrypts Data based on the Aes 256 CBC algorithm
+    		public byte[] encrypt(byte[] plainText) throws Exception{
+        		SecretKeySpec secretKey=new SecretKeySpec(key,ALGORITHM);
+        		IvParameterSpec ivParameterSpec=new IvParameterSpec(iv);
+        		Cipher cipher=Cipher.getInstance("AES/CBC/PKCS5Padding");
+        		cipher.init(Cipher.ENCRYPT_MODE,secretKey,ivParameterSpec);
+        		return cipher.doFinal(plainText);
+    		}
+
+    		public byte[] getKey() {
+        		return key;
+    		}
+
+   		 public void setKey(byte[] key) {
+        		this.key = key;
+    		}
+
+    		public byte[] getIv() {
+        		return iv;
+    		}
+
+    		public void setIv(byte[] iv) {
+        		this.iv = iv;
+    		}
+
+	}
+
 
     public static final class PemReader
     {
