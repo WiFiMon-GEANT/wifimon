@@ -21,6 +21,11 @@
                         <li><a href="#" th:href="@{/secure/timeseries/pingTimeseries}">Ping Timeseries</a></li>
                     </ul>
                 </li>
+		<li th:class="${classActiveSettingsSubnets}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Subnets<span class="caret"></span></a>
+		    <ul class="dropdown-menu">
+			<li><a href="#" th:href="@{/secure/Subnets/147_102_13_0_24}">147.102.13.0/24</a></li>
+		    </ul>
+		</li>
 		<li th:class="${classActiveSettingsElasticHWProbes}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">HWProbes<span class="caret"></span></a>
 		    <ul class="dropdown-menu">
 			<li><a href="#" th:href="@{/secure/HWProbes/downloadTimeseries}">Download Timeseries</a></li>

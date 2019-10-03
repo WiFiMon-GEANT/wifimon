@@ -330,7 +330,7 @@ public class AggregatorResource {
         String jsonStringDraft = "{" +
                 "\"timestamp\" : " + measurement.getTimestamp() + ", " +
                 downloadThroughputJson + uploadThroughputJson + localPingJson +
-                locationJson + locationMethodJson + clientIpJson +
+                locationJson + locationMethodJson +
                 userAgentJson + userBrowserJson + userOSJson +
                 testToolJson + requesterSubnetJson + encryptedIPJson + usernameJson + nasPortJson +
                 callingStationIdJson + nasIdentifierJson + calledStationIdJson +
