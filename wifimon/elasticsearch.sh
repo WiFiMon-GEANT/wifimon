@@ -24,7 +24,9 @@ curl -XPUT 'localhost:9200/wifimon?pretty' -H 'Content-Type: application/json' -
             "apBuilding" : { "type" : "keyword" },
             "apFloor" : { "type" : "keyword" },
             "apLocation" : { "type" : "geo_point" },
-            "apNotes" : { "type" : "keyword" }
+            "apNotes" : { "type" : "keyword" },
+	    "requesterSubnet" : { "type" : "keyword" },
+	    "encryptedIP" : { "type" : "keyword" }
          }
       }
    }
@@ -49,7 +51,7 @@ curl -XPUT 'localhost:9200/radiuslogs?pretty' -H 'Content-Type: application/json
       }
    },
    "mappings" : {
-      "radiuslog" : {
+      "logs" : {
          "properties" : {
             "timestamp" : { "type" : "date"},
             "username" : { "type" : "keyword"},
@@ -67,3 +69,7 @@ curl -XPUT 'localhost:9200/radiuslogs?pretty' -H 'Content-Type: application/json
       }
    }
 }'
+
+curl -XPUT 'localhost:9200/wifimon/measurement/1' -H 'Content-Type: application/json' -d' {"timestamp":"1"}'
+
+curl -XPUT 'localhost:9200/radiuslogs/logs/1' -H 'Content-Type: application/json' -d' {"timestamp":"1"}'
