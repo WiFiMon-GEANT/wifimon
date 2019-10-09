@@ -221,17 +221,17 @@ public class AggregatorResource {
             String callingStationIdTemp = "A1:b2-cc-33-d0-da".substring(0,17);
             r = retrieveLastRadiusEntryByMac(callingStationIdTemp);
         }else{
-            r = retrieveLastRadiusEntryByIp(ip);
+            r = retrieveLastRadiusEntryByIp(encryptedIP);
         }
 
 	try {
            if (r != null) {
                String calledStationIdTemp = r.getCalledStationId().substring(0,17).toUpperCase().replace("-",":");
                ap = accesspointsRepository.find(calledStationIdTemp);
-               response = addElasticMeasurement(joinMeasurement(measurement, r, ap, ip, agent), requesterSubnet, encryptedIP);
+               response = addElasticMeasurement(joinMeasurement(measurement, r, ap, agent), requesterSubnet, encryptedIP);
            }
            else {
-               response = addElasticMeasurement(joinMeasurement(measurement, r, null, ip, agent), requesterSubnet, encryptedIP);
+               response = addElasticMeasurement(joinMeasurement(measurement, r, null, agent), requesterSubnet, encryptedIP);
        	   }
         }
 	catch (IOException e) {
@@ -242,7 +242,7 @@ public class AggregatorResource {
 	return response;
     }
 
-    private AggregatedMeasurement joinMeasurement(NetTestMeasurement measurement, RadiusStripped radius, Accesspoint accesspoint, String ip, String agent) {
+    private AggregatedMeasurement joinMeasurement(NetTestMeasurement measurement, RadiusStripped radius, Accesspoint accesspoint, String agent) {
         AggregatedMeasurement m = new AggregatedMeasurement();
         m.setTimestamp(System.currentTimeMillis());
         m.setDownloadThroughput(measurement.getDownloadThroughput());
@@ -251,7 +251,7 @@ public class AggregatorResource {
         m.setLatitude(measurement.getLatitude() != null ? Double.valueOf(measurement.getLatitude()) : null);
         m.setLongitude(measurement.getLongitude() != null ? Double.valueOf(measurement.getLongitude()): null);
         m.setLocationMethod(measurement.getLocationMethod());
-        m.setClientIp(ip);
+        //m.setClientIp(ip);
         m.setUserAgent(agent);
         m.setTestTool(measurement.getTestTool());
         m.setUserName(radius != null ? radius.getUserName() : null);
