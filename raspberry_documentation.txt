@@ -1,11 +1,10 @@
-Source code of the wireless.py. This must be placed in the root directory of the Raspberry Pi
+Source code of the wireless.py. This must be placed in the /home/pi directory of the Raspberry Pi
 
-permissions: chown root:root wireless.py
+permissions: chown pi:pi wireless.py
 	     chmod 755 wireless.py
 
 crontab: sudo crontab -e
-add the line: * * * * * python wireless.py    (execution every minute)
-	      */5 * * * * python wireless.py  (execution every 5 minutes)
+add the line: * * * * * /home/pi/wireless.py >> ~/cron.log 2>&1    (execution every minute)
 
 for the rest in crontab
 
