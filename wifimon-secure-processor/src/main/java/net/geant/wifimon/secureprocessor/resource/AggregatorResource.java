@@ -541,8 +541,8 @@ public class AggregatorResource {
     
     private void indexMeasurement(RestHighLevelClient restHighLevelClient, String jsonString) {
 	   IndexRequest indexRequest = new IndexRequest(
-		environment.getProperty(ES_INDEXNAME_PROBES), 
-		environment.getProperty(ES_TYPE_PROBES));
+		environment.getProperty(ES_INDEXNAME_MEASUREMENT), 
+		environment.getProperty(ES_TYPE_MEASUREMENT));
            indexRequest.source(jsonString,XContentType.JSON);
            try {
                 IndexResponse indexResponse = restHighLevelClient.index(indexRequest);
@@ -555,8 +555,8 @@ public class AggregatorResource {
 
     private void indexMeasurementProbes(RestHighLevelClient restHighLevelClient, String jsonString) {
 	   IndexRequest indexRequest = new IndexRequest(
-		environment.getProperty(ES_INDEXNAME_MEASUREMENT), 
-		environment.getProperty(ES_TYPE_MEASUREMENT));
+		environment.getProperty(ES_INDEXNAME_PROBES), 
+		environment.getProperty(ES_TYPE_PROBES));
            indexRequest.source(jsonString,XContentType.JSON);
            try {
                 IndexResponse indexResponse = restHighLevelClient.index(indexRequest);
