@@ -4,6 +4,7 @@ import com.floragunn.searchguard.ssl.SearchGuardSSLPlugin;
 import com.floragunn.searchguard.ssl.util.SSLConfigConstants;
 import net.geant.wifimon.model.dto.AggregatedMeasurement;
 import net.geant.wifimon.model.dto.NetTestMeasurement;
+import net.geant.wifimon.model.dto.ProbesMeasurement;
 import net.geant.wifimon.model.entity.Accesspoint;
 import net.geant.wifimon.model.entity.CorrelationMethod;
 import net.geant.wifimon.model.entity.RadiusStripped;
@@ -120,6 +121,8 @@ public class AggregatorResource {
     private static final String ES_TYPE_RADIUS = "elasticsearch.typenameradius";
     private static final String ES_INDEXNAME_DHCP = "elasticsearch.indexnamedhcp";
     private static final String ES_TYPE_DHCP = "elasticsearch.typenamedhcp";
+    private static final String ES_INDEXNAME_PROBES = "elasticsearch.indexnameprobes";
+    private static final String ES_TYPE_PROBES = "elasticsearch.typenameprobes";
     private static final String SG_SSL_ENABLED = "sg.ssl.enabled";
     private static final String SG_SSL_CERT_TYPE = "sg.ssl.certificate.type";
     private static final String SG_SSL_USER_USERNAME = "sg.ssl.http.user.username";
@@ -141,6 +144,7 @@ public class AggregatorResource {
     // properties added by me
     private static RestHighLevelClient restHighLevelClient;
 
+
     @POST
     @Path("/subnet")
     public Response correlate(@Context HttpServletRequest request) {
@@ -156,6 +160,55 @@ public class AggregatorResource {
         }
         return Response.ok(false).build();
     }
+
+    @POST
+    @Path("/probes")
+    public Response correlate(final ProbesMeasurement measurement, @Context HttpServletRequest request) {
+	Response response = null;
+	System.out.println("I HAVE SOMETHING HERE!!!!!");
+	
+	try {
+
+		String bitRateJson = measurement.getBitRate() != null ? "\"bitRate\" : " + measurement.getBitRate() + ", " : "";
+		String txPowerJson = measurement.getTxPower() != null ? "\"txPower\" : " + measurement.getTxPower() + ", " : "";
+		String linkQualityJson = measurement.getLinkQuality() != null ? "\"linkQuality\" : " + measurement.getLinkQuality() + ", " : "";
+		String signalLevelJson = measurement.getSignalLevel() != null ? "\"signalLevel\" : " + measurement.getSignalLevel() + ", " : "";
+		String testToolJson = measurement.getTestTool() != null ? "\"testTool\" : \"" + measurement.getTestTool() + "\"" : "";
+	        
+		String jsonStringDraft = "{" +
+			"\"timestamp\" : " + measurement.getTimestamp() + ", " +
+			bitRateJson + txPowerJson + linkQualityJson +
+			signalLevelJson + testToolJson + "}";
+
+	        String jsonString = jsonStringDraft.replace("\", }", "\"}");
+		System.out.println(jsonString);
+
+		// Initialize High Level REST Client
+        	if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
+            	   if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
+		       restHighLevelClient = initPemClient();
+                   }else{
+		       restHighLevelClient = initKeystoreClient();
+                   }
+                } else {
+	               restHighLevelClient = initHttpClient();
+	        }
+
+	        // Store measurements in elasticsearch
+	        indexMeasurementProbes(restHighLevelClient, jsonString);
+	        closeConnection();
+
+                return Response.ok().build();
+
+
+	} catch(Exception e) {
+		System.out.println("Exception Caught. In detail: ");
+		System.out.println(e);
+		response = null;
+	}
+	return response;
+    }
+
 
     @POST
     @Path("/add")
@@ -203,8 +256,6 @@ public class AggregatorResource {
 		System.exit(1);
 	}
 
-	System.out.println("Encrypted String");
-	System.out.println(encryptedIP);
 
 	// What is the correlation method defined by the administrator in the WiFiMon GUI?
         String correlationmethod = visualOptionsRepository.findCorrelationmethod();
@@ -489,6 +540,20 @@ public class AggregatorResource {
     }
     
     private void indexMeasurement(RestHighLevelClient restHighLevelClient, String jsonString) {
+	   IndexRequest indexRequest = new IndexRequest(
+		environment.getProperty(ES_INDEXNAME_PROBES), 
+		environment.getProperty(ES_TYPE_PROBES));
+           indexRequest.source(jsonString,XContentType.JSON);
+           try {
+                IndexResponse indexResponse = restHighLevelClient.index(indexRequest);
+           } catch (ElasticsearchException e) {
+                e.getDetailedMessage();
+           } catch (java.io.IOException ex) {
+                ex.getLocalizedMessage();
+           }
+    }
+
+    private void indexMeasurementProbes(RestHighLevelClient restHighLevelClient, String jsonString) {
 	   IndexRequest indexRequest = new IndexRequest(
 		environment.getProperty(ES_INDEXNAME_MEASUREMENT), 
 		environment.getProperty(ES_TYPE_MEASUREMENT));
