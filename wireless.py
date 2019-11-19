@@ -36,7 +36,7 @@ def parse_iwconfig():
     try:
         session = requests.Session()
         session.verify = False
-        session.post(url='https://wifimon.netmode.ece.ntua.gr:8443/wifimon/probes/', data=data, headers=headers, timeout=15)
+        session.post(url='https://wifimon2.netmode.ece.ntua.gr:8443/wifimon/probes/', data=data, headers=headers, timeout=15)
     except:
         pass
     return None

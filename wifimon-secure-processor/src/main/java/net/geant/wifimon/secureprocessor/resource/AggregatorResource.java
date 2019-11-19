@@ -251,7 +251,7 @@ public class AggregatorResource {
 	try {
 		encryptedIP = DatatypeConverter.printBase64Binary(aes.encrypt(ipToEncrypt));
 	} catch(Exception e) {
-		System.out.println("Exception Caught. In detail: ");
+		System.out.println("Exception Caught 1. In detail: ");
 		System.out.println(e);
 		System.exit(1);
 	}
@@ -286,7 +286,7 @@ public class AggregatorResource {
        	   }
         }
 	catch (IOException e) {
-		System.out.println("Exception Caught. In detail:");
+		System.out.println("Exception Caught 2. In detail:");
 		System.out.println(e);
 		response = null;
 	}

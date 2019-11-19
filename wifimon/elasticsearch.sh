@@ -32,6 +32,22 @@ curl -XPUT 'localhost:9200/wifimon?pretty' -H 'Content-Type: application/json' -
    }
 }'
 
+curl -XPUT 'localhost:9200/probes?pretty' -H 'Content-Type: application/json' -d'
+{  "mappings" : {
+	"measurement" : {
+	    "properties" : {
+	        "timestamp" : { "type" : "date" },
+		"bitRate" : { "type" : "float" },
+		"txPower" : { "type" : "float" },
+		"linkQuality" : { "type" : "float" },
+		"signalLevel" : { "type" : "float" },
+		"testTool" : { "type" : "keyword" }
+	    }
+       }
+    }
+}'
+
+
 curl -XPUT 'localhost:9200/radiuslogs?pretty' -H 'Content-Type: application/json' -d'
 {  "settings": {
       "analysis": {
@@ -63,7 +79,7 @@ curl -XPUT 'localhost:9200/radiuslogs?pretty' -H 'Content-Type: application/json
             "nas_identifier" : { "type" : "keyword"},
             "called_station_id" : { "type" : "keyword"},
             "nas_ip_address" : { "type" : "ip"},
-            "framed_ip_address" : { "type" : "ip"},
+            "framed_ip_address" : { "type" : "keyword"},
             "acct_status_type" : { "type" : "keyword"}
          }
       }
@@ -71,5 +87,7 @@ curl -XPUT 'localhost:9200/radiuslogs?pretty' -H 'Content-Type: application/json
 }'
 
 curl -XPUT 'localhost:9200/wifimon/measurement/1' -H 'Content-Type: application/json' -d' {"timestamp":"1"}'
+
+curl -XPUT 'localhost:9200/probes/measurement/1' -H 'Content-Type: application/json' -d' {"timestamp":"1"}'
 
 curl -XPUT 'localhost:9200/radiuslogs/logs/1' -H 'Content-Type: application/json' -d' {"timestamp":"1"}'
