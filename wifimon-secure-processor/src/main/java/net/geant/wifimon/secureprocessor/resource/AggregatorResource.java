@@ -93,6 +93,8 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
+// Added 19/12/2019
+import org.elasticsearch.client.RequestOptions;
 
 /**
  * Created by Kokkinos on 12/02/16, Transport client upgraded to High Level REST Client by Kostopoulos on 31/03/19.
@@ -123,19 +125,19 @@ public class AggregatorResource {
     private static final String ES_TYPE_DHCP = "elasticsearch.typenamedhcp";
     private static final String ES_INDEXNAME_PROBES = "elasticsearch.indexnameprobes";
     private static final String ES_TYPE_PROBES = "elasticsearch.typenameprobes";
-    private static final String SG_SSL_ENABLED = "sg.ssl.enabled";
-    private static final String SG_SSL_CERT_TYPE = "sg.ssl.certificate.type";
-    private static final String SG_SSL_USER_USERNAME = "sg.ssl.http.user.username";
-    private static final String SG_SSL_USER_PASSWORD = "sg.ssl.http.user.password";
-    private static final String SG_SSL_PEMKEY_FILEPATH = "sg.ssl.http.pemkey.filepath";
-    private static final String SG_SSL_PEMKEY_PASSWORD = "sg.ssl.http.pemkey.password";
-    private static final String SG_SSL_PEMCERT_FILEPATH = "sg.ssl.http.pemcert.filepath";
-    private static final String SG_SSL_PEMTRUSTEDCAS_FILEPATH = "sg.ssl.http.pemtrustedcas.filepath";
-    private static final String SG_SSL_KEYSTORE_FILEPATH = "sg.ssl.http.keystore.filepath";
-    private static final String SG_SSL_KEYSTORE_PASSWORD = "sg.ssl.http.keystore.password";
-    private static final String SG_SSL_TRUSTSTORE_FILEPATH = "sg.ssl.http.truststore.filepath";
-    private static final String SG_SSL_TRUSTSTORE_PASSWORD = "sg.ssl.http.truststore.password";
-    private static final String SG_SSL_KEY_PASSWORD = "sg.ssl.http.key.password";
+    private static final String SG_SSL_ENABLED = "xpack.security.enabled";
+    private static final String SG_SSL_CERT_TYPE = "ssl.certificate.type";
+    private static final String SG_SSL_USER_USERNAME = "ssl.http.user.username";
+    private static final String SG_SSL_USER_PASSWORD = "ssl.http.user.password";
+    private static final String SG_SSL_PEMKEY_FILEPATH = "xpack.security.http.ssl.key";
+    private static final String SG_SSL_PEMKEY_PASSWORD = "xpack.security.http.ssl.secure_key_passphrase";
+    private static final String SG_SSL_PEMCERT_FILEPATH = "xpack.security.http.ssl.certificate";
+    private static final String SG_SSL_PEMTRUSTEDCAS_FILEPATH = "xpack.security.http.ssl.certificate_authorities";
+    private static final String SG_SSL_KEYSTORE_FILEPATH = "ssl.http.keystore.filepath";
+    private static final String SG_SSL_KEYSTORE_PASSWORD = "ssl.http.keystore.password";
+    private static final String SG_SSL_TRUSTSTORE_FILEPATH = "ssl.http.truststore.filepath";
+    private static final String SG_SSL_TRUSTSTORE_PASSWORD = "ssl.http.truststore.password";
+    private static final String SG_SSL_KEY_PASSWORD = "ssl.http.key.password";
 
     // Added 01/10/2019
     private static final String AES_KEY = "aes.key";
@@ -165,7 +167,6 @@ public class AggregatorResource {
     @Path("/probes")
     public Response correlate(final ProbesMeasurement measurement, @Context HttpServletRequest request) {
 	Response response = null;
-	System.out.println("I HAVE SOMETHING HERE!!!!!");
 	
 	try {
 
@@ -181,7 +182,6 @@ public class AggregatorResource {
 			signalLevelJson + testToolJson + "}";
 
 	        String jsonString = jsonStringDraft.replace("\", }", "\"}");
-		System.out.println(jsonString);
 
 		// Initialize High Level REST Client
         	if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
@@ -194,15 +194,19 @@ public class AggregatorResource {
 	               restHighLevelClient = initHttpClient();
 	        }
 
+
+
 	        // Store measurements in elasticsearch
 	        indexMeasurementProbes(restHighLevelClient, jsonString);
+
+
 	        closeConnection();
 
                 return Response.ok().build();
 
 
 	} catch(Exception e) {
-		System.out.println("Exception Caught. In detail: ");
+		System.out.println("Exception Caught. In detail:");
 		System.out.println(e);
 		response = null;
 	}
@@ -251,7 +255,7 @@ public class AggregatorResource {
 	try {
 		encryptedIP = DatatypeConverter.printBase64Binary(aes.encrypt(ipToEncrypt));
 	} catch(Exception e) {
-		System.out.println("Exception Caught 1. In detail: ");
+		System.out.println("Exception Caught. In detail:");
 		System.out.println(e);
 		System.exit(1);
 	}
@@ -286,7 +290,7 @@ public class AggregatorResource {
        	   }
         }
 	catch (IOException e) {
-		System.out.println("Exception Caught 2. In detail:");
+		System.out.println("Exception Caught. In detail:");
 		System.out.println(e);
 		response = null;
 	}
@@ -440,10 +444,10 @@ public class AggregatorResource {
 	         .types(environment.getProperty(ES_TYPE_RADIUS))
                  .source(builder);
 		      
-           final SearchResponse response = restHighLevelClient.search(request); 
+           final SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT); 
            final SearchHits hits = response.getHits();
 
-           if (response.getHits().getTotalHits() > 0) {
+           if (response.getHits().getTotalHits().value > 0) {
 	       for (SearchHit hit : hits.getHits()) {
 		   Map map = hit.getSourceAsMap();
 		   r.setUserName(((map.get("username") != null) ? map.get("username").toString() : "N/A"));
@@ -503,10 +507,10 @@ public class AggregatorResource {
                   .types(environment.getProperty(ES_TYPE_RADIUS))
                   .source(builder);
 
-            final SearchResponse response = restHighLevelClient.search(request);
+            final SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
             final SearchHits hits = response.getHits();
 
-            if (response.getHits().getTotalHits() > 0) {
+            if (response.getHits().getTotalHits().value > 0) {
                for (SearchHit hit : hits.getHits()) {
                    Map map = hit.getSourceAsMap();
                    r.setUserName(((map.get("username") != null) ? map.get("username").toString() : "N/A"));
@@ -545,7 +549,7 @@ public class AggregatorResource {
 		environment.getProperty(ES_TYPE_MEASUREMENT));
            indexRequest.source(jsonString,XContentType.JSON);
            try {
-                IndexResponse indexResponse = restHighLevelClient.index(indexRequest);
+                IndexResponse indexResponse = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
            } catch (ElasticsearchException e) {
                 e.getDetailedMessage();
            } catch (java.io.IOException ex) {
@@ -559,7 +563,7 @@ public class AggregatorResource {
 		environment.getProperty(ES_TYPE_PROBES));
            indexRequest.source(jsonString,XContentType.JSON);
            try {
-                IndexResponse indexResponse = restHighLevelClient.index(indexRequest);
+                IndexResponse indexResponse = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
            } catch (ElasticsearchException e) {
                 e.getDetailedMessage();
            } catch (java.io.IOException ex) {
@@ -603,6 +607,7 @@ public class AggregatorResource {
         RestHighLevelClient restHighLevelClient = null;
 
         try {
+
                  final CredentialsProvider credentialsProvider =
                          new BasicCredentialsProvider();
                          credentialsProvider.setCredentials(AuthScope.ANY,
@@ -637,8 +642,8 @@ public class AggregatorResource {
 
         }
         catch (Exception e) {
-                 System.out.println("Exception caught. In detail: ");
-                 System.out.println(e);
+		System.out.println("Exception Caught. In detail:");
+                System.out.println(e);
         }
 
         return restHighLevelClient;
@@ -662,6 +667,7 @@ public class AggregatorResource {
                               environment.getProperty(SG_SSL_USER_USERNAME),
                               environment.getProperty(SG_SSL_USER_PASSWORD)));
 
+
                  Optional<String> keyPasswordOpt = Optional.empty();
                  boolean trustSelfSigned=false;
 
@@ -677,6 +683,7 @@ public class AggregatorResource {
                               trustSelfSigned?new TrustSelfSignedStrategy():null)
                       .build();
 
+
                  restHighLevelClient = new RestHighLevelClient(
                       RestClient.builder(new HttpHost(
                                       environment.getProperty(ES_HOST),
@@ -688,7 +695,7 @@ public class AggregatorResource {
                                 ));
           }
           catch (Exception e) {
-                  System.out.println("Exception caught. In detail: ");
+		  System.out.println("Exception Caught. In detail:");
                   System.out.println(e);
           }
 

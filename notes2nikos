@@ -1,0 +1,330 @@
+#
+# Commands should be executed with root privileges.
+# Replace "wifimon-kibana.rash.al" with your server's FQDN.
+# Replace "10.254.24.148" with your server's IP.
+#
+
+
+##########################
+# Configure CA and Certs #
+##########################
+
+# Create instances.yml file with the following contents:
+instances:
+    - name: kibana
+      dns: wifimon-kibana.rash.al
+      ip: 10.254.24.148
+
+# Generate CA certificate and key:
+/usr/share/elasticsearch/bin/elasticsearch-certutil ca --ca-dn CN='WiFiMon CA' --days 3650 --keysize 4096 --out wifimon-ca.zip --pass --pem
+
+# The above will create wifimon-ca.zip file. Unzip it with: unzip wifimon-ca.zip
+
+# Generate Server certificate and key:
+/usr/share/elasticsearch/bin/elasticsearch-certutil cert --ca-cert ca/ca.crt --ca-key ca/ca.key --days 1234  --in instances.yml --keysize 4096 --out wifimon-certs.zip --pass --pem
+
+# The above will create wifimon-certs.zip file. Unzip it with: unzip wifimon-certs.zip
+
+# Copy the files ca.crt, kibana.key, and kibana.crt under the
+# /etc/elasticsearch/certs and /etc/kibana/certs directories.
+
+
+####################################
+# Configure Elasticsearch Keystore #
+####################################
+
+# Create keystore for Elasticsearch:
+/usr/share/elasticsearch/bin/elasticsearch-keystore create
+
+# Add certificate key passphrase for http communication protocol:
+/usr/share/elasticsearch/bin/elasticsearch-keystore add xpack.security.http.ssl.secure_key_passphrase
+# Enter your cetificate-key passphrase
+
+# Add certificate key passphrase for transport communication protocol:
+/usr/share/elasticsearch/bin/elasticsearch-keystore add xpack.security.transport.ssl.secure_key_passphrase
+# Enter your cetificate-key passphrase
+
+# Verify you have the following:
+/usr/share/elasticsearch/bin/elasticsearch-keystore list
+keystore.seed
+xpack.security.http.ssl.secure_key_passphrase
+xpack.security.transport.ssl.secure_key_passphrase
+
+
+###########################
+# Configure Elasticsearch #
+###########################
+
+cat /etc/elasticsearch/elasticsearch.yml
+# The cluster to join.
+cluster.name: wifimon
+
+# If not configured hostname, it can be manually set to the node fqdn.
+node.name: ${HOSTNAME}
+
+# It's about a master-eligible and data and ingest node.
+node.master: true
+node.data: true
+node.ingest: true
+# It's not a machine learning node, neither does it need to have a
+# cross-cluster communication.
+node.ml: false
+cluster.remote.connect: false
+
+# data and logs paths.
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+
+# The interface to listen for requests and for the communication with other
+# nodes in the cluster.  For a single-node cluster, this probably must be set
+# to the machine fqdn.
+network.host: wifimon-kibana.rash.al
+
+# Contactable nodes in the cluster. It is ok to set this as a list of 
+# master-eligible nodes. For a single-node cluster, it probably must be
+# set to the machine fqdn.
+#
+# For version 6.x:
+discovery.zen.ping.unicast.hosts: ["wifimon-kibana.rash.al"]
+# For version 7.x:
+discovery.seed_hosts: ["wifimon-kibana.rash.al"]
+
+# Must be set to the result of the formula: master_eligible_nodes / 2 + 1
+# For a single-node cluster, must be set to 1
+# For version 6.x:
+discovery.zen.minimum_master_nodes: 1
+# For version 7.x:
+# comment the setting out, doesn't exist on verstion 7.x.
+
+# Only for version 7.x. Bootstraping the cluster.
+# When configuring a new Elasticsearch cluster for the very first time, there is a step which
+# determines the set of master-eligible nodes, whose votes are counted in the very first election.
+# On a single-node cluster, it's ok to set this to the machine fqdn:
+cluster.initial_master_nodes: wifimon-kibana.rash.al
+# NOTE: You should NOT use this setting when restarting or
+#       adding a new node to an existing cluster.
+
+# tls/ssl configuration.
+xpack.security.enabled: true
+xpack.security.http.ssl.enabled: true
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: full
+
+xpack.security.http.ssl.key: /etc/elasticsearch/certs/kibana.key
+xpack.security.http.ssl.certificate: /etc/elasticsearch/certs/kibana.crt
+xpack.security.http.ssl.certificate_authorities: /etc/elasticsearch/certs/ca.crt
+
+xpack.security.transport.ssl.key: /etc/elasticsearch/certs/kibana.key
+xpack.security.transport.ssl.certificate: /etc/elasticsearch/certs/kibana.crt
+xpack.security.transport.ssl.certificate_authorities: /etc/elasticsearch/certs/ca.crt
+
+
+#########################
+# (Re)Start the Cluster #
+#########################
+
+# Check out the logs and verify everything is ok.
+
+
+########################################################
+# Setup Randomly-Generated Passwords for Buit-in Users #
+########################################################
+
+# We have enabled the xpack.security.https.ssl setting, so we need the https protocol in the url.
+/usr/share/elasticsearch/bin/elasticsearch-setup-passwords auto -u "https://wifimon-kibana.rash.al:9200"
+# Save the output which contains buit-in users usernames and passwords.
+
+
+#############################
+# Configure Kibana Keystore #
+#############################
+
+# Create keystore for Kibana:
+sudo -u kibana /usr/share/kibana/bin/kibana-keystore create
+
+# Add elasticsearch.username:
+sudo -u kibana /usr/share/kibana/bin/kibana-keystore add elasticsearch.username
+# Enter "kibana" as username
+
+# Add elasticsearch.password:
+sudo -u kibana /usr/share/kibana/bin/kibana-keystore add elasticsearch.password
+# Enter the password for kibana built-in user
+
+# Add server.ssl.keyPassphrase:
+sudo -u kibana /usr/share/kibana/bin/kibana-keystore add server.ssl.keyPassphrase
+# Enter kibana.key passphrase
+
+# Veriry you have the following:
+sudo -u kibana /usr/share/kibana/bin/kibana-keystore list
+elasticsearch.username
+elasticsearch.password
+server.ssl.keyPassphrase
+
+
+####################
+# Configure Kibana #
+####################
+
+cat /etc/kibana/kibana.yml
+# The port the kibana server listens on.
+# Just being explicit, default port is 5601.
+server.port: 5601
+
+# The ip or fqdn the kibana server will bind to.
+server.host: "wifimon-kibana.rash.al"
+
+# Just for display purposes.
+server.name: "wifimon-kibana"
+
+# The elasticsearch nodes url where to send the queries.
+# We we're going to configure tls/ssl, so we need the https protocol.
+elasticsearch.hosts: ["https://wifimon-kibana.rash.al:9200"]
+
+# tls/ssl configuration.
+server.ssl.enabled: true
+server.ssl.certificate: /etc/kibana/certs/kibana.crt
+server.ssl.key: /etc/kibana/certs/kibana.key
+elasticsearch.ssl.certificateAuthorities: [ "/etc/kibana/certs/ca.crt" ]
+elasticsearch.ssl.verificationMode: full
+
+# pid file and logging.
+pid.file: /var/run/kibana/kibana.pid
+logging.dest: /var/log/kibana/kibana.log
+
+
+##################################
+# Configure WiFiMon Secure Agent #
+##################################
+
+# Copy ca.crt, kibana.crt and kibana.key to the WiFiMon keystore directory,
+# i.e. /usr/lib/wifimon/keystore
+cp /etc/elasticsearch/certs/ca.crt /usr/lib/wifimon/keystore/ca.crt
+cp /etc/elasticsearch/certs/kibana.crt /usr/lib/wifimon/keystore/kibana.crt
+cp /etc/elasticsearch/certs/kibana.key /usr/lib/wifimon/keystore/kibana.key
+
+# Combine kibana.crt and kibana.key to a Java Keystore file
+openssl pkcs12 -export -in /usr/lib/wifimon/keystore/kibana.crt -inkey /usr/lib/wifimon/keystore/kibana.key -certfile /usr/lib/wifimon/keystore/kibana.crt -out testkeystore.p12
+keytool -importkeystore -srckeystore testkeystore.p12 -srcstoretype pkcs12 -destkeystore wifimon.jks -deststoretype JKS
+# NOTE the password [PASSWORD] that you entered 
+
+
+# Configure the WiFiMon Agent properties with the wifimon.jks file
+vim /usr/lib/wifimon/config/secure-processor.properties
+
+# Edit the following lines
+server.port=8443
+server.ssl.key-store=./keystore/wifimon.jks
+server.ssl.key-store-password=[PASSWORD]
+server.ssl.key-password=[PASSWORD]
+
+Do the same for the /usr/lib/wifimon/config/ui.properties file
+
+############################################################
+# Configure X-PACK interface with the WiFiMon Secure Agent #
+############################################################
+
+# Create the truststore for X-Pack
+keytool -import -trustcacerts -alias root -file ca.crt -keystore /usr/lib/wifimon/keystore/truststore.jks
+# NOTE the truststore password
+
+# Create the keystore for X-Pack. You have to combine both the certificate and the key
+cat kibana.crt kibana.key > combined.crt
+keytool -import -trustcacerts -alias yourdomain -file combined.crt -keystore /usr/lib/wifimon/keystore/keystore.jks
+# NOTE the keystore password
+
+# Edit /usr/lib/wifimon/config/secure-processor.properties
+xpack.security.enabled=true
+ssl.certificate.type=keystore
+ssl.http.user.username=elastic
+ssl.http.user.password=[elastic built-in user password]
+sg.ssl.http.keystore.filepath=/usr/lib/wifimon/keystore/keystore.jks
+sg.ssl.http.keystore.password=[keystore.jks password]
+sg.ssl.http.truststore.filepath=/usr/lib/wifimon/keystore/truststore.jks
+sg.ssl.http.truststore.password=[truststore.jks password]
+sg.ssl.http.key.password=[kibana.key password]
+
+###############################
+# Install Java 8 on Debian 10 #
+###############################
+
+# Update packages and add new repository
+sudo apt update
+sudo apt install apt-transport-https ca-certificates wget dirmngr gnupg software-properties-common
+# import GPG key for the repository
+wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | sudo apt-key add -
+# Add the AdoptOpenJDK APT repository to your system
+sudo add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/
+# Once the repository is enabled, update apt sources and install Java 8 using the following commands:
+sudo apt update
+sudo apt install adoptopenjdk-8-hotspot
+# Available from: https://linuxize.com/post/install-java-on-debian-10/
+
+# Verify Java 8 installation
+java -version
+# You should see Java 1.8
+
+# Install elasticsearch 6.8.3 from Debian package as root user
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.8.3.deb
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.8.3.deb.sha512
+shasum -a 512 -c elasticsearch-6.8.3.deb.sha512 
+sudo dpkg -i elasticsearch-6.8.3.deb
+# Available from: https://www.elastic.co/guide/en/elasticsearch/reference/6.8//deb.html
+
+# Restart elasticsearch
+sudo service elasticsearch restart
+
+# Install kibana 6.8.3 from Debian package as root user
+wget https://artifacts.elastic.co/downloads/kibana/kibana-6.8.3-amd64.deb
+shasum -a 512 kibana-6.8.3-amd64.deb 
+sudo dpkg -i kibana-6.8.3-amd64.deb
+# Available from: https://www.elastic.co/guide/en/kibana/6.8/deb.html
+
+# Restart kibana
+sudo service kibana restart
+
+########################
+# Compile WiFiMon code #
+########################
+
+# Apache Maven is required. Install it:
+sudo apt-get install -y maven
+
+# Go to the WiFiMon agent directory
+mvn clean install
+mvn package
+
+# When compile is finished
+cd ./agent/wifimon-assembly/target/wifimon-agent-bin/
+cp processor-0.1.1-SNAPSHOT.war /usr/lib/wifimon/processor-0.1.1.war
+cp secure-processor-0.1.1-SNAPSHOT.war /usr/lib/wifimon/secure-processor-0.1.1.war
+cp ui-0.1.1-SNAPSHOT.war /usr/lib/wifimon/ui-0.1.1.war
+
+# Restart elasticsearch
+service elasticsearch restart
+
+# Restart kibana
+service kibana restart
+
+# Start the WiFiMon Agent
+/usr/lib/wifimon/start.sh
+
+##################################
+# GDPR Configuration for WiFiMon #
+##################################
+
+# Edit the /usr/lib/wifimon/secure-processor.properties file
+aes.key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+aes.iv=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 
+# Be careful with the length of the strings above. Use only hex digits.
+       
+
+#########################################
+# Create new subnet dashboard in Kibana #
+#########################################
+
+
+
+############################################
+# Create new HW Probes dashboard in Kibana #
+############################################
+
