@@ -96,6 +96,10 @@ import javax.xml.bind.DatatypeConverter;
 // Added 19/12/2019
 import org.elasticsearch.client.RequestOptions;
 
+// Added 22/1/2020
+import javax.crypto.Mac;
+
+
 /**
  * Created by Kokkinos on 12/02/16, Transport client upgraded to High Level REST Client by Kostopoulos on 31/03/19.
  */
@@ -139,9 +143,8 @@ public class AggregatorResource {
     private static final String SG_SSL_TRUSTSTORE_PASSWORD = "ssl.http.truststore.password";
     private static final String SG_SSL_KEY_PASSWORD = "ssl.http.key.password";
 
-    // Added 01/10/2019
-    private static final String AES_KEY = "aes.key";
-    private static final String AES_IV = "aes.iv";
+    // Added 22/01/2020
+    private static final String HMAC_SHA512_KEY = "sha.key";
 
     // properties added by me
     private static RestHighLevelClient restHighLevelClient;
@@ -247,13 +250,11 @@ public class AggregatorResource {
 	requesterSubnet = requesterSubnet.replace("]", "");
 
 	// Encrypt Requester IP
-	byte[] ipToEncrypt = ip.getBytes();
-	byte[] key = DatatypeConverter.parseHexBinary(environment.getProperty(AES_KEY));
-	byte[] iv = DatatypeConverter.parseHexBinary(environment.getProperty(AES_IV));
-	AesCBC aes = new AesCBC(key, iv);
+	EncryptClass encryptClass = new EncryptClass();
 	String encryptedIP = "";
 	try {
-		encryptedIP = DatatypeConverter.printBase64Binary(aes.encrypt(ipToEncrypt));
+		encryptedIP = encryptClass.encrypt(ip, environment.getProperty(HMAC_SHA512_KEY));
+		System.out.println(encryptedIP);
 	} catch(Exception e) {
 		System.out.println("Exception Caught. In detail:");
 		System.out.println(e);
@@ -702,46 +703,40 @@ public class AggregatorResource {
           return restHighLevelClient;
        }
 
-	// From: https://stackoverflow.com/questions/46835158/aes-256-cbc-in-java
-       // A class to encrypt Strings using AES 256 CBC algorithm
-      public static final class AesCBC {
-    		private byte[] key;
-    		private byte[] iv;
+	public class EncryptClass {
+    		public String encrypt(String myString, String myKey) {
+        		Mac sha512_HMAC = null;
+        		String result = null;
+        		String key =  myKey;
 
-    		private static final String ALGORITHM="AES";
+        		try{
+            			byte [] byteKey = key.getBytes("UTF-8");
+            			final String HMAC_SHA512 = "HmacSHA512";
+            			sha512_HMAC = Mac.getInstance(HMAC_SHA512);
+            			SecretKeySpec keySpec = new SecretKeySpec(byteKey, HMAC_SHA512);
+            			sha512_HMAC.init(keySpec);
+            			byte [] mac_data = sha512_HMAC.
+             			doFinal(myString.getBytes("UTF-8"));
+            			result = bytesToHex(mac_data);
+        		} catch (Exception e) {
+				System.out.println("Exception Occured. In detail: ");
+				System.out.println(e);
+        		}
 
-    		public AesCBC(byte[] key, byte[] iv) {
-        		this.key = key;
-        		this.iv = iv;
+			return result;
     		}
 
-		// Encrypts Data based on the Aes 256 CBC algorithm
-    		public byte[] encrypt(byte[] plainText) throws Exception{
-        		SecretKeySpec secretKey=new SecretKeySpec(key,ALGORITHM);
-        		IvParameterSpec ivParameterSpec=new IvParameterSpec(iv);
-        		Cipher cipher=Cipher.getInstance("AES/CBC/PKCS5Padding");
-        		cipher.init(Cipher.ENCRYPT_MODE,secretKey,ivParameterSpec);
-        		return cipher.doFinal(plainText);
+   		 public String bytesToHex(byte[] bytes) {
+        		final  char[] hexArray = "0123456789ABCDEF".toCharArray();
+        		char[] hexChars = new char[bytes.length * 2];
+        		for ( int j = 0; j < bytes.length; j++ ) {
+            			int v = bytes[j] & 0xFF;
+            			hexChars[j * 2] = hexArray[v >>> 4];
+            			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        		}
+        		return new String(hexChars);
     		}
-
-    		public byte[] getKey() {
-        		return key;
-    		}
-
-   		 public void setKey(byte[] key) {
-        		this.key = key;
-    		}
-
-    		public byte[] getIv() {
-        		return iv;
-    		}
-
-    		public void setIv(byte[] iv) {
-        		this.iv = iv;
-    		}
-
 	}
-
 
     public static final class PemReader
     {
