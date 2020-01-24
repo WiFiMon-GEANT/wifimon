@@ -96,6 +96,10 @@ import javax.xml.bind.DatatypeConverter;
 // Added 19/12/2019
 import org.elasticsearch.client.RequestOptions;
 
+// Added 22/1/2020
+import javax.crypto.Mac;
+
+
 /**
  * Created by Kokkinos on 12/02/16, Transport client upgraded to High Level REST Client by Kostopoulos on 31/03/19.
  */
@@ -139,9 +143,8 @@ public class AggregatorResource {
     private static final String SG_SSL_TRUSTSTORE_PASSWORD = "ssl.http.truststore.password";
     private static final String SG_SSL_KEY_PASSWORD = "ssl.http.key.password";
 
-    // Added 01/10/2019
-    private static final String AES_KEY = "aes.key";
-    private static final String AES_IV = "aes.iv";
+    // Added 22/01/2020
+    private static final String HMAC_SHA512_KEY = "sha.key";
 
     // properties added by me
     private static RestHighLevelClient restHighLevelClient;
@@ -194,16 +197,11 @@ public class AggregatorResource {
 	               restHighLevelClient = initHttpClient();
 	        }
 
-
-
 	        // Store measurements in elasticsearch
 	        indexMeasurementProbes(restHighLevelClient, jsonString);
-
-
 	        closeConnection();
 
                 return Response.ok().build();
-
 
 	} catch(Exception e) {
 		System.out.println("Exception Caught. In detail:");
@@ -222,7 +220,6 @@ public class AggregatorResource {
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
 
-	// Adding 19/09/2019
 	// In the following, we find the registered subnet corresponding to the requester IP
 	List<Subnet> subnets = subnetRepository.findAll();
 	if (subnets == null || subnets.isEmpty()) return Response.ok(false).build();
@@ -247,19 +244,16 @@ public class AggregatorResource {
 	requesterSubnet = requesterSubnet.replace("]", "");
 
 	// Encrypt Requester IP
-	byte[] ipToEncrypt = ip.getBytes();
-	byte[] key = DatatypeConverter.parseHexBinary(environment.getProperty(AES_KEY));
-	byte[] iv = DatatypeConverter.parseHexBinary(environment.getProperty(AES_IV));
-	AesCBC aes = new AesCBC(key, iv);
+	EncryptClass encryptClass = new EncryptClass();
 	String encryptedIP = "";
 	try {
-		encryptedIP = DatatypeConverter.printBase64Binary(aes.encrypt(ipToEncrypt));
+		encryptedIP = encryptClass.encrypt(ip, environment.getProperty(HMAC_SHA512_KEY));
+		encryptedIP = encryptedIP.toLowerCase();
 	} catch(Exception e) {
 		System.out.println("Exception Caught. In detail:");
 		System.out.println(e);
 		System.exit(1);
 	}
-
 
 	// What is the correlation method defined by the administrator in the WiFiMon GUI?
         String correlationmethod = visualOptionsRepository.findCorrelationmethod();
@@ -298,6 +292,7 @@ public class AggregatorResource {
     }
 
     private AggregatedMeasurement joinMeasurement(NetTestMeasurement measurement, RadiusStripped radius, Accesspoint accesspoint, String agent) {
+	System.out.println("Entering joinMeasurement");
         AggregatedMeasurement m = new AggregatedMeasurement();
         m.setTimestamp(System.currentTimeMillis());
         m.setDownloadThroughput(measurement.getDownloadThroughput());
@@ -392,6 +387,9 @@ public class AggregatorResource {
                 nasIpAddressJson + apBuildingJson + apFloorJson + apLocationJson +
                 apNotesJson + "}";
 
+	System.out.println("jsonStringDraft");
+	System.out.println(jsonStringDraft);
+
         String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
 	// Initialize High Level REST Client
@@ -429,39 +427,38 @@ public class AggregatorResource {
 	try {
            final SearchSourceBuilder builder = new SearchSourceBuilder()
             	.query(QueryBuilders.matchAllQuery())
-                .sort(new FieldSortBuilder("timestamp").order(SortOrder.DESC))
+                .sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC))
                 .from(0)
-                .fetchSource(new String[]{"username", "timestamp",
-                         "nas_port", "source_host", "calling_station_id", "result",
-                         "trace_id", "nas_identifier", "called_station_id", "nas_ip_address",
-                         "framed_ip_address", "acct_status_type"}, null)
-                 .postFilter(QueryBuilders.termQuery("framed_ip_address", ip))
-                 .query(QueryBuilders.termQuery("acct_status_type", "Start"))
+                .fetchSource(new String[]{"User-Name", "Timestamp",
+                         "nas_port", "Calling-Station-Id",
+                         "NAS-Identifier", "Called-Station-Id", "NAS-IP-Address",
+                         "Framed-IP-Address", "Acct-Status-Type"}, null)
+		 .postFilter(QueryBuilders.termQuery("Framed-IP-Address", ip))
+                 .query(QueryBuilders.termQuery("Acct-Status-Type", "Start"))
 	         .size(1)
 	         .explain(true);
 
+
            final SearchRequest request = new SearchRequest(environment.getProperty(ES_INDEXNAME_RADIUS))
-	         .types(environment.getProperty(ES_TYPE_RADIUS))
                  .source(builder);
 		      
            final SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT); 
+
+
            final SearchHits hits = response.getHits();
 
            if (response.getHits().getTotalHits().value > 0) {
 	       for (SearchHit hit : hits.getHits()) {
 		   Map map = hit.getSourceAsMap();
-		   r.setUserName(((map.get("username") != null) ? map.get("username").toString() : "N/A"));
-                   r.setTimestamp(((map.get("timestamp") != null) ? map.get("timestamp").toString() : "N/A"));
+		   r.setUserName(((map.get("User-Name") != null) ? map.get("User-Name").toString() : "N/A"));
+                   r.setTimestamp(((map.get("Timestamp") != null) ? map.get("Timestamp").toString() : "N/A"));
                    r.setNasPort(((map.get("nas_port") != null) ? map.get("nas_port").toString() : "N/A"));
-                   r.setSourceHost(((map.get("source_host") != null) ? map.get("source_host").toString() : "N/A"));
-                   r.setCallingStationId(((map.get("calling_station_id") != null) ? map.get("calling_station_id").toString() : "N/A"));
-                   r.setResult(((map.get("result") != null) ? map.get("result").toString() : "N/A"));
-                   r.setTraceId(((map.get("trace_id") != null) ? map.get("trace_id").toString() : "N/A"));
-                   r.setNasIdentifier(((map.get("nas_identifier") != null) ? map.get("nas_identifier").toString() : "N/A"));
-                   r.setCalledStationId(((map.get("called_station_id") != null) ? map.get("called_station_id").toString() : "N/A"));
-                   r.setNasIpAddress(((map.get("nas_ip_address") != null) ? map.get("nas_ip_address").toString() : "N/A"));
-                   r.setFramedIpAddress(((map.get("framed_ip_address") != null) ? map.get("framed_ip_address").toString() : "N/A"));
-                   r.setAcctStatusType(((map.get("acct_status_type") != null) ? map.get("acct_status_type").toString() : "N/A"));
+                   r.setCallingStationId(((map.get("Calling-Station-Id") != null) ? map.get("Calling-Station-Id").toString() : "N/A"));
+                   r.setNasIdentifier(((map.get("NAS-Identifier") != null) ? map.get("NAS-Identifier").toString() : "N/A"));
+                   r.setCalledStationId(((map.get("Called-Station-Id") != null) ? map.get("Called-Station-Id").toString() : "N/A"));
+                   r.setNasIpAddress(((map.get("NAS-IP-Address") != null) ? map.get("NAS-IP-Address").toString() : "N/A"));
+                   r.setFramedIpAddress(((map.get("Framed-IP-Address") != null) ? map.get("Framed-IP-Address").toString() : "N/A"));
+                   r.setAcctStatusType(((map.get("Acct-Status-Type") != null) ? map.get("Acct-Status-Type").toString() : "N/A"));
 	           break;
 	       }
 	    } else {
@@ -470,7 +467,7 @@ public class AggregatorResource {
 
          closeConnection();
 	} catch (Exception e) {
-		System.out.println("Exception caught. In detail: ");
+		System.out.println("Exception caught in RADIUS logs search with framed IP. In detail: ");
 		System.out.println(e);
 	}
         return r;
@@ -493,18 +490,17 @@ public class AggregatorResource {
 	try {
 	    final SearchSourceBuilder builder = new SearchSourceBuilder()
 		  .query(QueryBuilders.matchAllQuery())
-		  .sort(new FieldSortBuilder("timestamp").order(SortOrder.DESC))
+		  .sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC))
                   .from(0)
-                  .fetchSource(new String[]{"username", "timestamp",
-                         "nas_port", "source_host", "calling_station_id", "result",
-                         "trace_id", "nas_identifier", "called_station_id", "nas_ip_address",
-                         "framed_ip_address", "acct_status_type"}, null)
-                  .postFilter(QueryBuilders.wildcardQuery("calling_station_id", "*" + mac.replace(":","-").toLowerCase() + "*"))
+                  .fetchSource(new String[]{"User-Name", "Timestamp",
+                         "nas_port", "Calling-Station-Id",
+                         "NAS-Identifier", "Called-Station-Id", "NAS-IP-Address",
+                         "Framed-IP-Address", "Acct-Status-Type"}, null)
+                  .postFilter(QueryBuilders.wildcardQuery("Calling-Station-Id", "*" + mac.replace(":","-").toLowerCase() + "*"))
                   .size(1)
                   .explain(true);
 
             final SearchRequest request = new SearchRequest(environment.getProperty(ES_INDEXNAME_RADIUS))
-                  .types(environment.getProperty(ES_TYPE_RADIUS))
                   .source(builder);
 
             final SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
@@ -513,18 +509,15 @@ public class AggregatorResource {
             if (response.getHits().getTotalHits().value > 0) {
                for (SearchHit hit : hits.getHits()) {
                    Map map = hit.getSourceAsMap();
-                   r.setUserName(((map.get("username") != null) ? map.get("username").toString() : "N/A"));
-                   r.setTimestamp(((map.get("timestamp") != null) ? map.get("timestamp").toString() : "N/A"));
+                   r.setUserName(((map.get("User-Name") != null) ? map.get("User-Name").toString() : "N/A"));
+                   r.setTimestamp(((map.get("Timestamp") != null) ? map.get("Timestamp").toString() : "N/A"));
                    r.setNasPort(((map.get("nas_port") != null) ? map.get("nas_port").toString() : "N/A"));
-                   r.setSourceHost(((map.get("source_host") != null) ? map.get("source_host").toString() : "N/A"));
-                   r.setCallingStationId(((map.get("calling_station_id") != null) ? map.get("calling_station_id").toString() : "N/A"));
-                   r.setResult(((map.get("result") != null) ? map.get("result").toString() : "N/A"));
-                   r.setTraceId(((map.get("trace_id") != null) ? map.get("trace_id").toString() : "N/A"));
-                   r.setNasIdentifier(((map.get("nas_identifier") != null) ? map.get("nas_identifier").toString() : "N/A"));
-                   r.setCalledStationId(((map.get("called_station_id") != null) ? map.get("called_station_id").toString() : "N/A"));
-                   r.setNasIpAddress(((map.get("nas_ip_address") != null) ? map.get("nas_ip_address").toString() : "N/A"));
-                   r.setFramedIpAddress(((map.get("framed_ip_address") != null) ? map.get("framed_ip_address").toString() : "N/A"));
-                   r.setAcctStatusType(((map.get("acct_status_type") != null) ? map.get("acct_status_type").toString() : "N/A"));
+                   r.setCallingStationId(((map.get("Calling-Station-Id") != null) ? map.get("Calling-Station-Id").toString() : "N/A"));
+                   r.setNasIdentifier(((map.get("NAS-Identifier") != null) ? map.get("NAS-Identifier").toString() : "N/A"));
+                   r.setCalledStationId(((map.get("Called-Station-Id") != null) ? map.get("Called-Station-Id").toString() : "N/A"));
+                   r.setNasIpAddress(((map.get("NAS-IP-Address") != null) ? map.get("NAS-IP-Address").toString() : "N/A"));
+                   r.setFramedIpAddress(((map.get("Framed-IP-Address") != null) ? map.get("Framed-IP-Address").toString() : "N/A"));
+                   r.setAcctStatusType(((map.get("Acct-Status-Type") != null) ? map.get("Acct-Status-Type").toString() : "N/A"));
                    break;
                }
            } else {
@@ -545,8 +538,7 @@ public class AggregatorResource {
     
     private void indexMeasurement(RestHighLevelClient restHighLevelClient, String jsonString) {
 	   IndexRequest indexRequest = new IndexRequest(
-		environment.getProperty(ES_INDEXNAME_MEASUREMENT), 
-		environment.getProperty(ES_TYPE_MEASUREMENT));
+		environment.getProperty(ES_INDEXNAME_MEASUREMENT)); 
            indexRequest.source(jsonString,XContentType.JSON);
            try {
                 IndexResponse indexResponse = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
@@ -559,8 +551,7 @@ public class AggregatorResource {
 
     private void indexMeasurementProbes(RestHighLevelClient restHighLevelClient, String jsonString) {
 	   IndexRequest indexRequest = new IndexRequest(
-		environment.getProperty(ES_INDEXNAME_PROBES), 
-		environment.getProperty(ES_TYPE_PROBES));
+		environment.getProperty(ES_INDEXNAME_PROBES)); 
            indexRequest.source(jsonString,XContentType.JSON);
            try {
                 IndexResponse indexResponse = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
@@ -702,46 +693,40 @@ public class AggregatorResource {
           return restHighLevelClient;
        }
 
-	// From: https://stackoverflow.com/questions/46835158/aes-256-cbc-in-java
-       // A class to encrypt Strings using AES 256 CBC algorithm
-      public static final class AesCBC {
-    		private byte[] key;
-    		private byte[] iv;
+	public class EncryptClass {
+    		public String encrypt(String myString, String myKey) {
+        		Mac sha512_HMAC = null;
+        		String result = null;
+        		String key =  myKey;
 
-    		private static final String ALGORITHM="AES";
+        		try{
+            			byte [] byteKey = key.getBytes("UTF-8");
+            			final String HMAC_SHA512 = "HmacSHA512";
+            			sha512_HMAC = Mac.getInstance(HMAC_SHA512);
+            			SecretKeySpec keySpec = new SecretKeySpec(byteKey, HMAC_SHA512);
+            			sha512_HMAC.init(keySpec);
+            			byte [] mac_data = sha512_HMAC.
+             			doFinal(myString.getBytes("UTF-8"));
+            			result = bytesToHex(mac_data);
+        		} catch (Exception e) {
+				System.out.println("Exception Occured. In detail: ");
+				System.out.println(e);
+        		}
 
-    		public AesCBC(byte[] key, byte[] iv) {
-        		this.key = key;
-        		this.iv = iv;
+			return result;
     		}
 
-		// Encrypts Data based on the Aes 256 CBC algorithm
-    		public byte[] encrypt(byte[] plainText) throws Exception{
-        		SecretKeySpec secretKey=new SecretKeySpec(key,ALGORITHM);
-        		IvParameterSpec ivParameterSpec=new IvParameterSpec(iv);
-        		Cipher cipher=Cipher.getInstance("AES/CBC/PKCS5Padding");
-        		cipher.init(Cipher.ENCRYPT_MODE,secretKey,ivParameterSpec);
-        		return cipher.doFinal(plainText);
+   		 public String bytesToHex(byte[] bytes) {
+        		final  char[] hexArray = "0123456789ABCDEF".toCharArray();
+        		char[] hexChars = new char[bytes.length * 2];
+        		for ( int j = 0; j < bytes.length; j++ ) {
+            			int v = bytes[j] & 0xFF;
+            			hexChars[j * 2] = hexArray[v >>> 4];
+            			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        		}
+        		return new String(hexChars);
     		}
-
-    		public byte[] getKey() {
-        		return key;
-    		}
-
-   		 public void setKey(byte[] key) {
-        		this.key = key;
-    		}
-
-    		public byte[] getIv() {
-        		return iv;
-    		}
-
-    		public void setIv(byte[] iv) {
-        		this.iv = iv;
-    		}
-
 	}
-
 
     public static final class PemReader
     {
