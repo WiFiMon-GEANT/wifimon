@@ -248,7 +248,11 @@ public class AggregatorResource {
 	String encryptedIP = "";
 	try {
 		encryptedIP = encryptClass.encrypt(ip, environment.getProperty(HMAC_SHA512_KEY));
+<<<<<<< HEAD
 		encryptedIP = encryptedIP.toLowerCase();
+=======
+		System.out.println(encryptedIP);
+>>>>>>> 052035dc5af2ff389514a07d7217e6c209d38abe
 	} catch(Exception e) {
 		System.out.println("Exception Caught. In detail:");
 		System.out.println(e);
@@ -714,6 +718,7 @@ public class AggregatorResource {
         		}
 
 			return result;
+<<<<<<< HEAD
     		}
 
    		 public String bytesToHex(byte[] bytes) {
@@ -726,6 +731,20 @@ public class AggregatorResource {
         		}
         		return new String(hexChars);
     		}
+=======
+    		}
+
+   		 public String bytesToHex(byte[] bytes) {
+        		final  char[] hexArray = "0123456789ABCDEF".toCharArray();
+        		char[] hexChars = new char[bytes.length * 2];
+        		for ( int j = 0; j < bytes.length; j++ ) {
+            			int v = bytes[j] & 0xFF;
+            			hexChars[j * 2] = hexArray[v >>> 4];
+            			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        		}
+        		return new String(hexChars);
+    		}
+>>>>>>> 052035dc5af2ff389514a07d7217e6c209d38abe
 	}
 
     public static final class PemReader
