@@ -1,7 +1,8 @@
 *********************************************
-To install WiFiMon go to
+The necessary guides to install WiFiMon are included in the GEANT Wiki (https://wiki.geant.org)
 
-https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/installation_release_0.1.1.html
+Navigate to the GN4-3 Work Package 6 Workspace --> Task 3 --> WiFiMon
 
-and follow one of the options provided.
+WiFiMon Guides are included in WiFiMon as a Service --> WiFiMon Service Support --> WiFiMon User Documentation
+
 *********************************************

@@ -30,13 +30,8 @@
             <filtered>true</filtered>
         </file>
         <file>
-            <source>kibana-import.json</source>
+            <source>kibana-import.ndjson</source>
             <outputDirectory></outputDirectory>
-            <filtered>true</filtered>
-        </file>
-        <file>
-            <source>processor.properties</source>
-            <outputDirectory>config</outputDirectory>
             <filtered>true</filtered>
         </file>
         <file>
@@ -49,6 +44,31 @@
             <outputDirectory>config</outputDirectory>
             <filtered>true</filtered>
         </file>
+	<file>
+	    <source>wireless.py</source>
+	    <outputDirectory>probes</outputDirectory>
+	    <filtered>true</filtered>
+	</file>
+	<file>
+	    <source>elasticsearchHWProbesx.html</source>
+	    <outputDirectory>probes</outputDirectory>
+	    <filtered>true</filtered>
+	</file>
+	<file>
+	    <source>MeasurementsController_probes.txt</source>
+	    <outputDirectory>probes</outputDirectory>
+	    <filtered>true</filtered>
+	</file>
+	<file>
+	    <source>elasticsearchSubnets_a_b_c_d_xx.html</source>
+	    <outputDirectory>subnets</outputDirectory>
+	    <filtered>true</filtered>
+    	</file>
+	<file>
+	    <source>MeasurementsController_subnets.txt</source>
+	    <outputDirectory>subnets</outputDirectory>
+	    <filtered>true</filtered>
+	</file>
         <file>
             <source>README.txt</source>
             <outputDirectory></outputDirectory>

@@ -30,6 +30,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import java.io.IOException;
 import java.util.HashMap;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.index.IndexRequest;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
@@ -87,22 +88,12 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.ScoreSortBuilder;
-
-// Added 01/10/2019
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
-
-// Added 19/12/2019
 import org.elasticsearch.client.RequestOptions;
-
-// Added 22/1/2020
 import javax.crypto.Mac;
 
-
-/**
- * Created by Kokkinos on 12/02/16, Transport client upgraded to High Level REST Client by Kostopoulos on 31/03/19.
- */
 @Component
 @Path("/wifimon")
 public class AggregatorResource {
@@ -129,26 +120,17 @@ public class AggregatorResource {
     private static final String ES_TYPE_DHCP = "elasticsearch.typenamedhcp";
     private static final String ES_INDEXNAME_PROBES = "elasticsearch.indexnameprobes";
     private static final String ES_TYPE_PROBES = "elasticsearch.typenameprobes";
-    private static final String SG_SSL_ENABLED = "xpack.security.enabled";
-    private static final String SG_SSL_CERT_TYPE = "ssl.certificate.type";
-    private static final String SG_SSL_USER_USERNAME = "ssl.http.user.username";
-    private static final String SG_SSL_USER_PASSWORD = "ssl.http.user.password";
-    private static final String SG_SSL_PEMKEY_FILEPATH = "xpack.security.http.ssl.key";
-    private static final String SG_SSL_PEMKEY_PASSWORD = "xpack.security.http.ssl.secure_key_passphrase";
-    private static final String SG_SSL_PEMCERT_FILEPATH = "xpack.security.http.ssl.certificate";
-    private static final String SG_SSL_PEMTRUSTEDCAS_FILEPATH = "xpack.security.http.ssl.certificate_authorities";
-    private static final String SG_SSL_KEYSTORE_FILEPATH = "ssl.http.keystore.filepath";
-    private static final String SG_SSL_KEYSTORE_PASSWORD = "ssl.http.keystore.password";
-    private static final String SG_SSL_TRUSTSTORE_FILEPATH = "ssl.http.truststore.filepath";
-    private static final String SG_SSL_TRUSTSTORE_PASSWORD = "ssl.http.truststore.password";
-    private static final String SG_SSL_KEY_PASSWORD = "ssl.http.key.password";
-
-    // Added 22/01/2020
+    private static final String SSL_ENABLED = "xpack.security.enabled";
+    private static final String SSL_USER_USERNAME = "ssl.http.user.username";
+    private static final String SSL_USER_PASSWORD = "ssl.http.user.password";
+    private static final String SSL_KEYSTORE_FILEPATH = "ssl.http.keystore.filepath";
+    private static final String SSL_KEYSTORE_PASSWORD = "ssl.http.keystore.password";
+    private static final String SSL_TRUSTSTORE_FILEPATH = "ssl.http.truststore.filepath";
+    private static final String SSL_TRUSTSTORE_PASSWORD = "ssl.http.truststore.password";
+    private static final String SSL_KEY_PASSWORD = "ssl.http.key.password";
     private static final String HMAC_SHA512_KEY = "sha.key";
 
-    // properties added by me
     private static RestHighLevelClient restHighLevelClient;
-
 
     @POST
     @Path("/subnet")
@@ -173,12 +155,14 @@ public class AggregatorResource {
 	
 	try {
 
+		// Get Wireless Network Performance Metrics
 		String bitRateJson = measurement.getBitRate() != null ? "\"bitRate\" : " + measurement.getBitRate() + ", " : "";
 		String txPowerJson = measurement.getTxPower() != null ? "\"txPower\" : " + measurement.getTxPower() + ", " : "";
 		String linkQualityJson = measurement.getLinkQuality() != null ? "\"linkQuality\" : " + measurement.getLinkQuality() + ", " : "";
 		String signalLevelJson = measurement.getSignalLevel() != null ? "\"signalLevel\" : " + measurement.getSignalLevel() + ", " : "";
 		String testToolJson = measurement.getTestTool() != null ? "\"testTool\" : \"" + measurement.getTestTool() + "\"" : "";
 	        
+		// Construct JSON object that will be stored in Elasticsearch
 		String jsonStringDraft = "{" +
 			"\"timestamp\" : " + measurement.getTimestamp() + ", " +
 			bitRateJson + txPowerJson + linkQualityJson +
@@ -187,12 +171,8 @@ public class AggregatorResource {
 	        String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
 		// Initialize High Level REST Client
-        	if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
-            	   if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
-		       restHighLevelClient = initPemClient();
-                   }else{
+        	if (environment.getProperty(SSL_ENABLED).equals("true")){
 		       restHighLevelClient = initKeystoreClient();
-                   }
                 } else {
 	               restHighLevelClient = initHttpClient();
 	        }
@@ -243,16 +223,12 @@ public class AggregatorResource {
 	String requesterSubnet = subnet3.replace("[", "");
 	requesterSubnet = requesterSubnet.replace("]", "");
 
-	// Encrypt Requester IP
+	// Encrypt Requester IP using HMAC SHA512 Algorithm
 	EncryptClass encryptClass = new EncryptClass();
 	String encryptedIP = "";
 	try {
 		encryptedIP = encryptClass.encrypt(ip, environment.getProperty(HMAC_SHA512_KEY));
-<<<<<<< HEAD
 		encryptedIP = encryptedIP.toLowerCase();
-=======
-		System.out.println(encryptedIP);
->>>>>>> 052035dc5af2ff389514a07d7217e6c209d38abe
 	} catch(Exception e) {
 		System.out.println("Exception Caught. In detail:");
 		System.out.println(e);
@@ -279,11 +255,13 @@ public class AggregatorResource {
 
 	try {
            if (r != null) {
+	       // There are RADIUS Logs corresponding to the received measurement
                String calledStationIdTemp = r.getCalledStationId().substring(0,17).toUpperCase().replace("-",":");
                ap = accesspointsRepository.find(calledStationIdTemp);
                response = addElasticMeasurement(joinMeasurement(measurement, r, ap, agent), requesterSubnet, encryptedIP);
            }
            else {
+	       // There are not RADIUS Logs corresponding to the received measurement
                response = addElasticMeasurement(joinMeasurement(measurement, r, null, agent), requesterSubnet, encryptedIP);
        	   }
         }
@@ -296,7 +274,6 @@ public class AggregatorResource {
     }
 
     private AggregatedMeasurement joinMeasurement(NetTestMeasurement measurement, RadiusStripped radius, Accesspoint accesspoint, String agent) {
-	System.out.println("Entering joinMeasurement");
         AggregatedMeasurement m = new AggregatedMeasurement();
         m.setTimestamp(System.currentTimeMillis());
         m.setDownloadThroughput(measurement.getDownloadThroughput());
@@ -305,7 +282,6 @@ public class AggregatorResource {
         m.setLatitude(measurement.getLatitude() != null ? Double.valueOf(measurement.getLatitude()) : null);
         m.setLongitude(measurement.getLongitude() != null ? Double.valueOf(measurement.getLongitude()): null);
         m.setLocationMethod(measurement.getLocationMethod());
-        //m.setClientIp(ip);
         m.setUserAgent(agent);
         m.setTestTool(measurement.getTestTool());
         m.setUserName(radius != null ? radius.getUserName() : null);
@@ -323,7 +299,6 @@ public class AggregatorResource {
     }
 
     private Response addElasticMeasurement(AggregatedMeasurement measurement, String requesterSubnet, String encryptedIP) throws IOException {
-        // addElasticMeasurement for Kibana 6.2.4
         String UserAgent = measurement.getUserAgent();
 
 	// Section for User Operating System
@@ -356,7 +331,7 @@ public class AggregatorResource {
             userBrowser = "N/A";
         }
 
-	// Define Strings for the different measurememt fields
+	// Define Strings for the different measurement fields and results from correlation with RADIUS Logs
         String downloadThroughputJson = measurement.getDownloadThroughput() != null ? "\"downloadThroughput\" : " + measurement.getDownloadThroughput() + ", " : "";
         String uploadThroughputJson = measurement.getUploadThroughput() != null ? "\"uploadThroughput\" : " + measurement.getUploadThroughput() + ", " : "";
         String localPingJson = measurement.getLocalPing() != null ? "\"localPing\" : " + measurement.getLocalPing() + ", " : "";
@@ -380,29 +355,22 @@ public class AggregatorResource {
         String apLocationJson = measurement.getApLatitude() != null ? "\"apLocation\" : \"" + measurement.getApLatitude() + "," + measurement.getApLongitude() + "\", " : "";
         String apNotesJson = measurement.getApNotes() != null ? "\"apNotes\" : \"" + measurement.getApNotes() + "\"" : "";
 
-	// Build the Json String to store in the elasticsearch
+	// Build the Json String to store in the elasticsearch cluster
         String jsonStringDraft = "{" +
                 "\"timestamp\" : " + measurement.getTimestamp() + ", " +
                 downloadThroughputJson + uploadThroughputJson + localPingJson +
                 locationJson + locationMethodJson +
-                userAgentJson + userBrowserJson + userOSJson +
+                userAgentJson + userBrowserJson + userOSJson + clientIpJson +
                 testToolJson + requesterSubnetJson + encryptedIPJson + usernameJson + nasPortJson +
                 callingStationIdJson + nasIdentifierJson + calledStationIdJson +
                 nasIpAddressJson + apBuildingJson + apFloorJson + apLocationJson +
                 apNotesJson + "}";
 
-	System.out.println("jsonStringDraft");
-	System.out.println(jsonStringDraft);
-
         String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
 	// Initialize High Level REST Client
-        if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
-            if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
-		restHighLevelClient = initPemClient();
-            }else{
+        if (environment.getProperty(SSL_ENABLED).equals("true")){
 		restHighLevelClient = initKeystoreClient();
-            }
         } else {
 	        restHighLevelClient = initHttpClient();
 	}
@@ -415,18 +383,16 @@ public class AggregatorResource {
     }
 
     private RadiusStripped retrieveLastRadiusEntryByIp(String ip) {
+	// Correlation with RADIUS Logs based on the Framed IP Address field
 
         RadiusStripped r = new RadiusStripped();
 
-        if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
-            if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
-		   restHighLevelClient = initPemClient();
-            } else {
-		   restHighLevelClient = initKeystoreClient();
-            } 
+        if (environment.getProperty(SSL_ENABLED).equals("true")){
+	    restHighLevelClient = initKeystoreClient();
 	} else {
             restHighLevelClient = initHttpClient();
         }
+
 
 	try {
            final SearchSourceBuilder builder = new SearchSourceBuilder()
@@ -441,7 +407,6 @@ public class AggregatorResource {
                  .query(QueryBuilders.termQuery("Acct-Status-Type", "Start"))
 	         .size(1)
 	         .explain(true);
-
 
            final SearchRequest request = new SearchRequest(environment.getProperty(ES_INDEXNAME_RADIUS))
                  .source(builder);
@@ -470,23 +435,23 @@ public class AggregatorResource {
             }
 
          closeConnection();
-	} catch (Exception e) {
-		System.out.println("Exception caught in RADIUS logs search with framed IP. In detail: ");
+
+	}catch (ElasticsearchStatusException e) {
+		r = null;
+    	}catch (Exception e) {
 		System.out.println(e);
+		r = null;
 	}
         return r;
     }
 
     private RadiusStripped retrieveLastRadiusEntryByMac(String mac) {
+	// Correlation with RADIUS Logs based on the Calling Station Id field
 
         RadiusStripped r = new RadiusStripped();
 
-        if (environment.getProperty(SG_SSL_ENABLED).equals("true")){
-            if (environment.getProperty(SG_SSL_CERT_TYPE, "keystore").equals("pem")) {
-		    restHighLevelClient = initPemClient();
-            }else{
-		    restHighLevelClient = initKeystoreClient();
-	   }
+        if (environment.getProperty(SSL_ENABLED).equals("true")){
+	        restHighLevelClient = initKeystoreClient();
         }else {
 		restHighLevelClient = initHttpClient();
 	}
@@ -541,6 +506,7 @@ public class AggregatorResource {
     }
     
     private void indexMeasurement(RestHighLevelClient restHighLevelClient, String jsonString) {
+	   // Store received measurements in Elasticsearch
 	   IndexRequest indexRequest = new IndexRequest(
 		environment.getProperty(ES_INDEXNAME_MEASUREMENT)); 
            indexRequest.source(jsonString,XContentType.JSON);
@@ -554,6 +520,7 @@ public class AggregatorResource {
     }
 
     private void indexMeasurementProbes(RestHighLevelClient restHighLevelClient, String jsonString) {
+	   // Store received Wireless Network Performance Metrics (from WiFiMon Hardware Probes) in Elasticsearch
 	   IndexRequest indexRequest = new IndexRequest(
 		environment.getProperty(ES_INDEXNAME_PROBES)); 
            indexRequest.source(jsonString,XContentType.JSON);
@@ -596,71 +563,23 @@ public class AggregatorResource {
 	 }
     }
 
-    // This method initializes a High Level REST Client using PEM Certificates
-    public RestHighLevelClient initPemClient() {
-
-        RestHighLevelClient restHighLevelClient = null;
-
-        try {
-
-                 final CredentialsProvider credentialsProvider =
-                         new BasicCredentialsProvider();
-                         credentialsProvider.setCredentials(AuthScope.ANY,
-                         new UsernamePasswordCredentials(
-                                  environment.getProperty(SG_SSL_USER_USERNAME),
-                                  environment.getProperty(SG_SSL_USER_PASSWORD)));
-
-                 Optional<String> keyPasswordOpt = Optional.empty();
-                 boolean trustSelfSigned=true;
-
-                 SSLContext sslContextFromPem = SSLContexts
-                         .custom()
-                         .loadKeyMaterial(PemReader.loadKeyStore(
-                                 new File(environment.getProperty(SG_SSL_PEMCERT_FILEPATH)),
-                                 new File(environment.getProperty(SG_SSL_PEMKEY_FILEPATH)),
-                                 keyPasswordOpt),
-                                 keyPasswordOpt.orElse(environment.getProperty(SG_SSL_PEMKEY_PASSWORD)).toCharArray())
-                         .loadTrustMaterial(PemReader.loadTrustStore(
-                                 new File(environment.getProperty(SG_SSL_PEMTRUSTEDCAS_FILEPATH))),
-                                 trustSelfSigned?new TrustSelfSignedStrategy():null)
-                         .build();
-
-                         restHighLevelClient = new RestHighLevelClient(
-                         RestClient.builder(new HttpHost(
-                                 environment.getProperty(ES_HOST),
-                                 Integer.parseInt(environment.getProperty(ES_PORT)),
-                                 "https"))
-                         .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
-                         .setDefaultCredentialsProvider(credentialsProvider)
-                         .setSSLContext(sslContextFromPem)
-                         ));
-
-        }
-        catch (Exception e) {
-		System.out.println("Exception Caught. In detail:");
-                System.out.println(e);
-        }
-
-        return restHighLevelClient;
-
-    }
-
+    // A big part of the code that follows was taken from the Search Guard GitHub repository about Elasticsearch Java High Level REST Client
    // This method initializes a High Level REST Client using Keystore Certificates
    public RestHighLevelClient initKeystoreClient() {
 
           RestHighLevelClient restHighLevelClient = null;
 
           try {
-                 char[] truststorePassword = environment.getProperty(SG_SSL_TRUSTSTORE_PASSWORD).toCharArray();
-                 char[] keystorePassword = environment.getProperty(SG_SSL_KEYSTORE_PASSWORD).toCharArray();
-                 char[] keyPassword = environment.getProperty(SG_SSL_KEY_PASSWORD).toCharArray();
+                 char[] truststorePassword = environment.getProperty(SSL_TRUSTSTORE_PASSWORD).toCharArray();
+                 char[] keystorePassword = environment.getProperty(SSL_KEYSTORE_PASSWORD).toCharArray();
+                 char[] keyPassword = environment.getProperty(SSL_KEY_PASSWORD).toCharArray();
 
                  final CredentialsProvider credentialsProvider =
                       new BasicCredentialsProvider();
                       credentialsProvider.setCredentials(AuthScope.ANY,
                       new UsernamePasswordCredentials(
-                              environment.getProperty(SG_SSL_USER_USERNAME),
-                              environment.getProperty(SG_SSL_USER_PASSWORD)));
+                              environment.getProperty(SSL_USER_USERNAME),
+                              environment.getProperty(SSL_USER_PASSWORD)));
 
 
                  Optional<String> keyPasswordOpt = Optional.empty();
@@ -669,11 +588,11 @@ public class AggregatorResource {
                  SSLContext sslContextFromJks = SSLContexts
                       .custom()
                       .loadKeyMaterial(
-                              new File(environment.getProperty(SG_SSL_KEYSTORE_FILEPATH)),
+                              new File(environment.getProperty(SSL_KEYSTORE_FILEPATH)),
                               keystorePassword,
                               keyPassword)
                       .loadTrustMaterial(
-                              new File(environment.getProperty(SG_SSL_TRUSTSTORE_FILEPATH)),
+                              new File(environment.getProperty(SSL_TRUSTSTORE_FILEPATH)),
                               truststorePassword,
                               trustSelfSigned?new TrustSelfSignedStrategy():null)
                       .build();
@@ -697,6 +616,7 @@ public class AggregatorResource {
           return restHighLevelClient;
        }
 
+        // Used to encrypt IP addresses of end users
 	public class EncryptClass {
     		public String encrypt(String myString, String myKey) {
         		Mac sha512_HMAC = null;
@@ -718,7 +638,6 @@ public class AggregatorResource {
         		}
 
 			return result;
-<<<<<<< HEAD
     		}
 
    		 public String bytesToHex(byte[] bytes) {
@@ -731,143 +650,6 @@ public class AggregatorResource {
         		}
         		return new String(hexChars);
     		}
-=======
-    		}
-
-   		 public String bytesToHex(byte[] bytes) {
-        		final  char[] hexArray = "0123456789ABCDEF".toCharArray();
-        		char[] hexChars = new char[bytes.length * 2];
-        		for ( int j = 0; j < bytes.length; j++ ) {
-            			int v = bytes[j] & 0xFF;
-            			hexChars[j * 2] = hexArray[v >>> 4];
-            			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        		}
-        		return new String(hexChars);
-    		}
->>>>>>> 052035dc5af2ff389514a07d7217e6c209d38abe
 	}
 
-    public static final class PemReader
-    {
-        private static final Pattern CERT_PATTERN = Pattern.compile(
-                "-+BEGIN\\s+.*CERTIFICATE[^-]*-+(?:\\s|\\r|\\n)+" + // Header
-                        "([a-z0-9+/=\\r\\n]+)" +                    // Base64 text
-                        "-+END\\s+.*CERTIFICATE[^-]*-+",            // Footer
-                CASE_INSENSITIVE);
-
-        private static final Pattern KEY_PATTERN = Pattern.compile(
-                "-+BEGIN\\s+.*PRIVATE\\s+KEY[^-]*-+(?:\\s|\\r|\\n)+" + // Header
-                        "([a-z0-9+/=\\r\\n]+)" +                       // Base64 text
-                        "-+END\\s+.*PRIVATE\\s+KEY[^-]*-+",            // Footer
-                CASE_INSENSITIVE);
-
-        private PemReader() {}
-
-        public static KeyStore loadTrustStore(File certificateChainFile)
-                throws IOException, GeneralSecurityException
-        {
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(null, null);
-
-            List<X509Certificate> certificateChain = readCertificateChain(certificateChainFile);
-            for (X509Certificate certificate : certificateChain) {
-                X500Principal principal = certificate.getSubjectX500Principal();
-                keyStore.setCertificateEntry(principal.getName("RFC2253"), certificate);
-            }
-            return keyStore;
-        }
-
-        public static KeyStore loadKeyStore(File certificateChainFile, File privateKeyFile, Optional<String> keyPassword)
-                throws IOException, GeneralSecurityException
-        {
-            PKCS8EncodedKeySpec encodedKeySpec = readPrivateKey(privateKeyFile, keyPassword);
-            PrivateKey key;
-            try {
-                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                key = keyFactory.generatePrivate(encodedKeySpec);
-            }
-            catch (InvalidKeySpecException ignore) {
-                KeyFactory keyFactory = KeyFactory.getInstance("DSA");
-                key = keyFactory.generatePrivate(encodedKeySpec);
-            }
-
-            List<X509Certificate> certificateChain = readCertificateChain(certificateChainFile);
-            if (certificateChain.isEmpty()) {
-                throw new CertificateException("Certificate file does not contain any certificates: " + certificateChainFile);
-            }
-
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(null, null);
-            keyStore.setKeyEntry("key", key, keyPassword.orElse("").toCharArray(), certificateChain.stream().toArray(Certificate[]::new));
-            return keyStore;
-        }
-
-        private static List<X509Certificate> readCertificateChain(File certificateChainFile)
-                throws IOException, GeneralSecurityException
-        {
-            String contents = readFile(certificateChainFile);
-
-            Matcher matcher = CERT_PATTERN.matcher(contents);
-            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            List<X509Certificate> certificates = new ArrayList<>();
-
-            int start = 0;
-            while (matcher.find(start)) {
-                byte[] buffer = base64Decode(matcher.group(1));
-                certificates.add((X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(buffer)));
-                start = matcher.end();
-            }
-
-            return certificates;
-        }
-
-        private static PKCS8EncodedKeySpec readPrivateKey(File keyFile, Optional<String> keyPassword)
-                throws IOException, GeneralSecurityException
-        {
-            String content = readFile(keyFile);
-
-            Matcher matcher = KEY_PATTERN.matcher(content);
-            if (!matcher.find()) {
-                throw new KeyStoreException("found no private key: " + keyFile);
-            }
-            byte[] encodedKey = base64Decode(matcher.group(1));
-
-            if (!keyPassword.isPresent()) {
-                return new PKCS8EncodedKeySpec(encodedKey);
-            }
-
-            EncryptedPrivateKeyInfo encryptedPrivateKeyInfo = new EncryptedPrivateKeyInfo(encodedKey);
-            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(encryptedPrivateKeyInfo.getAlgName());
-            SecretKey secretKey = keyFactory.generateSecret(new PBEKeySpec(keyPassword.get().toCharArray()));
-
-            Cipher cipher = Cipher.getInstance(encryptedPrivateKeyInfo.getAlgName());
-            cipher.init(DECRYPT_MODE, secretKey, encryptedPrivateKeyInfo.getAlgParameters());
-
-            return encryptedPrivateKeyInfo.getKeySpec(cipher);
-        }
-
-        private static byte[] base64Decode(String base64)
-        {
-            return Base64.getMimeDecoder().decode(base64.getBytes(US_ASCII));
-        }
-
-        private static String readFile(File file)
-                throws IOException
-        {
-            try (Reader reader = new InputStreamReader(new FileInputStream(file), US_ASCII)) {
-                StringBuilder stringBuilder = new StringBuilder();
-
-                CharBuffer buffer = CharBuffer.allocate(2048);
-                while (reader.read(buffer) != -1) {
-                    buffer.flip();
-                    stringBuilder.append(buffer);
-                    buffer.clear();
-                }
-                return stringBuilder.toString();
-            }
-        }
-    }
-
-
 }
-
