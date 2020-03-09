@@ -6,13 +6,11 @@ package net.geant.wifimon.secureprocessor;
 //import com.sun.jersey.api.json.JSONConfiguration;
 //import com.sun.jersey.client.urlconnection.HTTPSProperties;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
@@ -20,15 +18,13 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-
-
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 /**
  * Created by kokkinos on 2/9/2016.

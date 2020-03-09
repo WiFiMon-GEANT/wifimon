@@ -1,7 +1,5 @@
 package net.geant.wifimon.agent.repository;
 
-import net.geant.wifimon.agent.service.VisualOptionsService;
-import net.geant.wifimon.model.entity.UserData;
 import net.geant.wifimon.model.entity.VisualOptions;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

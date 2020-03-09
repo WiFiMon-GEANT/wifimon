@@ -2,8 +2,6 @@ package net.geant.wifimon.agent.controller;
 
 //import com.sun.jersey.api.client.Client;
 
-import javax.ws.rs.client.Client;
-
 import net.geant.wifimon.agent.repository.AccesspointRepository;
 import net.geant.wifimon.agent.repository.UserRepository;
 import net.geant.wifimon.agent.repository.VisualOptionsRepository;
@@ -26,6 +24,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.ws.rs.client.Client;
 
 /**
  * Created by kanakisn on 8/5/15.

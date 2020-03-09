@@ -3,7 +3,6 @@ package net.geant.wifimon.agent.repository;
 import net.geant.wifimon.model.entity.Accesspoint;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;

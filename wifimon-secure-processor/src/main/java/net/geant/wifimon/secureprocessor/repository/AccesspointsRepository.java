@@ -1,9 +1,9 @@
 package net.geant.wifimon.secureprocessor.repository;
 
 import net.geant.wifimon.model.entity.Accesspoint;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
