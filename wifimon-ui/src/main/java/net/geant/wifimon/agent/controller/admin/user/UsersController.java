@@ -33,5 +33,4 @@ public class UsersController {
     public String populateCssClass() {
         return "active";
     }
-
 }

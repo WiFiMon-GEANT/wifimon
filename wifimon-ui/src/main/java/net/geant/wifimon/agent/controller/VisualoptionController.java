@@ -28,7 +28,7 @@ public class VisualoptionController {
 
     @Autowired
     public VisualoptionController(VisualOptionsService visualOptionsService, VisualOptionsUpdateFormValidator visualOptionsUpdateFormValidator) {
-        this.visualOptionsService= visualOptionsService;
+        this.visualOptionsService = visualOptionsService;
         this.visualOptionsUpdateFormValidator = visualOptionsUpdateFormValidator;
     }
 
@@ -43,8 +43,8 @@ public class VisualoptionController {
 
     @RequestMapping(value = "/admin/editOptions", method = RequestMethod.GET)
     public String getVisualoptionsCreatePage(@ModelAttribute("visualOptionsEditModel") final VisualOptionsUpdateFormModel visualOptionsUpdateFormModel) {
-        Integer count  = visualOptionsRepository.countEntries();
-        if (count > 0){
+        Integer count = visualOptionsRepository.countEntries();
+        if (count > 0) {
             visualOptionsUpdateFormModel.setUserdata(visualOptionsRepository.getLastEntry().getUserdata());
             visualOptionsUpdateFormModel.setCorrelationmethod(visualOptionsRepository.getLastEntry().getCorrelationmethod());
             visualOptionsUpdateFormModel.setUservisualoption(visualOptionsRepository.getLastEntry().getUservisualoption());
@@ -54,22 +54,21 @@ public class VisualoptionController {
 
     @RequestMapping(value = "/admin/editOptions", method = RequestMethod.POST)
     public String handleVisualoptionsCreateForm(@Valid @ModelAttribute("visualOptionsEditModel") final VisualOptionsUpdateFormModel visualOptionsUpdateFormModel,
-                                              BindingResult bindingResult) {
+                                                BindingResult bindingResult) {
         if (bindingResult.hasErrors()) return EDIT_VO_VIEW;
-        Integer count  = visualOptionsRepository.countEntries();
-        if (count == 0){
+        Integer count = visualOptionsRepository.countEntries();
+        if (count == 0) {
             visualOptionsService.create(visualOptionsUpdateFormModel);
-        }else{
+        } else {
             Integer i = visualOptionsRepository.updateEntry(visualOptionsUpdateFormModel.getUserdata().toString(),
-                                                            visualOptionsUpdateFormModel.getUservisualoption().toString(),
-                                                            visualOptionsUpdateFormModel.getCorrelationmethod().toString());
+                    visualOptionsUpdateFormModel.getUservisualoption().toString(),
+                    visualOptionsUpdateFormModel.getCorrelationmethod().toString());
         }
         return String.join("/", "redirect:", VisualoptionsController.VO_VIEW);
     }
 
     @ModelAttribute("classActiveSettingsConfig")
     public String populateCssClass() {
-        return  "active";
+        return "active";
     }
 }
-

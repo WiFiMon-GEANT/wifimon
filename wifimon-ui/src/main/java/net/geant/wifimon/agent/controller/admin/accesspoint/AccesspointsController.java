@@ -32,5 +32,4 @@ public class AccesspointsController {
     public String populateCssClass() {
         return "active";
     }
-
 }

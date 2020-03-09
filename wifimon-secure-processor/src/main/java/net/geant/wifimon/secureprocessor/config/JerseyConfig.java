@@ -1,4 +1,5 @@
 package net.geant.wifimon.secureprocessor.config;
+
 import net.geant.wifimon.secureprocessor.resource.AggregatorResource;
 import net.geant.wifimon.secureprocessor.resource.CORSResponseFilter;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -22,5 +23,4 @@ public class JerseyConfig extends ResourceConfig {
         register(CORSResponseFilter.class);
         register(AggregatorResource.class);
     }
-
 }

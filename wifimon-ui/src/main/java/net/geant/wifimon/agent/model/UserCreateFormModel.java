@@ -11,17 +11,19 @@ import java.io.Serializable;
  */
 public class UserCreateFormModel implements Serializable {
 
-        @NotNull
-        private String email;
+    @NotNull
+    private String email;
 
-        @NotNull @Size(min = 6, max = 30)
-        private String password;
+    @NotNull
+    @Size(min = 6, max = 30)
+    private String password;
 
-        @NotNull @Size(min = 6, max = 30)
-        private String passwordRepeated;
+    @NotNull
+    @Size(min = 6, max = 30)
+    private String passwordRepeated;
 
-        @NotNull
-        private Role role;
+    @NotNull
+    private Role role;
 
     public String getEmail() {
         return email;
@@ -54,5 +56,4 @@ public class UserCreateFormModel implements Serializable {
     public void setRole(Role role) {
         this.role = role;
     }
-
 }

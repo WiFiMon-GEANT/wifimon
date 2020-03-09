@@ -38,7 +38,7 @@ public class AccesspointCreateFormValidator implements Validator {
     }
 
     private void validateMac(AccesspointCreateFormModel form, Errors errors) {
-        if (accesspointService.getAccesspointByMac(form.getMac().toUpperCase().replaceAll("-",":")).isPresent()) {
+        if (accesspointService.getAccesspointByMac(form.getMac().toUpperCase().replaceAll("-", ":")).isPresent()) {
             errors.rejectValue("mac", "mac.exists", "The AP with this MAC already exists");
         }
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "mac", "mac.empty", "The AP MAC is empty");
@@ -50,16 +50,16 @@ public class AccesspointCreateFormValidator implements Validator {
 
     private void validateLongitude(AccesspointCreateFormModel form, Errors errors) {
 
-        final String Digits     = "(\\p{Digit}+)";
-        final String HexDigits  = "(\\p{XDigit}+)";
-        final String Exp        = "[eE][+-]?"+Digits;
-        final String fpRegex    =
-                ("[\\x00-\\x20]*"+  // Optional leading "whitespace"
+        final String Digits = "(\\p{Digit}+)";
+        final String HexDigits = "(\\p{XDigit}+)";
+        final String Exp = "[eE][+-]?" + Digits;
+        final String fpRegex =
+                ("[\\x00-\\x20]*" +  // Optional leading "whitespace"
                         "[+-]?(" + // Optional sign character
                         "NaN|" +           // "NaN" string
                         "Infinity|" +      // "Infinity" string
-                        "((("+Digits+"(\\.)?("+Digits+"?)("+Exp+")?)|"+
-                        "(\\.("+Digits+")("+Exp+")?)|"+
+                        "(((" + Digits + "(\\.)?(" + Digits + "?)(" + Exp + ")?)|" +
+                        "(\\.(" + Digits + ")(" + Exp + ")?)|" +
                         "((" +
                         "(0[xX]" + HexDigits + "(\\.)?)|" +
                         "(0[xX]" + HexDigits + "?(\\.)" + HexDigits + ")" +
@@ -70,26 +70,25 @@ public class AccesspointCreateFormValidator implements Validator {
         if (Pattern.matches(fpRegex, form.getLongitude())) {
             Double.valueOf(form.getLongitude()); // Will not throw NumberFormatException
             double d = Double.parseDouble(form.getLongitude());
-            if (d  < -180 || d > 180){
+            if (d < -180 || d > 180) {
                 errors.rejectValue("longitude", "longitude.outOfRange", "Longitude should be between -180 and 180 degrees");
             }
-        }
-        else {
-           errors.rejectValue("longitude", "longitude.notNumber", "Longitude not a number");
+        } else {
+            errors.rejectValue("longitude", "longitude.notNumber", "Longitude not a number");
         }
     }
 
     private void validateLatitude(AccesspointCreateFormModel form, Errors errors) {
-        final String Digits     = "(\\p{Digit}+)";
-        final String HexDigits  = "(\\p{XDigit}+)";
-        final String Exp        = "[eE][+-]?"+Digits;
-        final String fpRegex    =
-                ("[\\x00-\\x20]*"+  // Optional leading "whitespace"
+        final String Digits = "(\\p{Digit}+)";
+        final String HexDigits = "(\\p{XDigit}+)";
+        final String Exp = "[eE][+-]?" + Digits;
+        final String fpRegex =
+                ("[\\x00-\\x20]*" +  // Optional leading "whitespace"
                         "[+-]?(" + // Optional sign character
                         "NaN|" +           // "NaN" string
                         "Infinity|" +      // "Infinity" string
-                        "((("+Digits+"(\\.)?("+Digits+"?)("+Exp+")?)|"+
-                        "(\\.("+Digits+")("+Exp+")?)|"+
+                        "(((" + Digits + "(\\.)?(" + Digits + "?)(" + Exp + ")?)|" +
+                        "(\\.(" + Digits + ")(" + Exp + ")?)|" +
                         "((" +
                         "(0[xX]" + HexDigits + "(\\.)?)|" +
                         "(0[xX]" + HexDigits + "?(\\.)" + HexDigits + ")" +
@@ -100,11 +99,10 @@ public class AccesspointCreateFormValidator implements Validator {
         if (Pattern.matches(fpRegex, form.getLatitude())) {
             Double.valueOf(form.getLatitude()); // Will not throw NumberFormatException
             double d = Double.parseDouble(form.getLatitude());
-            if (d  < -90 || d > 90){
+            if (d < -90 || d > 90) {
                 errors.rejectValue("latitude", "latitude.outOfRange", "Latitude should be between -90 and 90 degrees");
             }
-        }
-        else {
+        } else {
             errors.rejectValue("latitude", "latitude.notNumber", "Latitude not a number");
         }
     }

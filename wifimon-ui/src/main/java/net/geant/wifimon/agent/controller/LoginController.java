@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 // added by me
 import net.geant.wifimon.model.entity.User;
 
-
 /**
  * Created by kanakisn on 11/17/15.
  */
@@ -17,9 +16,8 @@ public class LoginController {
     @RequestMapping(value = "/")
     public String afterLogin(Model model) {
 
-	User user = new User();
+        User user = new User();
 
         return "redirect:/secure/overview";
     }
-    
 }

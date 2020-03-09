@@ -13,7 +13,6 @@ import java.util.Optional;
 /**
  * Created by kokkinos on 8/3/2017.
  */
-
 @Service
 public class AccesspointServiceImpl implements AccesspointService {
 

@@ -32,5 +32,4 @@ public class VisualoptionsController {
     public String populateCssClass() {
         return "active";
     }
-
 }

@@ -66,7 +66,6 @@ public class UserController {
 
     @ModelAttribute("classActiveSettingsConfig")
     public String populateCssClass() {
-        return  "active";
+        return "active";
     }
-
 }

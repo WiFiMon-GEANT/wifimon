@@ -17,4 +17,3 @@ public interface AccesspointsRepository extends PagingAndSortingRepository<Acces
     @Query(value = "SELECT DISTINCT ON (mac) accesspoints.* FROM accesspoints WHERE mac = REPLACE(UPPER(:ap_mac), '-', ':')", nativeQuery = true)
     Accesspoint find(@Param("ap_mac") String mac);
 }
-

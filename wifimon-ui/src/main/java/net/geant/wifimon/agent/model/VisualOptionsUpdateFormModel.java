@@ -21,7 +21,6 @@ public class VisualOptionsUpdateFormModel implements Serializable {
     @NotNull
     private UserVisualOption uservisualoption;
 
-
     public UserData getUserdata() {
         return userdata;
     }

@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
  */
 @Configuration
 public class MvcConfig extends WebMvcConfigurerAdapter {
-    private static final String[] RESOURCE_LOCATIONS = { "classpath:/static/" };
+    private static final String[] RESOURCE_LOCATIONS = {"classpath:/static/"};
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
@@ -19,6 +19,7 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 //        registry.addViewController("/hello").setViewName("hello");
         registry.addViewController("/login").setViewName("login");
     }
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
@@ -26,5 +27,4 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
             registry.addResourceHandler("/static/**").addResourceLocations(RESOURCE_LOCATIONS);
         }
     }
-
 }

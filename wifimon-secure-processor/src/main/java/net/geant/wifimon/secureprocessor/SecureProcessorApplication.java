@@ -6,10 +6,8 @@ package net.geant.wifimon.secureprocessor;
 //import com.sun.jersey.api.json.JSONConfiguration;
 //import com.sun.jersey.client.urlconnection.HTTPSProperties;
 
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-
 
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +27,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 
-
-
-
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-
 
 /**
  * Created by kokkinos on 2/9/2016.
@@ -51,16 +45,18 @@ public class SecureProcessorApplication extends SpringBootServletInitializer {
 
     @Bean
     public Client client() {
-        TrustManager[ ] certs = new TrustManager[ ] {
+        TrustManager[] certs = new TrustManager[]{
                 new X509TrustManager() {
                     @Override
                     public X509Certificate[] getAcceptedIssuers() {
                         return null;
                     }
+
                     @Override
                     public void checkServerTrusted(X509Certificate[] chain, String authType)
                             throws CertificateException {
                     }
+
                     @Override
                     public void checkClientTrusted(X509Certificate[] chain, String authType)
                             throws CertificateException {
@@ -86,16 +82,13 @@ public class SecureProcessorApplication extends SpringBootServletInitializer {
         return Client.create(clientConfig);
 	*/
 
-	Client client = ClientBuilder.newBuilder().
-			sslContext(sslcontext).
-			hostnameVerifier((hostname, session) -> true).
-			build();
+        Client client = ClientBuilder.newBuilder().
+                sslContext(sslcontext).
+                hostnameVerifier((hostname, session) -> true).
+                build();
 
-	return client;
-
-
+        return client;
     }
-
 
     public static void main(String[] args) {
         SpringApplication.run(SecureProcessorApplication.class, args);

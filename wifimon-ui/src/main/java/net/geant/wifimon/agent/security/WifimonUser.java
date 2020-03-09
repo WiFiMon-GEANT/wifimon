@@ -28,5 +28,4 @@ public class WifimonUser extends org.springframework.security.core.userdetails.U
     public Role getRole() {
         return user.getRole();
     }
-
 }

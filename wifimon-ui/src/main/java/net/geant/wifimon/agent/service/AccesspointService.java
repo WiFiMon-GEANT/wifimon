@@ -20,5 +20,4 @@ public interface AccesspointService {
     Accesspoint create(AccesspointCreateFormModel form);
 
     void delete(Long apid);
-
 }

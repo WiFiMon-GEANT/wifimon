@@ -16,5 +16,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "SELECT users.role FROM users WHERE email = :email", nativeQuery = true)
     String getRoleByEmail(@Param("email") String email);
-
 }

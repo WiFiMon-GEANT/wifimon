@@ -33,5 +33,4 @@ public interface VisualOptionsRepository extends JpaRepository<VisualOptions, Lo
 
     @Query(value = "SELECT * FROM options ORDER BY optionsid desc limit 1", nativeQuery = true)
     VisualOptions getLastEntry();
-
 }

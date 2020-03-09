@@ -38,7 +38,6 @@ public class Accesspoint implements Serializable {
     @Column(name = "notes", nullable = true)
     private String notes;
 
-
     public Long getApid() {
         return apid;
     }
@@ -95,7 +94,6 @@ public class Accesspoint implements Serializable {
         this.notes = notes;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -103,7 +101,7 @@ public class Accesspoint implements Serializable {
 
         Accesspoint accesspoint = (Accesspoint) o;
 
-        if (mac != null ? !mac.equals(accesspoint.mac) : accesspoint.mac!= null) return false;
+        if (mac != null ? !mac.equals(accesspoint.mac) : accesspoint.mac != null) return false;
         return mac == accesspoint.mac;
 
     }

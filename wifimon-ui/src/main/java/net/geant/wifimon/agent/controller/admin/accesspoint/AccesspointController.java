@@ -30,7 +30,7 @@ public class AccesspointController {
 
     @Autowired
     public AccesspointController(AccesspointService accesspointService, AccesspointCreateFormValidator accesspointCreateFormValidator) {
-    //public AccesspointController(AccesspointService accesspointService) {
+        //public AccesspointController(AccesspointService accesspointService) {
         this.accesspointService = accesspointService;
         this.accesspointCreateFormValidator = accesspointCreateFormValidator;
     }
@@ -59,7 +59,7 @@ public class AccesspointController {
 
     @RequestMapping(value = "/admin/accesspoint/create", method = RequestMethod.POST)
     public String handleAccesspointCreateForm(@Valid @ModelAttribute("accesspointCreateModel") final AccesspointCreateFormModel accesspointCreateFormModel,
-                                       BindingResult bindingResult) {
+                                              BindingResult bindingResult) {
         if (bindingResult.hasErrors()) return CREATE_AP_VIEW;
         accesspointService.create(accesspointCreateFormModel);
         return String.join("/", "redirect:", AccesspointsController.AP_VIEW);
@@ -67,8 +67,6 @@ public class AccesspointController {
 
     @ModelAttribute("classActiveSettingsConfig")
     public String populateCssClass() {
-        return  "active";
+        return "active";
     }
-
-
 }

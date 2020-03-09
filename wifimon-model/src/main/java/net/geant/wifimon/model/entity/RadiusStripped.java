@@ -118,4 +118,3 @@ public class RadiusStripped implements Serializable {
         this.acctStatusType = acctStatusType;
     }
 }
-

@@ -10,13 +10,12 @@ public class WifimonAccesspoint {
     private Accesspoint accesspoint;
 
     public WifimonAccesspoint(final Accesspoint accesspoint) {
-       this.accesspoint = accesspoint;
+        this.accesspoint = accesspoint;
     }
 
     public Accesspoint getAccesspoint() {
         return accesspoint;
     }
-
 
     public Long getApid() {
         return accesspoint.getApid();
@@ -45,5 +44,4 @@ public class WifimonAccesspoint {
     public String getNotes() {
         return accesspoint.getNotes();
     }
-
 }

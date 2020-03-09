@@ -14,7 +14,6 @@ import java.util.Optional;
 /**
  * Created by kanakisn on 4/24/16.
  */
-
 @Service
 public class UserServiceImpl implements UserService {
 

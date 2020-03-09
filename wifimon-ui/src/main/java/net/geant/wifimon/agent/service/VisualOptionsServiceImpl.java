@@ -12,14 +12,13 @@ import java.util.Optional;
 /**
  * Created by kokkinos on 27/6/2017.
  */
-
 @Service
-public class VisualOptionsServiceImpl implements VisualOptionsService{
+public class VisualOptionsServiceImpl implements VisualOptionsService {
 
     private final VisualOptionsRepository visualOptionsRepository;
 
     @Autowired
-    public VisualOptionsServiceImpl (final VisualOptionsRepository visualOptionsRepository) {
+    public VisualOptionsServiceImpl(final VisualOptionsRepository visualOptionsRepository) {
         this.visualOptionsRepository = visualOptionsRepository;
     }
 

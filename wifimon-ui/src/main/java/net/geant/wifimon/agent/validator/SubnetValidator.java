@@ -39,5 +39,4 @@ public class SubnetValidator implements Validator {
         List s = subnetRepository.findBySubnet(subnet.getSubnet());
         if (!(s == null || s.isEmpty())) errors.reject("subnet", "Subnet already exists");
     }
-
 }

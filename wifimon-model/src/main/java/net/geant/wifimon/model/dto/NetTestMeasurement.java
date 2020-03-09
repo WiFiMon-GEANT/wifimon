@@ -119,5 +119,4 @@ public class NetTestMeasurement implements Serializable {
         result = 31 * result + (testTool != null ? testTool.hashCode() : 0);
         return result;
     }
-
 }

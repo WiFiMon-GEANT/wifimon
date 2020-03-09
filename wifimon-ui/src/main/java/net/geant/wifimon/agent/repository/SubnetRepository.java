@@ -11,5 +11,4 @@ import java.util.List;
 public interface SubnetRepository extends JpaRepository<Subnet, Long> {
 
     List findBySubnet(String subnet);
-
 }

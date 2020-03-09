@@ -43,5 +43,4 @@ public class UserCreateFormValidator implements Validator {
             errors.rejectValue("email", "email.exists", "User with this email already exists");
         }
     }
-
 }
