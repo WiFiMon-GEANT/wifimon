@@ -30,7 +30,6 @@
 
     <build>
         <extensions>
-            <!-- Add support for the "deb" packaging -->
             <extension>
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>

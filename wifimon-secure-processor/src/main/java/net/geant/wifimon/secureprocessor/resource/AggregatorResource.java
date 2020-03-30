@@ -15,13 +15,10 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.ssl.SSLContexts;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -37,7 +34,6 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLContext;
@@ -47,11 +43,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.nio.charset.StandardCharsets;
+
+import javax.annotation.PostConstruct;
 
 @Component
 @Path("/wifimon")
@@ -72,13 +71,8 @@ public class AggregatorResource {
     private static final String ES_HOST = "elasticsearch.host";
     private static final String ES_PORT = "elasticsearch.port";
     private static final String ES_INDEXNAME_MEASUREMENT = "elasticsearch.indexnamemeasurement";
-    private static final String ES_TYPE_MEASUREMENT = "elasticsearch.typenamemeasurement";
     private static final String ES_INDEXNAME_RADIUS = "elasticsearch.indexnameradius";
-    private static final String ES_TYPE_RADIUS = "elasticsearch.typenameradius";
-    private static final String ES_INDEXNAME_DHCP = "elasticsearch.indexnamedhcp";
-    private static final String ES_TYPE_DHCP = "elasticsearch.typenamedhcp";
     private static final String ES_INDEXNAME_PROBES = "elasticsearch.indexnameprobes";
-    private static final String ES_TYPE_PROBES = "elasticsearch.typenameprobes";
     private static final String SSL_ENABLED = "xpack.security.enabled";
     private static final String SSL_USER_USERNAME = "ssl.http.user.username";
     private static final String SSL_USER_PASSWORD = "ssl.http.user.password";
@@ -88,15 +82,36 @@ public class AggregatorResource {
     private static final String SSL_TRUSTSTORE_PASSWORD = "ssl.http.truststore.password";
     private static final String SSL_KEY_PASSWORD = "ssl.http.key.password";
     private static final String HMAC_SHA512_KEY = "sha.key";
+    private static final String AGENT = "User-Agent";
+    private static final String TIMESTAMP = "Timestamp";
+    private static final String USERNAME = "User-Name";
+    private static final String CALLING_STATION_ID = "Calling-Station-Id";
+    private static final String NAS_PORT = "nas_port";
+    private static final String CALLED_STATION_ID = "Called-Station-Id";
+    private static final String NAS_IP_ADDRESS = "NAS-IP-Address";
+    private static final String NAS_IDENTIFIER = "NAS-Identifier";
+    private static final String ACCT_STATUS_TYPE = "Acct-Status-Type";
+    private static final String FRAMED_IP_ADDRESS = "Framed-IP-Address";
 
+    private static Logger logger = Logger.getLogger(AggregatorResource.class.getName());
     private static RestHighLevelClient restHighLevelClient;
+
+    @PostConstruct
+    public void init() {
+	    if (environment.getProperty(SSL_ENABLED).equals("true")) {
+		    AggregatorResource.restHighLevelClient = initKeystoreClient();
+            } else {
+		    AggregatorResource.restHighLevelClient = initHttpClient();
+            }
+    }
 
     @POST
     @Path("/subnet")
     public Response correlate(@Context HttpServletRequest request) {
         String ip = request.getRemoteAddr();
+
         List<Subnet> subnets = subnetRepository.findAll();
-        if (subnets == null || subnets.isEmpty()) return Response.ok(false).build();
+        if (subnets.isEmpty()) return Response.ok(false).build();
 
         List<SubnetUtils.SubnetInfo> s = subnets.stream().
                 map(it -> it.fromSubnetString()).collect(Collectors.toList());
@@ -129,22 +144,13 @@ public class AggregatorResource {
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
-            // Initialize High Level REST Client
-            if (environment.getProperty(SSL_ENABLED).equals("true")) {
-                restHighLevelClient = initKeystoreClient();
-            } else {
-                restHighLevelClient = initHttpClient();
-            }
-
             // Store measurements in elasticsearch
-            indexMeasurementProbes(restHighLevelClient, jsonString);
-            closeConnection();
+            indexMeasurementProbes(jsonString);
 
             return Response.ok().build();
 
         } catch (Exception e) {
-            System.out.println("Exception Caught. In detail:");
-            System.out.println(e);
+	    logger.log(Level.INFO, e.toString());
             response = null;
         }
         return response;
@@ -155,7 +161,8 @@ public class AggregatorResource {
     @Path("/add")
     public Response correlate(final NetTestMeasurement measurement, @Context HttpServletRequest request) {
         Response response;
-        String agent = request.getHeader("User-Agent") != null || !request.getHeader("User-Agent").isEmpty() ? request.getHeader("User-Agent") : "N/A";
+	String agent = request.getHeader(AGENT) != null || request.getHeader(AGENT).isEmpty() ? request.getHeader(AGENT) : "N/A";
+
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
 
@@ -165,7 +172,7 @@ public class AggregatorResource {
         List<SubnetUtils.SubnetInfo> s = subnets.stream().
                 map(it -> it.fromSubnetString()).collect(Collectors.toList());
 
-        String foundSubnet = new String();
+        String foundSubnet = "";
         for (SubnetUtils.SubnetInfo si : s) {
             if (si.isInRange(ip)) {
                 foundSubnet = si.toString();
@@ -189,22 +196,20 @@ public class AggregatorResource {
             encryptedIP = encryptClass.encrypt(ip, environment.getProperty(HMAC_SHA512_KEY));
             encryptedIP = encryptedIP.toLowerCase();
         } catch (Exception e) {
-            System.out.println("Exception Caught. In detail:");
-            System.out.println(e);
-            System.exit(1);
+	    logger.log(Level.INFO, e.toString());
         }
 
         // What is the correlation method defined by the administrator in the WiFiMon GUI?
         String correlationmethod = visualOptionsRepository.findCorrelationmethod();
         if (correlationmethod == null || correlationmethod.isEmpty()) {
-            correlationmethod = "Radius_only";
+            correlationmethod = "RADIUS_ONLY";
         }
 
-        RadiusStripped r = new RadiusStripped();
-        Accesspoint ap = new Accesspoint();
+	RadiusStripped r;
+	Accesspoint ap;
 
         // Perform correlations and insert new measurements in the elasticsearch cluster
-        if (correlationmethod.equals(CorrelationMethod.DHCP_and_Radius.toString())) {
+        if (correlationmethod.equals(CorrelationMethod.DHCP_AND_RADIUS.toString())) {
             //TODO Complete the else for correlation with DHCP and Radius
             String callingStationIdTemp = "A1:b2-cc-33-d0-da".substring(0, 17);
             r = retrieveLastRadiusEntryByMac(callingStationIdTemp);
@@ -222,11 +227,11 @@ public class AggregatorResource {
                 // There are not RADIUS Logs corresponding to the received measurement
                 response = addElasticMeasurement(joinMeasurement(measurement, r, null, agent), requesterSubnet, encryptedIP);
             }
-        } catch (IOException e) {
-            System.out.println("Exception Caught. In detail:");
-            System.out.println(e);
+        } catch (Exception e) {
+	    logger.log(Level.INFO, e.toString());
             response = null;
         }
+
         return response;
     }
 
@@ -255,34 +260,34 @@ public class AggregatorResource {
         return m;
     }
 
-    private Response addElasticMeasurement(AggregatedMeasurement measurement, String requesterSubnet, String encryptedIP) throws IOException {
-        String UserAgent = measurement.getUserAgent();
+    private Response addElasticMeasurement(AggregatedMeasurement measurement, String requesterSubnet, String encryptedIP) {
+        String userAgent = measurement.getUserAgent();
 
         // Section for User Operating System
-        String userOS = new String();
-        if (UserAgent.toUpperCase().contains("WINDOWS")) {
-            userOS = "Windows";
-        } else if (UserAgent.toUpperCase().contains("MAC")) {
-            userOS = "Mac OS X and iOS";
-        } else if (UserAgent.toUpperCase().contains("X11")) {
-            userOS = "Linux";
-        } else if (UserAgent.toUpperCase().contains("ANDROID")) {
-            userOS = "Android";
+        String userOs;
+        if (userAgent.toUpperCase().contains("WINDOWS")) {
+            userOs = "Windows";
+        } else if (userAgent.toUpperCase().contains("MAC")) {
+            userOs = "Mac OS X and iOS";
+        } else if (userAgent.toUpperCase().contains("X11")) {
+            userOs = "Linux";
+        } else if (userAgent.toUpperCase().contains("ANDROID")) {
+            userOs = "Android";
         } else {
-            userOS = "N/A";
+            userOs = "N/A";
         }
 
         // Section for User Browser
-        String userBrowser = new String();
-        if (UserAgent.toUpperCase().contains("CHROME") && !UserAgent.toUpperCase().contains("EDGE")) {
+        String userBrowser;
+        if (userAgent.toUpperCase().contains("CHROME") && !userAgent.toUpperCase().contains("EDGE")) {
             userBrowser = "Chrome";
-        } else if (UserAgent.toUpperCase().contains("SAFARI") && !UserAgent.toUpperCase().contains("CHROME")) {
+        } else if (userAgent.toUpperCase().contains("SAFARI") && !userAgent.toUpperCase().contains("CHROME")) {
             userBrowser = "Safari";
-        } else if (UserAgent.toUpperCase().contains("FIREFOX")) {
+        } else if (userAgent.toUpperCase().contains("FIREFOX")) {
             userBrowser = "Firefox";
-        } else if (UserAgent.toUpperCase().contains("MSIE")) {
+        } else if (userAgent.toUpperCase().contains("MSIE")) {
             userBrowser = "Internet Explorer";
-        } else if (UserAgent.toUpperCase().contains("EDGE")) {
+        } else if (userAgent.toUpperCase().contains("EDGE")) {
             userBrowser = "Microsoft Edge";
         } else {
             userBrowser = "N/A";
@@ -297,7 +302,7 @@ public class AggregatorResource {
         String clientIpJson = measurement.getClientIp() != null ? "\"clientIp\" : \"" + measurement.getClientIp() + "\", " : "";
         String userAgentJson = measurement.getUserAgent() != null ? "\"userAgent\" : \"" + measurement.getUserAgent() + "\", " : "";
         String userBrowserJson = userBrowser != null ? "\"userBrowser\" : \"" + userBrowser + "\", " : "";
-        String userOSJson = userOS != null ? "\"userOS\" : \"" + userOS + "\", " : "";
+        String userOsJson = userOs != null ? "\"userOS\" : \"" + userOs + "\", " : "";
         String testToolJson = measurement.getTestTool() != null ? "\"testTool\" : \"" + measurement.getTestTool() + "\", " : "";
         String requesterSubnetJson = requesterSubnet != null ? "\"requesterSubnet\" : \"" + requesterSubnet + "\", " : "";
         String encryptedIPJson = encryptedIP != null ? "\"encryptedIP\" : \"" + encryptedIP + "\", " : "";
@@ -317,7 +322,7 @@ public class AggregatorResource {
                 "\"timestamp\" : " + measurement.getTimestamp() + ", " +
                 downloadThroughputJson + uploadThroughputJson + localPingJson +
                 locationJson + locationMethodJson +
-                userAgentJson + userBrowserJson + userOSJson + clientIpJson +
+                userAgentJson + userBrowserJson + userOsJson + clientIpJson +
                 testToolJson + requesterSubnetJson + encryptedIPJson + usernameJson + nasPortJson +
                 callingStationIdJson + nasIdentifierJson + calledStationIdJson +
                 nasIpAddressJson + apBuildingJson + apFloorJson + apLocationJson +
@@ -325,16 +330,8 @@ public class AggregatorResource {
 
         String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
-        // Initialize High Level REST Client
-        if (environment.getProperty(SSL_ENABLED).equals("true")) {
-            restHighLevelClient = initKeystoreClient();
-        } else {
-            restHighLevelClient = initHttpClient();
-        }
-
         // Store measurements in elasticsearch
-        indexMeasurement(restHighLevelClient, jsonString);
-        closeConnection();
+        indexMeasurement(jsonString);
 
         return Response.ok().build();
     }
@@ -344,59 +341,42 @@ public class AggregatorResource {
 
         RadiusStripped r = new RadiusStripped();
 
-        if (environment.getProperty(SSL_ENABLED).equals("true")) {
-            restHighLevelClient = initKeystoreClient();
-        } else {
-            restHighLevelClient = initHttpClient();
-        }
-
-
         try {
             final SearchSourceBuilder builder = new SearchSourceBuilder()
                     .query(QueryBuilders.matchAllQuery())
-                    .sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC))
+                    .sort(new FieldSortBuilder(TIMESTAMP).order(SortOrder.DESC))
                     .from(0)
-                    .fetchSource(new String[]{"User-Name", "Timestamp",
-                            "nas_port", "Calling-Station-Id",
-                            "NAS-Identifier", "Called-Station-Id", "NAS-IP-Address",
-                            "Framed-IP-Address", "Acct-Status-Type"}, null)
-                    .postFilter(QueryBuilders.termQuery("Framed-IP-Address", ip))
-                    .query(QueryBuilders.termQuery("Acct-Status-Type", "Start"))
+                    .fetchSource(new String[]{USERNAME, TIMESTAMP,
+                            NAS_PORT, CALLING_STATION_ID,
+                            NAS_IDENTIFIER, CALLED_STATION_ID, NAS_IP_ADDRESS,
+                            FRAMED_IP_ADDRESS, ACCT_STATUS_TYPE}, null)
+                    .postFilter(QueryBuilders.termQuery(FRAMED_IP_ADDRESS, ip))
+                    .query(QueryBuilders.termQuery(ACCT_STATUS_TYPE, "Start"))
                     .size(1)
                     .explain(true);
 
             final SearchRequest request = new SearchRequest(environment.getProperty(ES_INDEXNAME_RADIUS))
                     .source(builder);
-
-            final SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
-
+            final SearchResponse response = AggregatorResource.restHighLevelClient.search(request, RequestOptions.DEFAULT);
 
             final SearchHits hits = response.getHits();
-
             if (response.getHits().getTotalHits().value > 0) {
-                for (SearchHit hit : hits.getHits()) {
+                    SearchHit hit = hits.getAt(0);
                     Map map = hit.getSourceAsMap();
-                    r.setUserName(((map.get("User-Name") != null) ? map.get("User-Name").toString() : "N/A"));
-                    r.setTimestamp(((map.get("Timestamp") != null) ? map.get("Timestamp").toString() : "N/A"));
-                    r.setNasPort(((map.get("nas_port") != null) ? map.get("nas_port").toString() : "N/A"));
-                    r.setCallingStationId(((map.get("Calling-Station-Id") != null) ? map.get("Calling-Station-Id").toString() : "N/A"));
-                    r.setNasIdentifier(((map.get("NAS-Identifier") != null) ? map.get("NAS-Identifier").toString() : "N/A"));
-                    r.setCalledStationId(((map.get("Called-Station-Id") != null) ? map.get("Called-Station-Id").toString() : "N/A"));
-                    r.setNasIpAddress(((map.get("NAS-IP-Address") != null) ? map.get("NAS-IP-Address").toString() : "N/A"));
-                    r.setFramedIpAddress(((map.get("Framed-IP-Address") != null) ? map.get("Framed-IP-Address").toString() : "N/A"));
-                    r.setAcctStatusType(((map.get("Acct-Status-Type") != null) ? map.get("Acct-Status-Type").toString() : "N/A"));
-                    break;
-                }
+                    r.setUserName(((map.get(USERNAME) != null) ? map.get(USERNAME).toString() : "N/A"));
+                    r.setTimestamp(((map.get(TIMESTAMP) != null) ? map.get(TIMESTAMP).toString() : "N/A"));
+                    r.setNasPort(((map.get(NAS_PORT) != null) ? map.get(NAS_PORT).toString() : "N/A"));
+                    r.setCallingStationId(((map.get(CALLING_STATION_ID) != null) ? map.get(CALLING_STATION_ID).toString() : "N/A"));
+                    r.setNasIdentifier(((map.get(NAS_IDENTIFIER) != null) ? map.get(NAS_IDENTIFIER).toString() : "N/A"));
+                    r.setCalledStationId(((map.get(CALLED_STATION_ID) != null) ? map.get(CALLED_STATION_ID).toString() : "N/A"));
+                    r.setNasIpAddress(((map.get(NAS_IP_ADDRESS) != null) ? map.get(NAS_IP_ADDRESS).toString() : "N/A"));
+                    r.setFramedIpAddress(((map.get(FRAMED_IP_ADDRESS) != null) ? map.get(FRAMED_IP_ADDRESS).toString() : "N/A"));
+                    r.setAcctStatusType(((map.get(ACCT_STATUS_TYPE) != null) ? map.get(ACCT_STATUS_TYPE).toString() : "N/A"));
             } else {
                 r = null;
             }
-
-            closeConnection();
-
-        } catch (ElasticsearchStatusException e) {
-            r = null;
         } catch (Exception e) {
-            System.out.println(e);
+	    logger.log(Level.INFO, e.toString());
             r = null;
         }
         return r;
@@ -407,68 +387,53 @@ public class AggregatorResource {
 
         RadiusStripped r = new RadiusStripped();
 
-        if (environment.getProperty(SSL_ENABLED).equals("true")) {
-            restHighLevelClient = initKeystoreClient();
-        } else {
-            restHighLevelClient = initHttpClient();
-        }
-
         try {
             final SearchSourceBuilder builder = new SearchSourceBuilder()
                     .query(QueryBuilders.matchAllQuery())
-                    .sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC))
+                    .sort(new FieldSortBuilder(TIMESTAMP).order(SortOrder.DESC))
                     .from(0)
-                    .fetchSource(new String[]{"User-Name", "Timestamp",
-                            "nas_port", "Calling-Station-Id",
-                            "NAS-Identifier", "Called-Station-Id", "NAS-IP-Address",
-                            "Framed-IP-Address", "Acct-Status-Type"}, null)
-                    .postFilter(QueryBuilders.wildcardQuery("Calling-Station-Id", "*" + mac.replace(":", "-").toLowerCase() + "*"))
+                    .fetchSource(new String[]{USERNAME, TIMESTAMP,
+                            NAS_PORT, CALLING_STATION_ID,
+                            NAS_IDENTIFIER, CALLED_STATION_ID, NAS_IP_ADDRESS,
+                            FRAMED_IP_ADDRESS, ACCT_STATUS_TYPE}, null)
+                    .postFilter(QueryBuilders.wildcardQuery(CALLING_STATION_ID, "*" + mac.replace(":", "-").toLowerCase() + "*"))
                     .size(1)
                     .explain(true);
 
             final SearchRequest request = new SearchRequest(environment.getProperty(ES_INDEXNAME_RADIUS))
                     .source(builder);
 
-            final SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
+            final SearchResponse response = AggregatorResource.restHighLevelClient.search(request, RequestOptions.DEFAULT);
             final SearchHits hits = response.getHits();
 
             if (response.getHits().getTotalHits().value > 0) {
-                for (SearchHit hit : hits.getHits()) {
+		    SearchHit hit = hits.getAt(0); 
                     Map map = hit.getSourceAsMap();
-                    r.setUserName(((map.get("User-Name") != null) ? map.get("User-Name").toString() : "N/A"));
-                    r.setTimestamp(((map.get("Timestamp") != null) ? map.get("Timestamp").toString() : "N/A"));
-                    r.setNasPort(((map.get("nas_port") != null) ? map.get("nas_port").toString() : "N/A"));
-                    r.setCallingStationId(((map.get("Calling-Station-Id") != null) ? map.get("Calling-Station-Id").toString() : "N/A"));
-                    r.setNasIdentifier(((map.get("NAS-Identifier") != null) ? map.get("NAS-Identifier").toString() : "N/A"));
-                    r.setCalledStationId(((map.get("Called-Station-Id") != null) ? map.get("Called-Station-Id").toString() : "N/A"));
-                    r.setNasIpAddress(((map.get("NAS-IP-Address") != null) ? map.get("NAS-IP-Address").toString() : "N/A"));
-                    r.setFramedIpAddress(((map.get("Framed-IP-Address") != null) ? map.get("Framed-IP-Address").toString() : "N/A"));
-                    r.setAcctStatusType(((map.get("Acct-Status-Type") != null) ? map.get("Acct-Status-Type").toString() : "N/A"));
-                    break;
-                }
+                    r.setUserName(((map.get(USERNAME) != null) ? map.get(USERNAME).toString() : "N/A"));
+                    r.setTimestamp(((map.get(TIMESTAMP) != null) ? map.get(TIMESTAMP).toString() : "N/A"));
+                    r.setNasPort(((map.get(NAS_PORT) != null) ? map.get(NAS_PORT).toString() : "N/A"));
+                    r.setCallingStationId(((map.get(CALLING_STATION_ID) != null) ? map.get(CALLING_STATION_ID).toString() : "N/A"));
+                    r.setNasIdentifier(((map.get(NAS_IDENTIFIER) != null) ? map.get(NAS_IDENTIFIER).toString() : "N/A"));
+                    r.setCalledStationId(((map.get(CALLED_STATION_ID) != null) ? map.get(CALLED_STATION_ID).toString() : "N/A"));
+                    r.setNasIpAddress(((map.get(NAS_IP_ADDRESS) != null) ? map.get(NAS_IP_ADDRESS).toString() : "N/A"));
+                    r.setFramedIpAddress(((map.get(FRAMED_IP_ADDRESS) != null) ? map.get(FRAMED_IP_ADDRESS).toString() : "N/A"));
+                    r.setAcctStatusType(((map.get(ACCT_STATUS_TYPE) != null) ? map.get(ACCT_STATUS_TYPE).toString() : "N/A"));
             } else {
                 r = null;
             }
 
-            closeConnection();
         } catch (Exception e) {
-            System.out.println("Exception caught. In detail: ");
-            System.out.println(e);
+	    logger.log(Level.INFO, e.toString());
         }
         return r;
     }
 
-    private SubnetUtils.SubnetInfo fromSubnetString(String subnet) {
-        return new SubnetUtils(subnet).getInfo();
-    }
-
-    private void indexMeasurement(RestHighLevelClient restHighLevelClient, String jsonString) {
+    private void indexMeasurement(String jsonString) {
         // Store received measurements in Elasticsearch
-        IndexRequest indexRequest = new IndexRequest(
-                environment.getProperty(ES_INDEXNAME_MEASUREMENT));
-        indexRequest.source(jsonString, XContentType.JSON);
         try {
-            IndexResponse indexResponse = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
+            IndexRequest indexRequest = new IndexRequest(environment.getProperty(ES_INDEXNAME_MEASUREMENT));
+            indexRequest.source(jsonString, XContentType.JSON);
+            AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
         } catch (ElasticsearchException e) {
             e.getDetailedMessage();
         } catch (java.io.IOException ex) {
@@ -476,13 +441,13 @@ public class AggregatorResource {
         }
     }
 
-    private void indexMeasurementProbes(RestHighLevelClient restHighLevelClient, String jsonString) {
+    private void indexMeasurementProbes(String jsonString) {
         // Store received Wireless Network Performance Metrics (from WiFiMon Hardware Probes) in Elasticsearch
+        try {
         IndexRequest indexRequest = new IndexRequest(
                 environment.getProperty(ES_INDEXNAME_PROBES));
         indexRequest.source(jsonString, XContentType.JSON);
-        try {
-            IndexResponse indexResponse = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
+            AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
         } catch (ElasticsearchException e) {
             e.getDetailedMessage();
         } catch (java.io.IOException ex) {
@@ -491,40 +456,27 @@ public class AggregatorResource {
     }
 
     // Initialize High Level REST Client for HTTP
-    public RestHighLevelClient initHttpClient() {
-        RestHighLevelClient restHighLevelClient = null;
+    private RestHighLevelClient initHttpClient() {
 
+	RestHighLevelClient restClient = null;
         try {
-            restHighLevelClient = new RestHighLevelClient(
+            restClient = new RestHighLevelClient(
                     RestClient.builder(
                             new HttpHost(
                                     environment.getProperty(ES_HOST),
                                     Integer.parseInt(environment.getProperty(ES_PORT)),
                                     "http")));
         } catch (Exception e) {
-            System.out.println("Exception caught. In detail: ");
-            System.out.println(e);
+	    logger.log(Level.INFO, e.toString());
         }
 
-        return restHighLevelClient;
-    }
-
-    // Close High Level REST Client
-    public void closeConnection() throws IOException {
-        try {
-            restHighLevelClient.close();
-            restHighLevelClient = null;
-        } catch (Exception e) {
-            System.out.println("Exception caught. In detail: ");
-            System.out.println(e);
-        }
+        return restClient;
     }
 
     // A big part of the code that follows was taken from the Search Guard GitHub repository about Elasticsearch Java High Level REST Client
     // This method initializes a High Level REST Client using Keystore Certificates
-    public RestHighLevelClient initKeystoreClient() {
-
-        RestHighLevelClient restHighLevelClient = null;
+    private RestHighLevelClient initKeystoreClient() {
+	    RestHighLevelClient restClient = null;
 
         try {
             char[] truststorePassword = environment.getProperty(SSL_TRUSTSTORE_PASSWORD).toCharArray();
@@ -538,9 +490,6 @@ public class AggregatorResource {
                             environment.getProperty(SSL_USER_USERNAME),
                             environment.getProperty(SSL_USER_PASSWORD)));
 
-            Optional<String> keyPasswordOpt = Optional.empty();
-            boolean trustSelfSigned = false;
-
             SSLContext sslContextFromJks = SSLContexts
                     .custom()
                     .loadKeyMaterial(
@@ -549,12 +498,11 @@ public class AggregatorResource {
                             keyPassword)
                     .loadTrustMaterial(
                             new File(environment.getProperty(SSL_TRUSTSTORE_FILEPATH)),
-                            truststorePassword,
-                            trustSelfSigned ? new TrustSelfSignedStrategy() : null)
+                            truststorePassword, null)
                     .build();
 
 
-            restHighLevelClient = new RestHighLevelClient(
+            restClient = new RestHighLevelClient(
                     RestClient.builder(new HttpHost(
                             environment.getProperty(ES_HOST),
                             Integer.parseInt(environment.getProperty(ES_PORT)),
@@ -564,32 +512,30 @@ public class AggregatorResource {
                                     .setSSLContext(sslContextFromJks)
                             ));
         } catch (Exception e) {
-            System.out.println("Exception Caught. In detail:");
-            System.out.println(e);
+	    logger.log(Level.INFO, e.toString());
         }
 
-        return restHighLevelClient;
+        return restClient;
     }
 
     // Used to encrypt IP addresses of end users
     public class EncryptClass {
         public String encrypt(String myString, String myKey) {
-            Mac sha512_HMAC = null;
+            Mac shaHmac512 = null;
             String result = null;
             String key = myKey;
 
             try {
-                byte[] byteKey = key.getBytes("UTF-8");
-                final String HMAC_SHA512 = "HmacSHA512";
-                sha512_HMAC = Mac.getInstance(HMAC_SHA512);
-                SecretKeySpec keySpec = new SecretKeySpec(byteKey, HMAC_SHA512);
-                sha512_HMAC.init(keySpec);
-                byte[] mac_data = sha512_HMAC.
-                        doFinal(myString.getBytes("UTF-8"));
-                result = bytesToHex(mac_data);
+                byte[] byteKey = key.getBytes(StandardCharsets.UTF_8);
+                final String algorithmHmac = "HmacSHA512";
+                shaHmac512 = Mac.getInstance(algorithmHmac);
+                SecretKeySpec keySpec = new SecretKeySpec(byteKey, algorithmHmac);
+                shaHmac512.init(keySpec);
+                byte[] macData = shaHmac512.
+                        doFinal(myString.getBytes(StandardCharsets.UTF_8));
+                result = bytesToHex(macData);
             } catch (Exception e) {
-                System.out.println("Exception Occured. In detail: ");
-                System.out.println(e);
+	    	logger.log(Level.INFO, e.toString());
             }
 
             return result;

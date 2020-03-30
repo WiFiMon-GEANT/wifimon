@@ -10,8 +10,8 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
@@ -39,24 +39,24 @@ public class UserController {
         binder.addValidators(userCreateFormValidator);
     }
 
-    @RequestMapping("/admin/user/{id}")
+    @GetMapping("/admin/user/{id}")
     public ModelAndView getUserPage(@PathVariable final Long id) {
         return new ModelAndView("user", "user", userService.getUserById(id)
                 .orElseThrow(() -> new NoSuchElementException(String.format("User: %s not found", id))));
     }
 
-    @RequestMapping(value = "/admin/user/{id}/delete")
+    @GetMapping(value = "/admin/user/{id}/delete")
     public String deleteUser(@PathVariable final Long id) {
         userService.delete(id);
         return String.join("/", "redirect:", UsersController.USERS_VIEW);
     }
 
-    @RequestMapping(value = "/admin/user/create", method = RequestMethod.GET)
+    @GetMapping(value = "/admin/user/create")
     public String getUserCreatePage(@ModelAttribute("userCreateModel") final UserCreateFormModel userCreateFormModel) {
         return CREATE_USER_VIEW;
     }
 
-    @RequestMapping(value = "/admin/user/create", method = RequestMethod.POST)
+    @PostMapping(value = "/admin/user/create")
     public String handleUserCreateForm(@Valid @ModelAttribute("userCreateModel") final UserCreateFormModel userCreateFormModel,
                                        BindingResult bindingResult) {
         if (bindingResult.hasErrors()) return CREATE_USER_VIEW;

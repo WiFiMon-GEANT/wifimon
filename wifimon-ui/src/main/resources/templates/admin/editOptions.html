@@ -40,12 +40,6 @@
                                             th:text="${state}"></option>
                                 </select>
                             </div>
-                            <!--<label class="control-label col-sm-2" for="userdata">User-related data<span style="color: #ff0000">*</span></label>
-                            <div class="col-sm-8">
-                                <input required="true" type="text" id="userdata" class="form-control" name="userdata"
-                                       placeholder="User-related data (Hide / Show)"
-                                       th:field="*{userdata}"/>
-                            </div>-->
                             <div class="col-sm-3">
                                 <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal1"><span class="glyphicon glyphicon-info-sign"></span></button>
                             </div>
@@ -120,8 +114,8 @@
             <div class="modal-body">
                 <p><strong>Available options:</strong></p>
                 <ul>
-                    <li><strong>Show</strong>: This option allows users to see all the available visualizations/dashboards provided by WiFiMon </li>
-                    <li><strong>Hide</strong>: Hides the visualizations/dashboards that include user sensitive data (e.g. dashboards for "Average download throughput per client MAC", etc) </li>
+                    <li><strong>SHOW</strong>: This option allows users to see all the available visualizations/dashboards provided by WiFiMon </li>
+                    <li><strong>HIDE</strong>: Hides the visualizations/dashboards that include user sensitive data (e.g. dashboards for "Average download throughput per client MAC", etc) </li>
                 </ul>
             </div>
         </div>
@@ -139,9 +133,9 @@
             <div class="modal-body">
                 <p><strong>Available options:</strong></p>
                 <ul>
-                    <li><strong>Match_IP</strong>: The visualizations/dashboards are filtered and include information only for the IP of the user that is currently connected to the WiFiMon GUI </li>
-                    <li><strong>Match_Username</strong>: The visualizations/dashboards are filtered and include information only for the username of the user that is currently connected to the WiFiMon GUI</li>
-                    <li><strong>Match_all</strong>: The visualizations/dashboards are not filtered</li>
+                    <li><strong>MATCH_IP</strong>: The visualizations/dashboards are filtered and include information only for the IP of the user that is currently connected to the WiFiMon GUI </li>
+                    <li><strong>MATCH_USERNAME</strong>: The visualizations/dashboards are filtered and include information only for the username of the user that is currently connected to the WiFiMon GUI</li>
+                    <li><strong>MATCH_ALL</strong>: The visualizations/dashboards are not filtered</li>
                 </ul>
                 <p><strong>Note:</strong> The above configurations is applied only to WiFiMon GUI users with role "USER". The visualizations/dashboards for "ADMIN" users are not filtered by default</p>
             </div>
@@ -160,10 +154,10 @@
             <div class="modal-body">
                 <p><strong>Available options:</strong></p>
                 <ul>
-                    <li><strong>Radius_only</strong>: The correlation of the performance measurements with the APs' and users' information
+                    <li><strong>RADIUS_ONLY</strong>: The correlation of the performance measurements with the APs' and users' information
                         is performed using only the Radius logs and based on the user IP address. This assumes that the information about the IP
                         that is assigned to the eduroam user in included in the Radius logs (attribute Framed-IP-Address)</li>
-                    <li><strong>DHCP_and_Radius</strong>: If the information about the IP that is assigned to the eduroam user in not included
+                    <li><strong>DHCP_AND_RADIUS</strong>: If the information about the IP that is assigned to the eduroam user in not included
                         in the Radius logs (attribute Framed-IP-Address is not present), the correlation of the performance measurements with the
                         APs' and users' information should be performed using the DHCP and Radius logs</li>
                 </ul>

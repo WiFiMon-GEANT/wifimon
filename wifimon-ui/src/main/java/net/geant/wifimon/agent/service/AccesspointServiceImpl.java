@@ -35,7 +35,7 @@ public class AccesspointServiceImpl implements AccesspointService {
 
     @Override
     public Collection<Accesspoint> getAllAccesspoints() {
-        return accesspointRepository.findAll(new Sort("mac"));
+        return accesspointRepository.findAll(Sort.by("mac"));
     }
 
     @Override

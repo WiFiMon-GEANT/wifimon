@@ -27,31 +27,7 @@ public class VisualOptionsUpdateFormValidator implements Validator {
 
     @Override
     public void validate(Object target, Errors errors) {
-        VisualOptionsUpdateFormModel form = (VisualOptionsUpdateFormModel) target;
+	    VisualOptionsUpdateFormModel form =  (VisualOptionsUpdateFormModel) target;
     }
 
-    /*private void validateRadiuslife(Errors errors, VisualOptionsUpdateFormModel form) {
-        final String fpRegex1 = "\\d{1}";
-        final String fpRegex2 = "\\d{2}";
-        *//*try{
-            Integer number = Integer.parseInt(form.getRadiuslife().toString());
-            if (Pattern.matches(fpRegex1, form.getRadiuslife().toString()) || Pattern.matches(fpRegex2, form.getRadiuslife().toString())) {
-                if (form.getRadiuslife() < 1 || form.getRadiuslife() > 24){
-                    errors.rejectValue("radiuslife", "radiuslife.wrong", "Radius Life should be an Integer between 1 and 24");
-                }
-            }else{
-                errors.rejectValue("radiuslife", "radiuslife.wrong", "Radius Life should be an Integer between 1 and 24");
-            }
-        }catch (NumberFormatException|NullPointerException ex) {
-            System.out.println("Inserted Radius Life value different than Integer");
-            errors.rejectValue("radiuslife", "radiuslife.notnumber", "Radius Life is not an Integer");
-        }*//*
-        if (Pattern.matches(fpRegex1, form.getRadiuslife().toString()) || Pattern.matches(fpRegex2, form.getRadiuslife().toString())) {
-            if (form.getRadiuslife() < 1 || form.getRadiuslife() > 24){
-                errors.rejectValue("radiuslife", "radiuslife.wrong", "Radius Life should be an Integer between 1 and 24");
-            }
-        }else{
-            errors.rejectValue("radiuslife", "radiuslife.wrong", "Radius Life should be an Integer between 1 and 24");
-        }
-    }*/
 }

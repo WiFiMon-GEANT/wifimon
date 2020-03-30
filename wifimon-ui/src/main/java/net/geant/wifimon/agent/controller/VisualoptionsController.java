@@ -4,7 +4,7 @@ import net.geant.wifimon.agent.service.VisualOptionsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -23,7 +23,7 @@ public class VisualoptionsController {
         this.visualOptionsService = visualOptionsService;
     }
 
-    @RequestMapping("/admin/options")
+    @GetMapping("/admin/options")
     public ModelAndView getVisualoptionsPage() {
         return new ModelAndView(VO_VIEW, "options", visualOptionsService.getLastVisualOption());
     }

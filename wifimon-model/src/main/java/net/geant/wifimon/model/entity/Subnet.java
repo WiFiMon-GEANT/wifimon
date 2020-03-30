@@ -34,12 +34,10 @@ public class Subnet implements Serializable {
 
     @Column(name = "subnet", unique = true)
     public String getSubnet() {
-        System.out.println(subnet);
         return subnet;
     }
 
     public void setSubnet(String subnet) {
-        System.out.println(subnet);
         this.subnet = subnet;
     }
 

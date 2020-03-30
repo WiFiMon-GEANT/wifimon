@@ -10,8 +10,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.validation.Valid;
 
@@ -41,7 +41,7 @@ public class VisualoptionController {
     }
 
 
-    @RequestMapping(value = "/admin/editOptions", method = RequestMethod.GET)
+    @GetMapping(value = "/admin/editOptions")
     public String getVisualoptionsCreatePage(@ModelAttribute("visualOptionsEditModel") final VisualOptionsUpdateFormModel visualOptionsUpdateFormModel) {
         Integer count = visualOptionsRepository.countEntries();
         if (count > 0) {
@@ -52,7 +52,7 @@ public class VisualoptionController {
         return EDIT_VO_VIEW;
     }
 
-    @RequestMapping(value = "/admin/editOptions", method = RequestMethod.POST)
+    @PostMapping(value = "/admin/editOptions")
     public String handleVisualoptionsCreateForm(@Valid @ModelAttribute("visualOptionsEditModel") final VisualOptionsUpdateFormModel visualOptionsUpdateFormModel,
                                                 BindingResult bindingResult) {
         if (bindingResult.hasErrors()) return EDIT_VO_VIEW;
@@ -60,7 +60,7 @@ public class VisualoptionController {
         if (count == 0) {
             visualOptionsService.create(visualOptionsUpdateFormModel);
         } else {
-            Integer i = visualOptionsRepository.updateEntry(visualOptionsUpdateFormModel.getUserdata().toString(),
+            visualOptionsRepository.updateEntry(visualOptionsUpdateFormModel.getUserdata().toString(),
                     visualOptionsUpdateFormModel.getUservisualoption().toString(),
                     visualOptionsUpdateFormModel.getCorrelationmethod().toString());
         }

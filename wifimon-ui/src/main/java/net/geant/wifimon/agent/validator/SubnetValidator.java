@@ -16,6 +16,8 @@ import java.util.List;
 @Component
 public class SubnetValidator implements Validator {
 
+    private static final String SUBNET = "subnet";
+
     @Autowired
     SubnetRepository subnetRepository;
 
@@ -28,15 +30,15 @@ public class SubnetValidator implements Validator {
     public void validate(Object o, Errors errors) {
         Subnet subnet = (Subnet) o;
         if (subnet.getSubnet() == null || subnet.getSubnet().isEmpty()) {
-            errors.reject("subnet", "Empty subnet");
+            errors.reject(SUBNET, "Empty subnet");
             return;
         }
         try {
             new SubnetUtils(subnet.getSubnet());
         } catch (IllegalArgumentException e) {
-            errors.reject("subnet", "Invalid CIDR-notation format");
+            errors.reject(SUBNET, "Invalid CIDR-notation format");
         }
         List s = subnetRepository.findBySubnet(subnet.getSubnet());
-        if (!(s == null || s.isEmpty())) errors.reject("subnet", "Subnet already exists");
+        if (!(s == null || s.isEmpty())) errors.reject(SUBNET, "Subnet already exists");
     }
 }

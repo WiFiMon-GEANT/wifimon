@@ -11,8 +11,8 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -33,15 +33,14 @@ public class SubnetsController {
     @InitBinder("sub")
     public void initBinder(WebDataBinder binder) {
         binder.addValidators(subnetValidator);
-//        binder.setDisallowedFields("id");
     }
 
-    @RequestMapping(value = "/admin/subnets", method = RequestMethod.GET)
+    @GetMapping(value = "/admin/subnets")
     public String subnets(@ModelAttribute("sub") final Subnet sub) {
         return "admin/subnets";
     }
 
-    @RequestMapping(value = "/admin/subnets", method = RequestMethod.POST)
+    @PostMapping(value = "/admin/subnets")
     public String addSubnet(@ModelAttribute("sub") @Valid final Subnet sub,
                             final BindingResult bindingResult,
                             final ModelMap model) {
@@ -53,7 +52,7 @@ public class SubnetsController {
         return "redirect:/admin/subnets";
     }
 
-    @RequestMapping(value = "/admin/subnets/delete/{id}")
+    @GetMapping(value = "/admin/subnets/delete/{id}")
     public String deleteSubnet(@PathVariable final String id) {
         subnetRepository.deleteById(Long.valueOf(id));
         return "redirect:/admin/subnets";

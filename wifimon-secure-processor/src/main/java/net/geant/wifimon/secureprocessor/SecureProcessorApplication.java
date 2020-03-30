@@ -1,11 +1,5 @@
 package net.geant.wifimon.secureprocessor;
 
-//import com.sun.jersey.api.client.Client;
-//import com.sun.jersey.api.client.config.ClientConfig;
-//import com.sun.jersey.api.client.config.DefaultClientConfig;
-//import com.sun.jersey.api.json.JSONConfiguration;
-//import com.sun.jersey.client.urlconnection.HTTPSProperties;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -25,16 +19,18 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by kokkinos on 2/9/2016.
  */
 
 @SpringBootApplication
-//@EnableJpaRepositories(ProcessorApplication.BASE_PACKAGE)
 @EntityScan(basePackages = SecureProcessorApplication.BASE_PACKAGE)
 public class SecureProcessorApplication extends SpringBootServletInitializer {
     public static final String BASE_PACKAGE = "net.geant.wifimon";
+    private static Logger loggerSecureProcessor = Logger.getLogger(SecureProcessorApplication.class.getName());
 
     @Autowired
     private Environment env;
@@ -45,17 +41,19 @@ public class SecureProcessorApplication extends SpringBootServletInitializer {
                 new X509TrustManager() {
                     @Override
                     public X509Certificate[] getAcceptedIssuers() {
-                        return null;
+                        return new X509Certificate[0];
                     }
 
                     @Override
                     public void checkServerTrusted(X509Certificate[] chain, String authType)
                             throws CertificateException {
+			    // checkServerTrusted Method
                     }
 
                     @Override
                     public void checkClientTrusted(X509Certificate[] chain, String authType)
                             throws CertificateException {
+			    // checkClientTrusted Method
                     }
                 }
         };
@@ -63,27 +61,15 @@ public class SecureProcessorApplication extends SpringBootServletInitializer {
         try {
             sslcontext = SSLContext.getInstance("TLS");
             sslcontext.init(null, certs, new SecureRandom());
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            e.printStackTrace();
+            HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
+        } catch (NoSuchAlgorithmException | NullPointerException | KeyManagementException e) {
+            loggerSecureProcessor.log(Level.INFO, e.toString());
         }
-        HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
 
-	/*
-        ClientConfig clientConfig = new DefaultClientConfig();
-        clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        clientConfig.getProperties().
-                put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
-                    new HTTPSProperties((hostname, session) -> true, sslcontext));
-
-        return Client.create(clientConfig);
-	*/
-
-        Client client = ClientBuilder.newBuilder().
+        return  ClientBuilder.newBuilder().
                 sslContext(sslcontext).
                 hostnameVerifier((hostname, session) -> true).
                 build();
-
-        return client;
     }
 
     public static void main(String[] args) {

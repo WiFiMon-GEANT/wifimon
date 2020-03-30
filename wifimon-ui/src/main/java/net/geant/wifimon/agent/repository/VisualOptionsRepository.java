@@ -12,7 +12,7 @@ import java.util.Optional;
  * Created by kokkinos on 27/6/2017.
  */
 public interface VisualOptionsRepository extends JpaRepository<VisualOptions, Long> {
-    Optional<VisualOptions> findOneByUserdata(String Userdata);
+    Optional<VisualOptions> findOneByUserdata(String userData);
 
     @Query(value = "SELECT * FROM options", nativeQuery = true)
     List<VisualOptions> getAll();

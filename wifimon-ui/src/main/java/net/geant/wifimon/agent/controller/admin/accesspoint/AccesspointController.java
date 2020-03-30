@@ -10,8 +10,8 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
@@ -30,7 +30,6 @@ public class AccesspointController {
 
     @Autowired
     public AccesspointController(AccesspointService accesspointService, AccesspointCreateFormValidator accesspointCreateFormValidator) {
-        //public AccesspointController(AccesspointService accesspointService) {
         this.accesspointService = accesspointService;
         this.accesspointCreateFormValidator = accesspointCreateFormValidator;
     }
@@ -40,24 +39,24 @@ public class AccesspointController {
         binder.addValidators(accesspointCreateFormValidator);
     }
 
-    @RequestMapping("/admin/accesspoint/{apid}")
+    @GetMapping("/admin/accesspoint/{apid}")
     public ModelAndView getAccesspointPage(@PathVariable final Long apid) {
         return new ModelAndView("accesspoint", "accesspoint", accesspointService.getAccesspointByApid(apid)
                 .orElseThrow(() -> new NoSuchElementException(String.format("AP: %s not found", apid))));
     }
 
-    @RequestMapping(value = "/admin/accesspoint/{apid}/delete")
+    @GetMapping(value = "/admin/accesspoint/{apid}/delete")
     public String deleteAccesspoint(@PathVariable final Long apid) {
         accesspointService.delete(apid);
         return String.join("/", "redirect:", AccesspointsController.AP_VIEW);
     }
 
-    @RequestMapping(value = "/admin/accesspoint/create", method = RequestMethod.GET)
+    @GetMapping(value = "/admin/accesspoint/create")
     public String getAccesspointCreatePage(@ModelAttribute("accesspointCreateModel") final AccesspointCreateFormModel accesspointCreateFormModel) {
         return CREATE_AP_VIEW;
     }
 
-    @RequestMapping(value = "/admin/accesspoint/create", method = RequestMethod.POST)
+    @PostMapping(value = "/admin/accesspoint/create")
     public String handleAccesspointCreateForm(@Valid @ModelAttribute("accesspointCreateModel") final AccesspointCreateFormModel accesspointCreateFormModel,
                                               BindingResult bindingResult) {
         if (bindingResult.hasErrors()) return CREATE_AP_VIEW;

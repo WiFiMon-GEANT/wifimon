@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class WifimonAccesspointDetailsService {
 
-    private final AccesspointService accesspointService;
+    private AccesspointService accesspointService;
 
     @Autowired
     public WifimonAccesspointDetailsService(AccesspointService accesspointService) {
