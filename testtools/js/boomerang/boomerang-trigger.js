@@ -15,7 +15,7 @@
 //Prosdiorismos topothesias eikonwn
 
 if (typeof document.getElementById("settings").getAttribute("imagesLocation") === 'undefined' || document.getElementById("settings").getAttribute("imagesLocation") == '') {
-	images_location = "https://vm3-gn3-sa2t5.vm.grnet.gr/wifimon/images/";
+	images_location = "https://fl-5-205.unil.cloud.switch.ch/wifimon/images/";
 }else{
 	images_location = document.getElementById("settings").getAttribute("imagesLocation");
 }
@@ -89,6 +89,7 @@ function checkCookie() {
  if (checkTest != "") {
  } else {
     setCookie("Boomerang", "Test Already Performed", cookie_time/60);
+    console("DO THE TEST");
     BOOMR.page_ready();  // twra ektelese to test
  }
 }
@@ -121,6 +122,7 @@ if(o.lat){
 
 if(o.bw) { 
   //html += "Your bandwidth to this server is " + parseInt(o.bw/1024) + "kbps (&#x00b1;" + parseInt(o.bw_err*100/o.bw) + "%)<br>";
+  console("Entering if o.bw");
   download_throughput= (Math.round((o.bw/1000) * 10) / 10).toFixed(0);
 
 //------------------------------------------------------
@@ -182,6 +184,7 @@ postToAgent(local_ping,download_throughput,latitude,longitude,location_method,de
 // Post measurement to agent
 
 function postToAgent(local_ping,download_throughput,latitude,longitude,location_method,device,application) {
+	console.log("Will post to agent");
  if (typeof download_throughput === 'undefined' || isNaN(download_throughput) || !download_throughput) {
   download_throughput = 0;
  }

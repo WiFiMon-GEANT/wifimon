@@ -17,7 +17,7 @@ var device = "";
 var agent_ip = document.getElementById("settings").getAttribute("agentIp");
 var interval = setInterval(function(){w.postMessage("status");}.bind(this),100); //ask for status every 100ms
 //--------------------------------------------------------------------------------------------
-// Default xronos gia to cookie_time
+// cookie_time parameter value. If the parameter or the value are not specified, the default time is 1.5 minutes. Otherwise, we get the value specified in the parameter.
 
 if (typeof document.getElementById("settings").getAttribute("cookieTimeInMinutes") === 'undefined' || document.getElementById("settings").getAttribute("cookieTimeInMinutes") == '') {
 	var cookie_time = 1.5;
@@ -25,7 +25,7 @@ if (typeof document.getElementById("settings").getAttribute("cookieTimeInMinutes
 	var cookie_time = parseFloat(document.getElementById("settings").getAttribute("cookieTimeInMinutes"));
 }
 //------------------------------------------------------
-//Kathorismos http protocol
+// Application Layer Protocol (HTTP or HTTPS)
 
 if (typeof document.getElementById("settings").getAttribute("hostingWebsite") === 'undefined' || document.getElementById("settings").getAttribute("hostingWebsite") == null || document.getElementById("settings").getAttribute("hostingWebsite") == '' || document.getElementById("settings").getAttribute("hostingWebsite") == 'https') {
 	var agent = "https://" + agent_ip + ":8443/wifimon/";
@@ -33,7 +33,7 @@ if (typeof document.getElementById("settings").getAttribute("hostingWebsite") ==
 	var agent = "http://" + agent_ip + ":9000/wifimon/";
 }
 //-----------------------------------------------------------------------------------------------------------------
-// Elegxos gia ergaleio metrisis
+// What is the testtool used?
 if (typeof document.getElementById("settings").getAttribute("testtool") === 'undefined' || document.getElementById("settings").getAttribute("testtool") == '') {
 	var test_tool = "N/A";
 }else{
@@ -73,20 +73,20 @@ function checkCookie() {
     setCookie("Speedtest", "Test Already Performed", cookie_time/60);
      w.onmessage=function(event){ 
 
-	var data=event.data.split(";"); //(status: 0=not started, 1=downloading, 2=uploading, 3=ping, 4=done, 5=aborted)
- 	var status=Number(data[0]);
+	var data=JSON.parse(event.data);
+ 	var status=Number(data["testState"]);
 
-                    download_throughputMb = data[1];
- 		    upload_throughputMb = data[2];
-                    local_ping = data[3];
+        download_throughputMb = data["dlStatus"];
+        upload_throughputMb = data["ulStatus"];
+        local_ping = data["pingStatus"];
 
-//Metatropi se KB/s
+//Values are converted to KB/s
 	download_throughput = (Math.round((download_throughputMb*125) * 10) / 10).toFixed(0)
 	upload_throughput = (Math.round((upload_throughputMb*125) * 10) / 10).toFixed(0)
 	local_ping = (Math.round((local_ping) * 10) / 10).toFixed(0)
 
 
- if(status >= 4 ){ // Otan status=4 to test exei oloklirwthei.
+ if(status >= 4 ){ // When status equals 4, the test is completed
 
 clearInterval(interval);
 
@@ -136,13 +136,13 @@ else {
     
 }
 
-   return device; //prepei na perasei kai auto sto measurement
+   return device; //This is also added to measurements
 }
 //------------------------------------------------------
-detectDevice(); //call tou detectDevice
+detectDevice(); //call detectDevice
 geoTest();
 //------------------------------------------------------
-postToAgent(local_ping,download_throughput,upload_throughput,latitude,longitude,location_method,device,application); //call tou postToAgent
+postToAgent(local_ping,download_throughput,upload_throughput,latitude,longitude,location_method,device,application); //call postToAgent
 //------------------------------------------------------
 // Post measurement to agent
 
@@ -179,13 +179,13 @@ $.ajax({
 	url: agent + "add/",
 	contentType: "application/json"
 });
-}//telos postToAgent
-}//telos if (status >= 4)
+}//end of postToAgent
+}//end if (status >= 4)
 
-}//telos function(event){}
-w.postMessage('start {"time_dl":"5", "time_ul":"5", "count_ping":"5", "garbagePhp_chunkSize":"10"}'); //enarksi tou test me tis sygkekrimenes parametrous. 
- }//telos else tou checkCookie
-}//telos function checkCookie
+}//end function(event){}
+w.postMessage('start {"time_dl_max":"15", "time_ul_max":"15", "count_ping":"10", "garbagePhp_chunkSize":"100"}'); //initiates a test with these parameters
+ }//end of else in checkCookie
+}//end of function checkCookie
 //------------------------------------------------------
 //Run checkCookie function
 

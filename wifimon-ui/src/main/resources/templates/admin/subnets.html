@@ -1,14 +1,12 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head>
     <title>Configuration</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.css"/>
-    <link href="../../static/css/styling.css" rel="stylesheet" />
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.css"/>
+    <link href="../../static/css/loginCss.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -33,7 +31,7 @@
                                    placeholder="New Subnet in CIDR notation"
                                    th:field="*{subnet}"/>
             <span class="input-group-btn">
-                <button type="submit" class="btn btn-success" name="Add" title="Add"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span></button>
+                <button type="submit" class="btn btn-success" name="Add" title="Add"><i class="fa fa-plus-circle" aria-hidden="true"></i></button>
             </span>
                         </div>
                     </div>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Register access point</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.css"/>
+    <link href="../../static/css/styling.css" rel="stylesheet" />
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+<div th:replace="fragments/header :: header">
+</div>
+
+<div class="container" style="padding-top: 10ex; padding-bottom: 10ex;">
+
+    <form role="form" class="form-horizontal" action="#" th:action="@{/admin/accesspoint/create}" th:object="${accesspointCreateModel}"
+         method="post">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>Register new access point (<span style="color: #ff0000">*</span> denotes required field)</h4></div>
+            <div class="panel-body">
+                <div class="form-group" th:classappend="${#fields.hasErrors('mac')}? 'has-error'">
+                    <label class="control-label col-sm-2" for="mac">AP MAC address<span style="color: #ff0000">*</span></label>
+                    <div class="col-sm-8">
+                        <input required="true" type="text" id="mac" class="form-control" name="mac"
+                               placeholder="Access Point MAC address"
+                               th:field="*{mac}"/>
+                    </div>
+                    <div class="col-lg-offset-2" th:if="${#fields.hasErrors('mac')}" th:errors="*{mac}">Problem with
+                        AP MAC address
+                    </div>
+                </div>
+
+                <div class="form-group" th:classappend="${#fields.hasErrors('latitude')}? 'has-error'">
+                    <label class="control-label col-sm-2" for="latitude">AP latitude<span style="color: #ff0000">*</span></label>
+                    <div class="col-sm-8">
+                        <input required="true" type="text" id="latitude" class="form-control" name="latitude"
+                               placeholder="Access Point latitude"
+                               th:field="*{latitude}"/>
+                    </div>
+                    <div class="col-lg-offset-2" th:if="${#fields.hasErrors('latitude')}" th:errors="*{latitude}">
+                        Problem with AP latitude
+                    </div>
+                </div>
+
+                <div class="form-group" th:classappend="${#fields.hasErrors('longitude')}? 'has-error'">
+                    <label class="control-label col-sm-2" for="longitude">AP longitude<span style="color: #ff0000">*</span></label>
+                    <div class="col-sm-8">
+                        <input required="true" type="text" id="longitude" class="form-control" name="longitude"
+                               placeholder="Access Point longitude"
+                               th:field="*{longitude}"/>
+                    </div>
+                    <div class="col-lg-offset-2" th:if="${#fields.hasErrors('longitude')}" th:errors="*{longitude}">
+                        Problem with AP longitude
+                    </div>
+                </div>
+
+                <div class="form-group" th:classappend="${#fields.hasErrors('building')}? 'has-error'">
+                    <label class="control-label col-sm-2" for="building">AP building</label>
+                    <div class="col-sm-8">
+                        <input type="text" id="building" class="form-control" name="building"
+                               placeholder="Building that the Access Point is installed"
+                               th:field="*{building}"/>
+                    </div>
+<!--                    <div class="col-lg-offset-2" th:if="${#fields.hasErrors('building')}" th:errors="*{building}">
+                        Problem with AP building
+                    </div>-->
+                </div>
+
+                <div class="form-group" th:classappend="${#fields.hasErrors('floor')}? 'has-error'">
+                    <label class="control-label col-sm-2" for="floor">AP floor</label>
+                    <div class="col-sm-8">
+                        <input type="number" id="floor" class="form-control" name="floor"
+                               placeholder="Floor that the Access Point is installed"
+                               th:field="*{floor}"/>
+                    </div>
+<!--                    <div class="col-lg-offset-2" th:if="${#fields.hasErrors('floor')}" th:errors="*{floor}">
+                        Problem with AP floor
+                    </div>-->
+                </div>
+
+                <div class="form-group" th:classappend="${#fields.hasErrors('notes')}? 'has-error'">
+                    <label class="control-label col-sm-2" for="notes">AP notes</label>
+                    <div class="col-sm-8">
+                        <input type="text" id="notes" class="form-control" name="notes"
+                               placeholder="Notes, if any"
+                               th:field="*{notes}"/>
+                    </div>
+                    <!--<div class="col-lg-offset-2" th:if="${#fields.hasErrors('notes')}" th:errors="*{notes}">-->
+                        <!--Problem with AP notes-->
+                    <!--</div>-->
+                </div>
+            </div>
+            <div class="panel-footer">
+                <button type="reset" class="btn btn-warning pull-left">Reset</button>
+                <button type="submit" class="btn btn-success pull-right">Add</button>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

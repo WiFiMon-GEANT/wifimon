@@ -21,7 +21,7 @@ NetTest.LPF = new Object();
 /******************************************/
 NetTest.FlashPath = 'https://fl-5-205.unil.cloud.switch.ch/wifimon/js/nettest/nettest.swf';
 NetTest.testFilePath = "./files/";
-NetTest.XHR.numPingTests = 3;
+NetTest.XHR.numPingTests = 6;
 NetTest.lastResult = undefined;
 
 /******************************************/
@@ -936,7 +936,7 @@ NetTest.XHR.getURL = function(url, measurement_type, handler) {
 				NetTest.XHR.downloadEnd = NetTest.misc.getTime();
 				
 				NetTest.XHR.resourceSize = request.responseText.length;
-			
+
 				if (measurement_type == "download") {
 					var bandwidth = (NetTest.XHR.resourceSize / 1024) / 
 						(parseInt(NetTest.XHR.downloadEnd - NetTest.XHR.downloadStart) * 0.001 );

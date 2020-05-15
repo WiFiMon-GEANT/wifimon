@@ -11,6 +11,7 @@
 
     <artifactId>model</artifactId>
     <dependencies>
+	
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>

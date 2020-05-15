@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Insert/Edit Visualization Options</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.css"/>
+    <link href="../../static/css/styling.css" rel="stylesheet" />
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+<div th:replace="fragments/header :: header">
+</div>
+
+<div class="container" style="padding-top: 10ex; padding-bottom: 10ex;">
+
+    <form role="form" class="form-horizontal" action="#" th:action="@{/admin/editOptions}" th:object="${visualOptionsEditModel}"
+          method="post">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>Insert/Edit Options (<span style="color: #ff0000">*</span> denotes required field)</h4></div>
+
+            <div class="panel-body">
+
+                <div class="row">
+                    <div class="control-label col-sm-1" style="text-align:left">
+                        Privacy
+                    </div>
+                    <div class="col-sm-9">
+                        <div class="form-group" th:classappend="${#fields.hasErrors('userdata')}? 'has-error'">
+
+                            <label class="control-label col-sm-3">User-related data<span style="color: #ff0000">*</span></label>
+                            <div class="col-sm-3">
+                                <select id="userdata" class="form-control" name="userdata" th:field="*{userdata}">
+                                    <option th:each="state : ${T(net.geant.wifimon.model.entity.UserData).values()}"
+                                            th:value="${state}"
+                                            th:text="${state}"></option>
+                                </select>
+                            </div>
+                            <div class="col-sm-3">
+                                <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal1"><span class="glyphicon glyphicon-info-sign"></span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="control-label col-sm-1" style="text-align:left">
+                        Rights
+                    </div>
+                    <div class="col-sm-9">
+                        <div class="form-group" th:classappend="${#fields.hasErrors('uservisualoption')}? 'has-error'">
+
+                            <label class="control-label col-sm-3">User Visualization<span style="color: #ff0000">*</span></label>
+                            <div class="col-sm-3">
+                                <select id="uservisualoption" class="form-control" name="uservisualoption" th:field="*{uservisualoption}">
+                                    <option th:each="state : ${T(net.geant.wifimon.model.entity.UserVisualOption).values()}"
+                                            th:value="${state}"
+                                            th:text="${state}"></option>
+                                </select>
+                            </div>
+                            <div class="col-sm-3">
+                                <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal2"><span class="glyphicon glyphicon-info-sign"></span></button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="control-label col-sm-1" style="text-align:left">
+                        Correlation
+                    </div>
+                    <div class="col-sm-9">
+                        <div class="form-group" th:classappend="${#fields.hasErrors('correlationmethod')}? 'has-error'">
+                            <label class="control-label col-sm-3">Correlation Method<span style="color: #ff0000">*</span></label>
+                            <div class="col-sm-3">
+                                <select id="correlationmethod" class="form-control" name="correlationmethod" th:field="*{correlationmethod}">
+                                    <option th:each="state : ${T(net.geant.wifimon.model.entity.CorrelationMethod).values()}"
+                                            th:value="${state}"
+                                            th:text="${state}"></option>
+                                </select>
+                            </div>
+                            <div class="col-sm-3">
+                                <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal3"><span class="glyphicon glyphicon-info-sign"></span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="panel-footer">
+                <button type="reset" class="btn btn-warning pull-left">Reset</button>
+                <button type="submit" class="btn btn-success pull-right">Save</button>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal1" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">User-related data</h4>
+            </div>
+            <div class="modal-body">
+                <p><strong>Available options:</strong></p>
+                <ul>
+                    <li><strong>SHOW</strong>: This option allows users to see all the available visualizations/dashboards provided by WiFiMon </li>
+                    <li><strong>HIDE</strong>: Hides the visualizations/dashboards that include user sensitive data (e.g. dashboards for "Average download throughput per client MAC", etc) </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="myModal2" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">User Visualization</h4>
+            </div>
+            <div class="modal-body">
+                <p><strong>Available options:</strong></p>
+                <ul>
+                    <li><strong>MATCH_IP</strong>: The visualizations/dashboards are filtered and include information only for the IP of the user that is currently connected to the WiFiMon GUI </li>
+                    <li><strong>MATCH_USERNAME</strong>: The visualizations/dashboards are filtered and include information only for the username of the user that is currently connected to the WiFiMon GUI</li>
+                    <li><strong>MATCH_ALL</strong>: The visualizations/dashboards are not filtered</li>
+                </ul>
+                <p><strong>Note:</strong> The above configurations is applied only to WiFiMon GUI users with role "USER". The visualizations/dashboards for "ADMIN" users are not filtered by default</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="myModal3" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Correlation Method</h4>
+            </div>
+            <div class="modal-body">
+                <p><strong>Available options:</strong></p>
+                <ul>
+                    <li><strong>RADIUS_ONLY</strong>: The correlation of the performance measurements with the APs' and users' information
+                        is performed using only the Radius logs and based on the user IP address. This assumes that the information about the IP
+                        that is assigned to the eduroam user in included in the Radius logs (attribute Framed-IP-Address)</li>
+                    <li><strong>DHCP_AND_RADIUS</strong>: If the information about the IP that is assigned to the eduroam user in not included
+                        in the Radius logs (attribute Framed-IP-Address is not present), the correlation of the performance measurements with the
+                        APs' and users' information should be performed using the DHCP and Radius logs</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

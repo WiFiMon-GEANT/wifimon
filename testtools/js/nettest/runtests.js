@@ -40,7 +40,7 @@ NetTest.testDownload = function(imagePath, imageSize) {
 
  var handler = function(resultObj) {
   download_throughput = resultObj.throughput();
-  NetTest.testUpload(images_location + "medium.jpg", 1271750);
+  NetTest.testUpload(images_location + "medium.jpg", 1320354);
  }
  NetTest.XHR.download(imagePath, imageSize, handler);
 }
@@ -48,7 +48,7 @@ NetTest.testDownload = function(imagePath, imageSize) {
 NetTest.testUpload = function(imagePath, imageSize) {
  var handler = function(resultObj) {
   upload_throughput = resultObj.throughput();
-  NetTest.testPing(images_location + "tiny.gif", 653);
+  NetTest.testPing(images_location + "tiny.gif", 670);
  }
  NetTest.XHR.upload(imagePath, imageSize, handler);
 }
@@ -58,7 +58,8 @@ NetTest.testPing = function(imagePath, imageSize) {
   local_ping = resultObj.round_trip();
   postToAgent();
  }
- NetTest.ping(imagePath, imageSize, handler, true)
+ //NetTest.ping(imagePath, imageSize, handler, true);
+   NetTest.XHR.ping(imagePath, imageSize, handler, true);
 }
 
 // Get location through IP
@@ -101,7 +102,7 @@ $.ajax({
 // Call to previous functions
 NetTest.testGeneral = function() {
  geoTest();
- NetTest.testDownload(images_location + "large.jpg", 4811357);
+ NetTest.testDownload(images_location + "large.jpg", 4995543);
 }
 
 //Set and check cookie 

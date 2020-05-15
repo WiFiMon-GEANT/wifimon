@@ -1,0 +1,32 @@
+nav.navbar {
+	background-color: #222222;
+}
+
+a.navbar-brand {
+	color: white;
+}
+
+div#navbarEx1Collapse {
+	background-color: #222222;
+	justify-content: flex-end;
+}
+
+input.form-control {
+	border-width: 5px;
+	border-color: #222222;
+}
+
+button.btn {
+	border-width: 5px;
+	border-color: #222222;
+	background-color:#d3d3d3;
+}
+
+footer {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	background-color: #222222;
+	height: 60px;
+	font-size:90%;
+}
