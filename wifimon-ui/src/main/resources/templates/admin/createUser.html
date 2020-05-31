@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Create User</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.css"/>
-    <link href="../../static/css/styling.css" rel="stylesheet" />
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.css"/>
+    <link href="../../static/css/headerCss.css" rel="stylesheet" />
+    <link href="../../static/css/footerCss.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -20,9 +19,9 @@
 
     <form role="form" class="form-horizontal" action="#" th:action="@{/admin/user/create}" th:object="${userCreateModel}"
          method="post">
-        <div class="panel panel-default">
-            <div class="panel-heading"><h4>Create new user (<span style="color: #ff0000">*</span> denotes required field)</h4></div>
-            <div class="panel-body">
+        <div class="card">
+            <div class="card-header"><h4>Create new user (<span style="color: #ff0000">*</span> denotes required field)</h4></div>
+            <div class="card-body">
                 <div class="form-group" th:classappend="${#fields.hasErrors('email')}? 'has-error'">
                     <label class="control-label col-sm-2" for="email">User email<span style="color: #ff0000">*</span></label>
                     <div class="col-sm-8">
@@ -67,7 +66,7 @@
                     </div>
                 </div>
             </div>
-            <div class="panel-footer">
+            <div class="card-footer">
                 <button type="reset" class="btn btn-warning pull-left">Reset</button>
                 <button type="submit" class="btn btn-success pull-right">Add</button>
                 <div class="clearfix"></div>
@@ -75,8 +74,6 @@
         </div>
     </form>
 </div>
-
-<div th:replace="fragments/footer :: footer"></div>
 
 </body>
 </html>

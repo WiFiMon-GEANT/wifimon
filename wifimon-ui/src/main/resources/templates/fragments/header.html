@@ -1,76 +1,86 @@
-
     <nav class="navbar navbar-expand-lg navbar-dark" th:fragment="header">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand"><img style="margin-top: -5px" th:src="@{/static/images/wifimon-logo-45x20.png}" height="23"/></a>
+        <div class="ml-auto">
+            <a class="navbar-brand"><img style="margin-top: -5px" src="../../static/images/wifimon-logo-45x20.png" height="23"/></a>
+            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarEx1Collapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
         </div>
-        <div class="container">
-        <div class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li th:class="${classActiveSettingsElasticOverview}"><a href="#" th:href="@{/}">Overview</a></li>
-                <li th:class="${classActiveSettingsElasticMeasurements}"><a href="#" th:href="@{/secure/measurements}">Measurements</a></li>
-                <!--<li th:class="${classActiveSettingsTimeline}"><a href="#" th:href="@{/secure/grafana}">Grafana</a></li>-->
-                <li th:class="${classActiveSettingsElasticTimeseries}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Timeseries<span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#" th:href="@{/secure/timeseries/downloadTimeseries}">Download Timeseries</a></li>
-                        <li><a href="#" th:href="@{/secure/timeseries/uploadTimeseries}">Upload Timeseries</a></li>
-                        <li><a href="#" th:href="@{/secure/timeseries/pingTimeseries}">Ping Timeseries</a></li>
-                    </ul>
-                </li>
-		<li th:class="${classActiveSettingsSubnets}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Subnets<span class="caret"></span></a>
-		    <ul class="dropdown-menu">
-			<li><a href="#" th:href="@{/secure/Subnets/147_102_13_0_24}">147.102.13.0/24</a></li>
-		    </ul>
-		</li>
-		<li th:class="${classActiveSettingsHWProbes}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">HWProbes<span class="caret"></span></a>
-		    <ul class="dropdown-menu">
-			<li><a href="#" th:href="@{/secure/HWProbes/HWProbe1}">HWProbe1</a></li>
-			<li><a href="#" th:href="@{/secure/HWProbes/HWProbe2}">HWProbe2</a></li>
-			<li><a href="#" th:href="@{/secure/HWProbes/HWProbe3}">HWProbe3</a></li>
-			<li><a href="#" th:href="@{/secure/HWProbes/HWProbe4}">HWProbe4</a></li>
-			<li><a href="#" th:href="@{/secure/HWProbes/HWProbe5}">HWProbe5</a></li>
-			<li><a href="#" th:href="@{/secure/HWProbes/HWProbe6}">HWProbe6</a></li>
-			<li><a href="#" th:href="@{/secure/HWProbes/HWProbe7}">HWProbe7</a></li>
-			<li><a href="#" th:href="@{/secure/HWProbes/HWProbe8}">HWProbe8</a></li>
-			<li><a href="#" th:href="@{/secure/HWProbes/HWProbe9}">HWProbe9</a></li>
-			<li><a href="#" th:href="@{/secure/HWProbes/HWProbe10}">HWProbe10</a></li>
-		    </ul>
-		</li>
-                <li th:class="${classActiveSettingsElasticStatistics}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Statistics<span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#" th:href="@{/secure/statistics/pieStatistics}">Pie Statistics</a></li>
-                        <li><a href="#" th:href="@{/secure/statistics/tableStatistics}">Table Statistics</a></li>
-                    </ul>
-                </li>
-                <li th:class="${classActiveSettingsElasticMap}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Maps<span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#" th:href="@{/secure/maps/clients}">Clients Map</a></li>
-                        <li><a href="#" th:href="@{/secure/maps/aps}">APs Map</a></li>
-                    </ul>
-                </li>
-                <!--<li th:class="${classActiveSettingsMap}"><a href="#" th:href="@{/secure/map}">Map</a></li>-->
-                <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsConfig}" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Configuration<span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/subnets}">Subnets</a></li>
-                        <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/accesspoints}">Access Points</a></li>
-                        <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/users}">Users</a></li>
-                        <li sec:authorize="hasRole('ADMIN')"><a href="#" th:href="@{/admin/options}">Other Options</a></li>
-                    </ul>
-                </li>
-                <li sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsGuide}"><a href="#" th:href="@{/secure/guide}">Guide</a></li>
-                <li th:class="${classActiveSettingsHelp}"><a href="#" th:href="@{/secure/help}">Help</a></li>
+        <div class="collapse navbar-collapse" id="navbarEx1Collapse">
+            <ul class="navbar-nav">
+                <li class="nav-item" th:class="${classActiveSettingsElasticOverview}"><a class="nav-link" href="#" th:href="@{/}">Overview</a></li>
+                <li class="nav-item" th:class="${classActiveSettingsElasticMeasurements}"><a class="nav-link" href="#" th:href="@{/secure/measurements}">Measurements</a></li>
+                <li class="nav-item" th:class="${classActiveSettingsElasticTimeseries}">
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdownMenuLink1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Timeseries</a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink1">
+                            <a class="dropdown-item" href="#" th:href="@{/secure/timeseries/downloadTimeseries}">Download Timeseries</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/timeseries/uploadTimeseries}">Upload Timeseries</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/timeseries/pingTimeseries}">Ping Timeseries</a>
+                        </div>
+                   </div>
+               </li>
+		    <li class="nav-item" th:class="${classActiveSettingsSubnets}">
+                <div class="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdownMenuLink2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Subnets</a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink2">
+                            <a class="dropdown-item" href="#" th:href="@{/secure/Subnets/147_102_13_0_24}">147.102.13.0/24</a>
+                        </div>
+                </div>
+		    </li>
+		    <li class="nav-item" th:class="${classActiveSettingsHWProbes}">
+                <div class="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdownMenuLink3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">HW Probes</a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink3">
+                            <a class="dropdown-item" href="#" th:href="@{/secure/HWProbes/HWProbe1}">HWProbe1</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/HWProbes/HWProbe2}">HWProbe2</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/HWProbes/HWProbe3}">HWProbe3</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/HWProbes/HWProbe4}">HWProbe4</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/HWProbes/HWProbe5}">HWProbe5</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/HWProbes/HWProbe6}">HWProbe6</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/HWProbes/HWProbe7}">HWProbe7</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/HWProbes/HWProbe8}">HWProbe8</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/HWProbes/HWProbe9}">HWProbe9</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/HWProbes/HWProbe10}">HWProbe10</a>
+                        </div>
+                </div>
+	    	</li>
+            <li class="nav-item" th:class="${classActiveSettingsElasticStatistics}">
+                <div class="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdownMenuLink4" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Statistics</a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink4">
+                            <a class="dropdown-item" href="#" th:href="@{/secure/statistics/pieStatistics}">Pie Statistics</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/statistics/tableStatistics}">Table Statistics</a>
+                        </div>
+                </div>
+            </li>
+            <li class="nav-item" th:class="${classActiveSettingsElasticMap}">
+                <div class="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdownMenuLink5" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Maps</a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink5">
+                            <a class="dropdown-item" href="#" th:href="@{/secure/maps/clients}">Clients Map</a>
+                            <a class="dropdown-item" href="#" th:href="@{/secure/maps/aps}">APs Map</a>
+                        </div>
+                </div>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsConfig}" >
+                <div class="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdownMenuLink6" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Configuration</a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink6">
+                            <a class="dropdown-item" href="#" th:href="@{/admin/subnets}">Subnets</a>
+                            <a class="dropdown-item" href="#" th:href="@{/admin/accesspoints}">Accesspoints</a>
+                            <a class="dropdown-item" href="#" th:href="@{/admin/users}">Users</a>
+                            <a class="dropdown-item" href="#" th:href="@{/admin/options}">Other Options</a>
+                        </div>
+                </div>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')" th:class="${classActiveSettingsGuide}"><a class="nav-link" href="#" th:href="@{/secure/guide}">Guide</a></li>
+            <li class="nav-item" th:class="${classActiveSettingsHelp}"><a class="nav-link" href="#" th:href="@{/secure/help}">Help</a></li>
             </ul>
-            <ul class="nav navbar-nav navbar-right">
-                <li class="pull-right">
-                    <a th:title="Logout" href="/logout" th:href="@{/logout}"><span sec:authentication="name"></span>&nbsp;<span class="glyphicon glyphicon-log-out"></span></a>
+           
+             <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" id="logout" th:title="Logout" href="/logout" th:href="@{/logout}"><span sec:authentication="name"></span>&nbsp;Logout</a>
                 </li>
             </ul>
-
-
-        </div>
         </div>
     </nav>

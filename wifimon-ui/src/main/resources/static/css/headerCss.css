@@ -1,0 +1,23 @@
+nav.navbar {
+	background-color: #222222;
+}
+
+a.navbar-brand {
+	color: white;
+}
+
+div#navbarEx1Collapse {
+	background-color: #222222;
+}
+
+div.dropdown-menu {
+	background-color: #222222;
+}
+
+a.dropdown-item {
+	color: #FFFFFF;
+}
+
+a#logout {
+	justify-content: flex-end;
+}
