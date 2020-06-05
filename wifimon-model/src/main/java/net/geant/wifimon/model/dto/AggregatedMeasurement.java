@@ -238,8 +238,6 @@ public class AggregatedMeasurement implements Serializable {
             return false;
         if (calledStationId != null ? !calledStationId.equals(that.calledStationId) : that.calledStationId != null)
             return false;
-        if (calledStationId != null ? !calledStationId.equals(that.calledStationId) : that.calledStationId != null)
-            return false;
         if (apBuilding != null ? !apBuilding.equals(that.apBuilding) : that.apBuilding != null)
             return false;
         if (apFloor != null ? !apFloor.equals(that.apFloor) : that.apFloor != null)
