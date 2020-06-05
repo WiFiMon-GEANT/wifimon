@@ -45,14 +45,14 @@ public class SubnetsController {
     }
 
     @PostMapping(value = "/admin/subnets")
-    public String addSubnet(@ModelAttribute("sub") @Valid final SubnetDto subnetDto,
+    public String addSubnet(@ModelAttribute("sub") @Valid final SubnetDto sub,
                             final BindingResult bindingResult,
                             final ModelMap model) {
         if (bindingResult.hasErrors()) {
             return "admin/subnets";
         }
         Subnet subnet = new Subnet();
-        subnet.setSubnet(subnetDto.getSubnet());
+        subnet.setSubnet(sub.getSubnet());
         subnetRepository.save(subnet);
         model.clear();
         return "redirect:/admin/subnets";
