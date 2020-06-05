@@ -59,7 +59,7 @@ public class SecureProcessorApplication extends SpringBootServletInitializer {
         };
         SSLContext sslcontext = null;
         try {
-            sslcontext = SSLContext.getInstance("TLS");
+            sslcontext = SSLContext.getInstance("TLSv1.2");
             sslcontext.init(null, certs, new SecureRandom());
             HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
         } catch (NoSuchAlgorithmException | NullPointerException | KeyManagementException e) {
