@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created by kanakisn on 27/02/16.
@@ -24,6 +25,8 @@ import java.util.List;
 
 @Controller
 public class SubnetsController {
+
+    private static Logger logger = Logger.getLogger(SubnetsController.class.getName());
 
     @Autowired
     SubnetDtoValidator subnetDtoValidator;
@@ -57,7 +60,11 @@ public class SubnetsController {
 
     @GetMapping(value = "/admin/subnets/delete/{id}")
     public String deleteSubnet(@PathVariable final String id) {
-        subnetRepository.deleteById(Long.valueOf(id));
+        try {
+            subnetRepository.deleteById(Long.valueOf(id));
+        } catch (Exception e) {
+            logger.warning(e.getMessage());
+        }
         return "redirect:/admin/subnets";
     }
 
