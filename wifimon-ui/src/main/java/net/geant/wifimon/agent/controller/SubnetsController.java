@@ -1,7 +1,8 @@
 package net.geant.wifimon.agent.controller;
 
 import net.geant.wifimon.agent.repository.SubnetRepository;
-import net.geant.wifimon.agent.validator.SubnetValidator;
+import net.geant.wifimon.agent.validator.SubnetDtoValidator;
+import net.geant.wifimon.model.dto.SubnetDto;
 import net.geant.wifimon.model.entity.Subnet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -25,29 +26,31 @@ import java.util.List;
 public class SubnetsController {
 
     @Autowired
-    SubnetValidator subnetValidator;
+    SubnetDtoValidator subnetDtoValidator;
 
     @Autowired
     SubnetRepository subnetRepository;
 
     @InitBinder("sub")
     public void initBinder(WebDataBinder binder) {
-        binder.addValidators(subnetValidator);
+        binder.addValidators(subnetDtoValidator);
     }
 
     @GetMapping(value = "/admin/subnets")
-    public String subnets(@ModelAttribute("sub") final Subnet sub) {
+    public String subnets(@ModelAttribute("sub") final String sub) {
         return "admin/subnets";
     }
 
     @PostMapping(value = "/admin/subnets")
-    public String addSubnet(@ModelAttribute("sub") @Valid final Subnet sub,
+    public String addSubnet(@ModelAttribute("sub") @Valid final SubnetDto subnetDto,
                             final BindingResult bindingResult,
                             final ModelMap model) {
         if (bindingResult.hasErrors()) {
             return "admin/subnets";
         }
-        subnetRepository.save(sub);
+        Subnet subnet = new Subnet();
+        subnet.setSubnet(subnetDto.getSubnet());
+        subnetRepository.save(subnet);
         model.clear();
         return "redirect:/admin/subnets";
     }

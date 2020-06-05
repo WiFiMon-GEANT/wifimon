@@ -1,7 +1,7 @@
 package net.geant.wifimon.agent.validator;
 
 import net.geant.wifimon.agent.repository.SubnetRepository;
-import net.geant.wifimon.model.entity.Subnet;
+import net.geant.wifimon.model.dto.SubnetDto;
 import org.apache.commons.net.util.SubnetUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import java.util.List;
  * Created by kanakisn on 28/02/16.
  */
 @Component
-public class SubnetValidator implements Validator {
+public class SubnetDtoValidator implements Validator {
 
     private static final String SUBNET = "subnet";
 
@@ -23,12 +23,12 @@ public class SubnetValidator implements Validator {
 
     @Override
     public boolean supports(Class<?> aClass) {
-        return aClass.equals(Subnet.class);
+        return aClass.equals(SubnetDto.class);
     }
 
     @Override
     public void validate(Object o, Errors errors) {
-        Subnet subnet = (Subnet) o;
+        SubnetDto subnet = (SubnetDto) o;
         if (subnet.getSubnet() == null || subnet.getSubnet().isEmpty()) {
             errors.reject(SUBNET, "Empty subnet");
             return;

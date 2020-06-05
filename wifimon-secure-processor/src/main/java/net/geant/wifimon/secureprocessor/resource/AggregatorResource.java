@@ -423,7 +423,7 @@ public class AggregatorResource {
             }
 
         } catch (Exception e) {
-	    logger.info(e.toString());
+            logger.info(e.toString());
         }
         return r;
     }
@@ -435,7 +435,7 @@ public class AggregatorResource {
             indexRequest.source(jsonString, XContentType.JSON);
             AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
         } catch (Exception e) {
-	    logger.info(e.toString());
+            logger.info(e.toString());
         }
     }
 
@@ -447,7 +447,7 @@ public class AggregatorResource {
         indexRequest.source(jsonString, XContentType.JSON);
             AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
         } catch (Exception e) {
-	    logger.info(e.toString());
+            logger.info(e.toString());
         }
     }
 
