@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.ws.rs.client.Client;
 
 /**
  * Created by kanakisn on 8/5/15.
@@ -41,9 +40,6 @@ public class MeasurementsController {
 
     @Autowired
     UserRepository userRepository;
-
-    @Autowired
-    Client client;
 
     @Autowired
     Environment environment;

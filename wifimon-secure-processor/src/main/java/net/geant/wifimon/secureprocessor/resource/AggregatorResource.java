@@ -150,7 +150,7 @@ public class AggregatorResource {
             return Response.ok().build();
 
         } catch (Exception e) {
-	    logger.log(Level.INFO, e.toString());
+	    logger.info(e.toString());
             response = null;
         }
         return response;
@@ -196,7 +196,7 @@ public class AggregatorResource {
             encryptedIP = encryptClass.encrypt(ip, environment.getProperty(HMAC_SHA512_KEY));
             encryptedIP = encryptedIP.toLowerCase();
         } catch (Exception e) {
-	    logger.log(Level.INFO, e.toString());
+	    logger.info(e.toString());
         }
 
         // What is the correlation method defined by the administrator in the WiFiMon GUI?
@@ -228,7 +228,7 @@ public class AggregatorResource {
                 response = addElasticMeasurement(joinMeasurement(measurement, r, null, agent), requesterSubnet, encryptedIP);
             }
         } catch (Exception e) {
-	    logger.log(Level.INFO, e.toString());
+	    logger.info(e.toString());
             response = null;
         }
 
@@ -376,7 +376,7 @@ public class AggregatorResource {
                 r = null;
             }
         } catch (Exception e) {
-	    logger.log(Level.INFO, e.toString());
+	    logger.info(e.toString());
             r = null;
         }
         return r;
@@ -423,7 +423,7 @@ public class AggregatorResource {
             }
 
         } catch (Exception e) {
-	    logger.log(Level.INFO, e.toString());
+	    logger.info(e.toString());
         }
         return r;
     }
@@ -434,10 +434,8 @@ public class AggregatorResource {
             IndexRequest indexRequest = new IndexRequest(environment.getProperty(ES_INDEXNAME_MEASUREMENT));
             indexRequest.source(jsonString, XContentType.JSON);
             AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
-        } catch (ElasticsearchException e) {
-            e.getDetailedMessage();
-        } catch (java.io.IOException ex) {
-            ex.getLocalizedMessage();
+        } catch (Exception e) {
+	    logger.info(e.toString());
         }
     }
 
@@ -448,10 +446,8 @@ public class AggregatorResource {
                 environment.getProperty(ES_INDEXNAME_PROBES));
         indexRequest.source(jsonString, XContentType.JSON);
             AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
-        } catch (ElasticsearchException e) {
-            e.getDetailedMessage();
-        } catch (java.io.IOException ex) {
-            ex.getLocalizedMessage();
+        } catch (Exception e) {
+	    logger.info(e.toString());
         }
     }
 
@@ -467,7 +463,7 @@ public class AggregatorResource {
                                     Integer.parseInt(environment.getProperty(ES_PORT)),
                                     "http")));
         } catch (Exception e) {
-	    logger.log(Level.INFO, e.toString());
+	    logger.info(e.toString());
         }
 
         return restClient;
@@ -512,7 +508,7 @@ public class AggregatorResource {
                                     .setSSLContext(sslContextFromJks)
                             ));
         } catch (Exception e) {
-	    logger.log(Level.INFO, e.toString());
+	    logger.info(e.toString());
         }
 
         return restClient;
@@ -535,7 +531,7 @@ public class AggregatorResource {
                         doFinal(myString.getBytes(StandardCharsets.UTF_8));
                 result = bytesToHex(macData);
             } catch (Exception e) {
-	    	logger.log(Level.INFO, e.toString());
+	    	logger.info(e.toString());
             }
 
             return result;
