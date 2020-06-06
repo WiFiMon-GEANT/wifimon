@@ -73,6 +73,7 @@ public class AggregatorResource {
     private static final String ES_INDEXNAME_MEASUREMENT = "elasticsearch.indexnamemeasurement";
     private static final String ES_INDEXNAME_RADIUS = "elasticsearch.indexnameradius";
     private static final String ES_INDEXNAME_PROBES = "elasticsearch.indexnameprobes";
+    private static final String ES_INDEXNAME_DHCP = "elasticsearch.indexnamedhcp";
     private static final String SSL_ENABLED = "xpack.security.enabled";
     private static final String SSL_USER_USERNAME = "ssl.http.user.username";
     private static final String SSL_USER_PHRASE = "ssl.http.user.phrase";
@@ -211,7 +212,7 @@ public class AggregatorResource {
         // Perform correlations and insert new measurements in the elasticsearch cluster
         if (correlationmethod.equals(CorrelationMethod.DHCP_AND_RADIUS.toString())) {
             //TODO Complete the else for correlation with DHCP and Radius
-            String callingStationIdTemp = "A1:b2-cc-33-d0-da".substring(0, 17);
+            String callingStationIdTemp = retrieveLastMacEntryByIp(encryptedIP);
             r = retrieveLastRadiusEntryByMac(callingStationIdTemp);
         } else {
             r = retrieveLastRadiusEntryByIp(encryptedIP);
@@ -334,6 +335,34 @@ public class AggregatorResource {
         indexMeasurement(jsonString);
 
         return Response.ok().build();
+    }
+
+    private String retrieveLastMacEntryByIp(String ip) {
+        String macAddress = "";
+        try {
+            final SearchSourceBuilder builder = new SearchSourceBuilder()
+            .query(QueryBuilders.matchAllQuery())
+            .sort(new FieldSortBuilder(TIMESTAMP).order(SortOrder.DESC))
+            .from(0)
+            .fetchSource(new String[]{TIMESTAMP, "IP-Address", "MAC-Address"}, null)
+            .postFilter(QueryBuilders.termQuery("IP-Address", ip))
+            .size(1)
+            .explain(true);
+
+            final SearchRequest request = new SearchRequest(environment.getProperty(ES_INDEXNAME_DHCP))
+                    .source(builder);
+            final SearchResponse response = AggregatorResource.restHighLevelClient.search(request, RequestOptions.DEFAULT);
+
+            final SearchHits hits = response.getHits();
+            if (response.getHits().getTotalHits().value > 0) {
+                    SearchHit hit = hits.getAt(0);
+                    Map map = hit.getSourceAsMap();
+                    macAddress = (map.get("MAC-Address") != null) ? map.get("MAC-Address").toString() : "N/A";
+            }
+        } catch (Exception e) {
+            logger.info(e.toString());
+        }
+        return macAddress;
     }
 
     private RadiusStripped retrieveLastRadiusEntryByIp(String ip) {
