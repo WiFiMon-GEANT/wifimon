@@ -211,7 +211,6 @@ public class AggregatorResource {
 
         // Perform correlations and insert new measurements in the elasticsearch cluster
         if (correlationmethod.equals(CorrelationMethod.DHCP_AND_RADIUS.toString())) {
-            //TODO Complete the else for correlation with DHCP and Radius
             String callingStationIdTemp = retrieveLastMacEntryByIp(encryptedIP);
             r = retrieveLastRadiusEntryByMac(callingStationIdTemp);
         } else {
