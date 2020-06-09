@@ -40,7 +40,7 @@ public class SubnetsController {
     }
 
     @GetMapping(value = "/admin/subnets")
-    public String subnets(@ModelAttribute("sub") final String sub) {
+    public String subnets(@ModelAttribute("sub") final SubnetDto sub) {
         return "admin/subnets";
     }
 
