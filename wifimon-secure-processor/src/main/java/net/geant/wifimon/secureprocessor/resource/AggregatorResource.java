@@ -49,8 +49,8 @@ import java.util.stream.Collectors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.nio.charset.StandardCharsets;
-
 import javax.annotation.PostConstruct;
+import com.google.json.JsonSanitizer;
 
 @Component
 @Path("/wifimon")
@@ -146,7 +146,8 @@ public class AggregatorResource {
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
             // Store measurements in elasticsearch
-            indexMeasurementProbes(jsonString);
+	    String sanitizedJsonString = JsonSanitizer.sanitize(jsonString);
+            indexMeasurementProbes(sanitizedJsonString);
 
             return Response.ok().build();
 
@@ -331,7 +332,8 @@ public class AggregatorResource {
         String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
         // Store measurements in elasticsearch
-        indexMeasurement(jsonString);
+	String sanitizedJsonString = JsonSanitizer.sanitize(jsonString);
+        indexMeasurement(sanitizedJsonString);
 
         return Response.ok().build();
     }
