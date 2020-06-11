@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Create wifimon index
-curl -XPUT 'http://fl-5-205.unil.cloud.switch.ch:9200/wifimon?pretty' -H 'Content-Type: application/json' -d'
+curl -XPUT 'http://FQDN:9200/wifimon?pretty' -H 'Content-Type: application/json' -d'
 {
 	"mappings" : {
 		"properties" : {
@@ -33,7 +33,7 @@ curl -XPUT 'http://fl-5-205.unil.cloud.switch.ch:9200/wifimon?pretty' -H 'Conten
 }'
 
 # Create probes index
-curl -XPUT 'http://fl-5-205.unil.cloud.switch.ch:9200/probes?pretty' -H 'Content-Type: application/json' -d'
+curl -XPUT 'http://FQDN:9200/probes?pretty' -H 'Content-Type: application/json' -d'
 { 
 	"mappings" : {
 		"properties" : {
@@ -48,7 +48,7 @@ curl -XPUT 'http://fl-5-205.unil.cloud.switch.ch:9200/probes?pretty' -H 'Content
 }'
 
 # Create RADIUS logs index
-curl -XPUT 'http://fl-5-205.unil.cloud.switch.ch:9200/radiuslogs?pretty' -H 'Content-Type: application/json' -d' 
+curl -XPUT 'http://FQDN:9200/radiuslogs?pretty' -H 'Content-Type: application/json' -d' 
 {
 	"mappings" : {
 		"properties" :  {
@@ -65,7 +65,7 @@ curl -XPUT 'http://fl-5-205.unil.cloud.switch.ch:9200/radiuslogs?pretty' -H 'Con
 }'
 
 # Create DHCP logs index
-curl -XPUT 'http://fl-5-205.unil.cloud.switch.ch:9200/dhcplogs?pretty' -H 'Content-Type: application/json' -d'
+curl -XPUT 'http://FQDN:9200/dhcplogs?pretty' -H 'Content-Type: application/json' -d'
 { 
 	"mappings" : {
 		"properties: : {
@@ -77,10 +77,10 @@ curl -XPUT 'http://fl-5-205.unil.cloud.switch.ch:9200/dhcplogs?pretty' -H 'Conte
 }'
 
 # Default Data
-curl -XPOST 'http://fl-5-205.unil.cloud.switch.ch:9200/wifimon/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
+curl -XPOST 'http://FQDN:9200/wifimon/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
 
-curl -XPOST 'http://fl-5-205.unil.cloud.switch.ch:9200/radiuslogs/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
+curl -XPOST 'http://FQDN:9200/radiuslogs/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
 
-curl -XPOST 'http://fl-5-205.unil.cloud.switch.ch:9200/probes/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
+curl -XPOST 'http://FQDN:9200/probes/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
 
-curl -XPOST 'http://fl-5-205.unil.cloud.switch.ch:9200/dhcplogs/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
+curl -XPOST 'http://FQDN:9200/dhcplogs/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
