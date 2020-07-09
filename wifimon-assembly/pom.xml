@@ -33,7 +33,7 @@
             <extension>
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
-                <version>1.5</version>
+                <version>1.8</version>
             </extension>
         </extensions>
         <pluginManagement>
@@ -41,7 +41,7 @@
                 <plugin>
                     <artifactId>jdeb</artifactId>
                     <groupId>org.vafer</groupId>
-                    <version>1.5</version>
+                    <version>1.8</version>
                     <configuration>
                         <controlDir>${basedir}</controlDir>
                         <deb>${project.build.directory}/wifimon-agent-${version}.deb</deb>

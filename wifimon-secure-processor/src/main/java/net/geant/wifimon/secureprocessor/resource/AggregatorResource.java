@@ -294,6 +294,18 @@ public class AggregatorResource {
             userBrowser = "N/A";
         }
 
+	// Define if the measurement is from the end users or a particular HW Probe
+	String measurementOrigin = "";
+	String probeNumber = "";
+	String testtoolUsed = measurement.getTestTool();
+	if (testtoolUsed.indexOf("-") == -1) {
+		measurementOrigin = "User";
+	} else {
+		measurementOrigin = "Probe";
+		probeNumber = testtoolUsed.split("-")[1];
+	}
+	System.out.println(measurementOrigin);
+
         // Define Strings for the different measurement fields and results from correlation with RADIUS Logs
         String downloadThroughputJson = measurement.getDownloadThroughput() != null ? "\"downloadThroughput\" : " + measurement.getDownloadThroughput() + ", " : "";
         String uploadThroughputJson = measurement.getUploadThroughput() != null ? "\"uploadThroughput\" : " + measurement.getUploadThroughput() + ", " : "";
@@ -305,6 +317,8 @@ public class AggregatorResource {
         String userBrowserJson = userBrowser != null ? "\"userBrowser\" : \"" + userBrowser + "\", " : "";
         String userOsJson = userOs != null ? "\"userOS\" : \"" + userOs + "\", " : "";
         String testToolJson = measurement.getTestTool() != null ? "\"testTool\" : \"" + measurement.getTestTool() + "\", " : "";
+        String measurementOriginJson = measurementOrigin != null ? "\"origin\" : \"" + measurementOrigin + "\", " : "";
+        String probeNumberJson = probeNumber != null ? "\"probeNo\" : \"" + probeNumber + "\", " : "";
         String requesterSubnetJson = requesterSubnet != null ? "\"requesterSubnet\" : \"" + requesterSubnet + "\", " : "";
         String encryptedIPJson = encryptedIP != null ? "\"encryptedIP\" : \"" + encryptedIP + "\", " : "";
         String usernameJson = measurement.getUserName() != null ? "\"username\" : \"" + measurement.getUserName() + "\", " : "";
@@ -324,8 +338,9 @@ public class AggregatorResource {
                 downloadThroughputJson + uploadThroughputJson + localPingJson +
                 locationJson + locationMethodJson +
                 userAgentJson + userBrowserJson + userOsJson + clientIpJson +
-                testToolJson + requesterSubnetJson + encryptedIPJson + usernameJson + nasPortJson +
-                callingStationIdJson + nasIdentifierJson + calledStationIdJson +
+                testToolJson + measurementOriginJson + probeNumberJson +
+	       	requesterSubnetJson + encryptedIPJson + usernameJson + nasPortJson + 
+		callingStationIdJson + nasIdentifierJson + calledStationIdJson +
                 nasIpAddressJson + apBuildingJson + apFloorJson + apLocationJson +
                 apNotesJson + "}";
 

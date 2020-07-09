@@ -28,11 +28,10 @@ def parse_iwconfig():
     tx_power = command2_parsed[3].split("=")[1]
 
     timestamp = int(datetime.datetime.now().strftime("%s")) * 1000
-    testtool = "pi-1"
+    probeNo = "1"
 
     headers = {'content-type':"application/json"}
-    data = "{\"timestamp\":" + str(timestamp) + ", \"bitRate\":" + bit_rate + ", \"txPower\":" + tx_power + ", \"linkQuality\":" + link_quality + ", \"signalLevel\":" + signal_level + ", \"testTool\":\"" + testtool + "\"}"
-    print(data)
+    data = "{\"timestamp\":" + str(timestamp) + ", \"bitRate\":" + bit_rate + ", \"txPower\":" + tx_power + ", \"linkQuality\":" + link_quality + ", \"signalLevel\":" + signal_level + ", \"probeNo\":\"" + probeNo + "\"}"
     try:
         session = requests.Session()
         session.verify = False
