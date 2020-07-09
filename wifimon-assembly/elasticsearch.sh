@@ -16,6 +16,8 @@ curl -XPUT 'http://FQDN:9200/wifimon?pretty' -H 'Content-Type: application/json'
 			"userBrowser" : { "type" : "keyword" },
 			"userOS" : { "type" : "keyword" },
 			"testTool" : { "type" : "keyword" },
+			"origin" : { "type" : "keyword" },
+			"probeNo" : { "type" : "keyword" },
 			"username" : { "type" : "keyword" },
 			"nasPort" : { "type" : "keyword" },
 			"callingStationId" : { "type" : "keyword" },
@@ -42,7 +44,7 @@ curl -XPUT 'http://FQDN:9200/probes?pretty' -H 'Content-Type: application/json' 
 			"txPower" : { "type" : "float" },
 			"linkQuality" : { "type" : "float" },
 			"signalLevel" : { "type" : "float" },
-			"testTool" : { "type" : "keyword" }
+			"probeNo" : { "type" : "keyword" }
 		}
 	}
 }'
