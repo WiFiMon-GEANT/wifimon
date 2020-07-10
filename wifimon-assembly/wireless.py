@@ -1,8 +1,5 @@
 #!/usr/bin/python
 
-# A Python script that runs on each WiFiMon Hardware Probe
-# Wireless network metrics are collected and streamed to the WiFiMon Analysis Station
-
 import subprocess
 import datetime
 import requests
@@ -31,17 +28,14 @@ def parse_iwconfig():
     tx_power = command2_parsed[3].split("=")[1]
 
     timestamp = int(datetime.datetime.now().strftime("%s")) * 1000
-    # Replace "TESTOOL_NUMBER" with the number dedicated to your WiFiMon Hardware Probe"
-    testtool = "NetTest-TESTOOL_NUMBER"
+    probeNo = "1"
 
     headers = {'content-type':"application/json"}
-    data = "{\"timestamp\":" + str(timestamp) + ", \"bitRate\":" + bit_rate + ", \"txPower\":" + tx_power + ", \"linkQuality\":" + link_quality + ", \"signalLevel\":" + signal_level + ", \"testTool\":\"" + testtool + "\"}"
-    print(data)
+    data = "{\"timestamp\":" + str(timestamp) + ", \"bitRate\":" + bit_rate + ", \"txPower\":" + tx_power + ", \"linkQuality\":" + link_quality + ", \"signalLevel\":" + signal_level + ", \"probeNo\":\"" + probeNo + "\"}"
     try:
         session = requests.Session()
         session.verify = False
-        # Replace "APPLICATION_LAYER_PROTOCOL" with "http" or "https" and "SERVER_FQDN" with the FQDN of the WiFiMon Analysis Station
-        session.post(url='APPLICATION_LAYER_PROTOCOL://SERVER_FQDN:8443/wifimon/probes/', data=data, headers=headers, timeout=15)
+        session.post(url='https://wifimon2.netmode.ece.ntua.gr:8443/wifimon/probes/', data=data, headers=headers, timeout=15)
     except:
         pass
     return None
