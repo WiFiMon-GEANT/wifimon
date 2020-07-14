@@ -46,27 +46,7 @@
         </file>
 	<file>
 	    <source>wireless.py</source>
-	    <outputDirectory>probes</outputDirectory>
-	    <filtered>true</filtered>
-	</file>
-	<file>
-	    <source>elasticsearchHWProbesx.html</source>
-	    <outputDirectory>probes</outputDirectory>
-	    <filtered>true</filtered>
-	</file>
-	<file>
-	    <source>MeasurementsController_probes.txt</source>
-	    <outputDirectory>probes</outputDirectory>
-	    <filtered>true</filtered>
-	</file>
-	<file>
-	    <source>elasticsearchSubnets_a_b_c_d_xx.html</source>
-	    <outputDirectory>subnets</outputDirectory>
-	    <filtered>true</filtered>
-    	</file>
-	<file>
-	    <source>MeasurementsController_subnets.txt</source>
-	    <outputDirectory>subnets</outputDirectory>
+	    <outputDirectory></outputDirectory>
 	    <filtered>true</filtered>
 	</file>
         <file>
