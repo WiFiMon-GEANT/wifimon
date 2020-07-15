@@ -19,7 +19,7 @@ NetTest.URLRequest = new Object();
 NetTest.LPF = new Object();
 
 /******************************************/
-NetTest.FlashPath = 'https://fl-5-205.unil.cloud.switch.ch/wifimon/js/nettest/nettest.swf';
+NetTest.FlashPath = 'https://WTS_FQDN/wifimon/js/nettest/nettest.swf';
 NetTest.testFilePath = "./files/";
 NetTest.XHR.numPingTests = 6;
 NetTest.lastResult = undefined;

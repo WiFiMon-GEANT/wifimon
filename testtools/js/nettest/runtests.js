@@ -9,7 +9,7 @@ var upload_throughput;
 var local_ping;
 var agent_ip = document.getElementById("settings").getAttribute("agentIp");
 if (typeof document.getElementById("settings").getAttribute("imagesLocation") === 'undefined' || document.getElementById("settings").getAttribute("imagesLocation") == '') {
-	var images_location = "https://wifimon2.netmode.ece.ntua.gr/wifimon/images/";
+	var images_location = "https://WTS_FQDN/wifimon/images/";
 }else{
 	var images_location = document.getElementById("settings").getAttribute("imagesLocation");
 }
