@@ -70,7 +70,7 @@ curl -XPUT 'http://FQDN:9200/radiuslogs?pretty' -H 'Content-Type: application/js
 curl -XPUT 'http://FQDN:9200/dhcplogs?pretty' -H 'Content-Type: application/json' -d'
 { 
 	"mappings" : {
-		"properties: : {
+		"properties" : {
 			"Timestamp" : { "type" : "date" },
 			"IP-Address" : { "type" : "keyword" },
 			"MAC-Address" : { "type" : "keyword" }
