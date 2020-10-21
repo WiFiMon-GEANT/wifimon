@@ -155,13 +155,11 @@ public class AggregatorResource {
 
             // Construct JSON object that will be stored in Elasticsearch
             String jsonStringDraft = "{" +
-                    "\"timestamp\" : " + measurement.getTimestamp() + ", " +
+                    "\"Timestamp\" : " + measurement.getTimestamp() + ", " +
                     accesspointJson + bitRateJson + txPowerJson + linkQualityJson +
                     signalLevelJson + probeNoJson + monitorJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
-
-	    System.out.println(jsonString);
 
             // Store measurements in elasticsearch
 	    String sanitizedJsonString = JsonSanitizer.sanitize(jsonString);
@@ -376,7 +374,7 @@ public class AggregatorResource {
 
         // Build the Json String to store in the elasticsearch cluster
         String jsonStringDraft = "{" +
-                "\"timestamp\" : " + measurement.getTimestamp() + ", " +
+                "\"Timestamp\" : " + measurement.getTimestamp() + ", " +
                 downloadThroughputJson + uploadThroughputJson + localPingJson +
                 locationJson + locationMethodJson + userAgentJson + userBrowserJson + 
 		userOsJson + testToolJson + radiusTimestampJson + serviceTypeJson +
@@ -453,8 +451,6 @@ public class AggregatorResource {
             if (response.getHits().getTotalHits().value > 0) {
                     SearchHit hit = hits.getAt(0);
                     Map map = hit.getSourceAsMap();
-		    System.out.println(hit);
-		    System.out.println(map);
                     r.setRadiusTimestamp(((map.get(RADIUS_TIMESTAMP) != null) ? map.get(RADIUS_TIMESTAMP).toString() : "N/A"));
                     r.setServiceType(((map.get(SERVICE_TYPE) != null) ? map.get(SERVICE_TYPE).toString() : "N/A"));
                     r.setNasPortId(((map.get(NAS_PORT_ID) != null) ? map.get(NAS_PORT_ID).toString() : "N/A"));
