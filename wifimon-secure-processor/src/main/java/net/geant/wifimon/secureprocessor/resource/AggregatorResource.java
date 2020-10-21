@@ -84,15 +84,29 @@ public class AggregatorResource {
     private static final String SSL_KEY_PHRASE = "ssl.http.key.phrase";
     private static final String HMAC_SHA512_KEY = "sha.key";
     private static final String AGENT = "User-Agent";
-    private static final String TIMESTAMP = "Timestamp";
+    private static final String RADIUS_TIMESTAMP_KEYWORD = "RADIUS-Timestamp.keyword";
+    private static final String RADIUS_TIMESTAMP = "RADIUS-Timestamp";
+    private static final String DHCP_TIMESTAMP_KEYWORD = "DHCP-Timestamp.keyword";
+    private static final String DHCP_TIMESTAMP = "DHCP-Timestamp";
+    private static final String SERVICE_TYPE = "Service-Type";
+    private static final String NAS_PORT_ID = "NAS-Port-Id";
+    private static final String NAS_PORT_TYPE = "NAS-Port-Type";
     private static final String USERNAME = "User-Name";
+    private static final String ACCT_SESSION_ID = "Acct-Session-Id";
+    private static final String ACCT_MULTI_SESSION_ID = "Acct-Multi-Session-Id";
+    private static final String CALLING_STATION_ID_KEYWORD = "Calling-Station-Id.keyword";
     private static final String CALLING_STATION_ID = "Calling-Station-Id";
-    private static final String NAS_PORT = "nas_port";
     private static final String CALLED_STATION_ID = "Called-Station-Id";
-    private static final String NAS_IP_ADDRESS = "NAS-IP-Address";
-    private static final String NAS_IDENTIFIER = "NAS-Identifier";
+    private static final String ACCT_AUTHENTIC = "Acct-Authentic";
+    private static final String ACCT_STATUS_TYPE_KEYWORD = "Acct-Status-Type.keyword";
     private static final String ACCT_STATUS_TYPE = "Acct-Status-Type";
+    private static final String NAS_IDENTIFIER = "NAS-Identifier";
+    private static final String ACCT_DELAY_TIME = "Acct-Delay-Time";
+    private static final String NAS_IP_ADDRESS = "NAS-IP-Address";
+    private static final String FRAMED_IP_ADDRESS_KEYWORD = "Framed-IP-Address.keyword";
     private static final String FRAMED_IP_ADDRESS = "Framed-IP-Address";
+    private static final String ACCT_UNIQUE_SESSION_ID = "Acct-Unique-Session-Id";
+    private static final String REALM = "Realm";
 
     private static Logger logger = Logger.getLogger(AggregatorResource.class.getName());
     private static RestHighLevelClient restHighLevelClient;
@@ -131,19 +145,23 @@ public class AggregatorResource {
         try {
 
             // Get Wireless Network Performance Metrics
-            String bitRateJson = measurement.getBitRate() != null ? "\"bitRate\" : " + measurement.getBitRate() + ", " : "";
-            String txPowerJson = measurement.getTxPower() != null ? "\"txPower\" : " + measurement.getTxPower() + ", " : "";
-            String linkQualityJson = measurement.getLinkQuality() != null ? "\"linkQuality\" : " + measurement.getLinkQuality() + ", " : "";
-            String signalLevelJson = measurement.getSignalLevel() != null ? "\"signalLevel\" : " + measurement.getSignalLevel() + ", " : "";
-            String testToolJson = measurement.getTestTool() != null ? "\"testTool\" : \"" + measurement.getTestTool() + "\"" : "";
+	    String accesspointJson = measurement.getAccesspoint() != null ? "\"Accessopint\" : " + measurement.getAccesspoint() + ", " : "";
+            String bitRateJson = measurement.getBitRate() != null ? "\"Bit_Rate\" : " + measurement.getBitRate() + ", " : "";
+            String txPowerJson = measurement.getTxPower() != null ? "\"Tx_Power\" : " + measurement.getTxPower() + ", " : "";
+            String linkQualityJson = measurement.getLinkQuality() != null ? "\"Link_Quality\" : " + measurement.getLinkQuality() + ", " : "";
+            String signalLevelJson = measurement.getSignalLevel() != null ? "\"Signal_Level\" : " + measurement.getSignalLevel() + ", " : "";
+            String probeNoJson = measurement.getProbeNo() != null ? "\"Probe_No\" : \"" + measurement.getProbeNo() + "\"" : "";
+            String monitorJson = measurement.getMonitor() != null ? "\"Monitor\" : \"" + measurement.getMonitor() + "\"" : "";
 
             // Construct JSON object that will be stored in Elasticsearch
             String jsonStringDraft = "{" +
                     "\"timestamp\" : " + measurement.getTimestamp() + ", " +
-                    bitRateJson + txPowerJson + linkQualityJson +
-                    signalLevelJson + testToolJson + "}";
+                    accesspointJson + bitRateJson + txPowerJson + linkQualityJson +
+                    signalLevelJson + probeNoJson + monitorJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
+
+	    System.out.println(jsonString);
 
             // Store measurements in elasticsearch
 	    String sanitizedJsonString = JsonSanitizer.sanitize(jsonString);
@@ -201,6 +219,7 @@ public class AggregatorResource {
 	    logger.info(e.toString());
         }
 
+
         // What is the correlation method defined by the administrator in the WiFiMon GUI?
         String correlationmethod = visualOptionsRepository.findCorrelationmethod();
         if (correlationmethod == null || correlationmethod.isEmpty()) {
@@ -218,10 +237,12 @@ public class AggregatorResource {
             r = retrieveLastRadiusEntryByIp(encryptedIP);
         }
 
+
         try {
             if (r != null) {
                 // There are RADIUS Logs corresponding to the received measurement
-                String calledStationIdTemp = r.getCalledStationId().substring(0, 17).toUpperCase().replace("-", ":");
+                //String calledStationIdTemp = r.getCalledStationId().substring(0, 30).toUpperCase().replace("-", ":");
+                String calledStationIdTemp = r.getCalledStationId();
                 ap = accesspointsRepository.find(calledStationIdTemp);
                 response = addElasticMeasurement(joinMeasurement(measurement, r, ap, agent), requesterSubnet, encryptedIP);
             } else {
@@ -247,12 +268,23 @@ public class AggregatorResource {
         m.setLocationMethod(measurement.getLocationMethod());
         m.setUserAgent(agent);
         m.setTestTool(measurement.getTestTool());
+        m.setRadiusTimestamp(radius != null ? radius.getRadiusTimestamp() : null);
+        m.setServiceType(radius != null ? radius.getServiceType() : null);
+        m.setNasPortId(radius != null ? radius.getNasPortId() : null);
+        m.setNasPortType(radius != null ? radius.getNasPortType() : null);
         m.setUserName(radius != null ? radius.getUserName() : null);
-        m.setNasPort(radius != null ? radius.getNasPort() : null);
+        m.setAcctSessionId(radius != null ? radius.getAcctSessionId() : null);
+        m.setAcctMultiSessionId(radius != null ? radius.getAcctMultiSessionId() : null);
         m.setCallingStationId(radius != null ? radius.getCallingStationId() : null);
-        m.setNasIdentifier(radius != null ? radius.getNasIdentifier() : null);
         m.setCalledStationId(radius != null ? radius.getCalledStationId() : null);
+        m.setAcctAuthentic(radius != null ? radius.getAcctAuthentic() : null);
+        m.setAcctStatusType(radius != null ? radius.getAcctStatusType() : null);
+        m.setNasIdentifier(radius != null ? radius.getNasIdentifier() : null);
+        m.setAcctDelayTime(radius != null ? radius.getAcctDelayTime() : null);
         m.setNasIpAddress(radius != null ? radius.getNasIpAddress() : null);
+        m.setFramedIpAddress(radius != null ? radius.getFramedIpAddress() : null);
+        m.setAcctUniqueSessionId(radius != null ? radius.getAcctUniqueSessionId() : null);
+        m.setRealm(radius != null ? radius.getRealm() : null);
         m.setApBuilding(accesspoint != null ? accesspoint.getBuilding() : null);
         m.setApFloor(accesspoint != null ? accesspoint.getFloor() : null);
         m.setApLatitude(accesspoint != null ? Double.valueOf(accesspoint.getLatitude()) : null);
@@ -304,44 +336,57 @@ public class AggregatorResource {
 		measurementOrigin = "Probe";
 		probeNumber = testtoolUsed.split("-")[1];
 	}
-	System.out.println(measurementOrigin);
 
         // Define Strings for the different measurement fields and results from correlation with RADIUS Logs
-        String downloadThroughputJson = measurement.getDownloadThroughput() != null ? "\"downloadThroughput\" : " + measurement.getDownloadThroughput() + ", " : "";
-        String uploadThroughputJson = measurement.getUploadThroughput() != null ? "\"uploadThroughput\" : " + measurement.getUploadThroughput() + ", " : "";
-        String localPingJson = measurement.getLocalPing() != null ? "\"localPing\" : " + measurement.getLocalPing() + ", " : "";
-        String locationJson = measurement.getLatitude() != null ? "\"location\" : \"" + measurement.getLatitude() + "," + measurement.getLongitude() + "\", " : "";
-        String locationMethodJson = measurement.getLocationMethod() != null ? "\"locationMethod\" : \"" + measurement.getLocationMethod() + "\", " : "";
-        String clientIpJson = measurement.getClientIp() != null ? "\"clientIp\" : \"" + measurement.getClientIp() + "\", " : "";
-        String userAgentJson = measurement.getUserAgent() != null ? "\"userAgent\" : \"" + measurement.getUserAgent() + "\", " : "";
-        String userBrowserJson = userBrowser != null ? "\"userBrowser\" : \"" + userBrowser + "\", " : "";
-        String userOsJson = userOs != null ? "\"userOS\" : \"" + userOs + "\", " : "";
-        String testToolJson = measurement.getTestTool() != null ? "\"testTool\" : \"" + measurement.getTestTool() + "\", " : "";
-        String measurementOriginJson = measurementOrigin != null ? "\"origin\" : \"" + measurementOrigin + "\", " : "";
-        String probeNumberJson = probeNumber != null ? "\"probeNo\" : \"" + probeNumber + "\", " : "";
-        String requesterSubnetJson = requesterSubnet != null ? "\"requesterSubnet\" : \"" + requesterSubnet + "\", " : "";
-        String encryptedIPJson = encryptedIP != null ? "\"encryptedIP\" : \"" + encryptedIP + "\", " : "";
-        String usernameJson = measurement.getUserName() != null ? "\"username\" : \"" + measurement.getUserName() + "\", " : "";
-        String nasPortJson = measurement.getNasPort() != null ? "\"nasPort\" : \"" + measurement.getNasPort() + "\", " : "";
-        String callingStationIdJson = measurement.getCallingStationId() != null ? "\"callingStationId\" : \"" + measurement.getCallingStationId() + "\", " : "";
-        String nasIdentifierJson = measurement.getNasIdentifier() != null ? "\"nasIdentifier\" : \"" + measurement.getNasIdentifier() + "\", " : "";
-        String calledStationIdJson = measurement.getCalledStationId() != null ? "\"calledStationId\" : \"" + measurement.getCalledStationId() + "\", " : "";
-        String nasIpAddressJson = measurement.getNasIpAddress() != null ? "\"nasIpAddress\" : \"" + measurement.getNasIpAddress() + "\", " : "";
-        String apBuildingJson = measurement.getApBuilding() != null ? "\"apBuilding\" : \"" + measurement.getApBuilding() + "\", " : "";
-        String apFloorJson = measurement.getApFloor() != null ? "\"apFloor\" : \"" + measurement.getApFloor() + "\", " : "";
-        String apLocationJson = measurement.getApLatitude() != null ? "\"apLocation\" : \"" + measurement.getApLatitude() + "," + measurement.getApLongitude() + "\", " : "";
-        String apNotesJson = measurement.getApNotes() != null ? "\"apNotes\" : \"" + measurement.getApNotes() + "\"" : "";
+        String downloadThroughputJson = measurement.getDownloadThroughput() != null ? "\"Download-Throughput\" : " + measurement.getDownloadThroughput() + ", " : "";
+        String uploadThroughputJson = measurement.getUploadThroughput() != null ? "\"Upload-Throughput\" : " + measurement.getUploadThroughput() + ", " : "";
+        String localPingJson = measurement.getLocalPing() != null ? "\"Local-Ping\" : " + measurement.getLocalPing() + ", " : "";
+        String locationJson = measurement.getLatitude() != null ? "\"Location\" : \"" + measurement.getLatitude() + "," + measurement.getLongitude() + "\", " : "";
+        String locationMethodJson = measurement.getLocationMethod() != null ? "\"Location-Method\" : \"" + measurement.getLocationMethod() + "\", " : "";
+        String clientIpJson = measurement.getClientIp() != null ? "\"Client-Ip\" : \"" + measurement.getClientIp() + "\", " : "";
+        String userAgentJson = measurement.getUserAgent() != null ? "\"User-Agent\" : \"" + measurement.getUserAgent() + "\", " : "";
+        String userBrowserJson = userBrowser != null ? "\"User-Browser\" : \"" + userBrowser + "\", " : "";
+        String userOsJson = userOs != null ? "\"User-OS\" : \"" + userOs + "\", " : "";
+        String testToolJson = measurement.getTestTool() != null ? "\"Test-Tool\" : \"" + measurement.getTestTool() + "\", " : "";
+        String radiusTimestampJson = measurement.getRadiusTimestamp() != null ? "\"" + RADIUS_TIMESTAMP + "\" : \"" + measurement.getRadiusTimestamp() + "\", " : "";
+        String serviceTypeJson = measurement.getServiceType() != null ? "\"" + SERVICE_TYPE + "\" : \"" + measurement.getServiceType() + "\", " : "";
+        String nasPortIdJson = measurement.getNasPortId() != null ? "\"" + NAS_PORT_ID + "\" : \"" + measurement.getNasPortId() + "\", " : "";
+        String nasPortTypeJson = measurement.getNasPortType() != null ? "\"" + NAS_PORT_TYPE + "\" : \"" + measurement.getNasPortType() + "\", " : "";
+        String usernameJson = measurement.getUserName() != null ? "\"" + USERNAME + "\" : \"" + measurement.getUserName() + "\", " : "";
+        String acctSessionIdJson = measurement.getAcctSessionId() != null ? "\"" + ACCT_SESSION_ID + "\" : \"" + measurement.getAcctSessionId() + "\", " : "";
+        String acctMultiSessionIdJson = measurement.getAcctMultiSessionId() != null ? "\"" + ACCT_MULTI_SESSION_ID + "\" : \"" + measurement.getAcctMultiSessionId() + "\", " : "";
+        String callingStationIdJson = measurement.getCallingStationId() != null ? "\"" + CALLING_STATION_ID + "\" : \"" + measurement.getCallingStationId() + "\", " : "";
+        String calledStationIdJson = measurement.getCalledStationId() != null ? "\"" + CALLED_STATION_ID + "\" : \"" + measurement.getCalledStationId() + "\", " : "";
+        String acctAuthenticJson = measurement.getAcctAuthentic() != null ? "\"" + ACCT_AUTHENTIC + "\" : \"" + measurement.getAcctAuthentic() + "\", " : "";
+        String acctStatusTypeJson = measurement.getAcctStatusType() != null ? "\"" + ACCT_STATUS_TYPE + "\" : \"" + measurement.getAcctStatusType() + "\", " : "";
+        String nasIdentifierJson = measurement.getNasIdentifier() != null ? "\"" + NAS_IDENTIFIER + "\" : \"" + measurement.getNasIdentifier() + "\", " : "";
+        String acctDelayTimeJson = measurement.getAcctDelayTime() != null ? "\"" + ACCT_DELAY_TIME + "\" : \"" + measurement.getAcctDelayTime() + "\", " : "";
+        String nasIpAddressJson = measurement.getNasIpAddress() != null ? "\"" + NAS_IP_ADDRESS + "\" : \"" + measurement.getNasIpAddress() + "\", " : "";
+        String framedIpAddressJson = measurement.getFramedIpAddress() != null ? "\"" + FRAMED_IP_ADDRESS + "\" : \"" + measurement.getFramedIpAddress() + "\", " : "";
+        String acctUniqueSessionIdJson = measurement.getAcctUniqueSessionId() != null ? "\"" + ACCT_UNIQUE_SESSION_ID + "\" : \"" + measurement.getAcctUniqueSessionId() + "\", " : "";
+        String realmJson = measurement.getRealm() != null ? "\"" + REALM + "\" : \"" + measurement.getRealm() + "\", " : "";
+        String measurementOriginJson = measurementOrigin != null ? "\"Origin\" : \"" + measurementOrigin + "\", " : "";
+        String probeNumberJson = probeNumber != null ? "\"Probe-No\" : \"" + probeNumber + "\", " : "";
+        String requesterSubnetJson = requesterSubnet != null ? "\"Requester-Subnet\" : \"" + requesterSubnet + "\", " : "";
+        String encryptedIPJson = encryptedIP != null ? "\"Encrypted-IP\" : \"" + encryptedIP + "\", " : "";
+        String apBuildingJson = measurement.getApBuilding() != null ? "\"Ap-Building\" : \"" + measurement.getApBuilding() + "\", " : "";
+        String apFloorJson = measurement.getApFloor() != null ? "\"Ap-Floor\" : \"" + measurement.getApFloor() + "\", " : "";
+        String apLocationJson = measurement.getApLatitude() != null ? "\"Ap-Location\" : \"" + measurement.getApLatitude() + "," + measurement.getApLongitude() + "\", " : "";
+        String apNotesJson = measurement.getApNotes() != null ? "\"Ap-Notes\" : \"" + measurement.getApNotes() + "\"" : "";
 
         // Build the Json String to store in the elasticsearch cluster
         String jsonStringDraft = "{" +
                 "\"timestamp\" : " + measurement.getTimestamp() + ", " +
                 downloadThroughputJson + uploadThroughputJson + localPingJson +
-                locationJson + locationMethodJson +
-                userAgentJson + userBrowserJson + userOsJson + clientIpJson +
-                testToolJson + measurementOriginJson + probeNumberJson +
-	       	requesterSubnetJson + encryptedIPJson + usernameJson + nasPortJson + 
-		callingStationIdJson + nasIdentifierJson + calledStationIdJson +
-                nasIpAddressJson + apBuildingJson + apFloorJson + apLocationJson +
+                locationJson + locationMethodJson + userAgentJson + userBrowserJson + 
+		userOsJson + testToolJson + radiusTimestampJson + serviceTypeJson +
+ 		nasPortIdJson + nasPortTypeJson + usernameJson + acctSessionIdJson +
+		acctMultiSessionIdJson + callingStationIdJson + calledStationIdJson +
+		acctAuthenticJson + acctStatusTypeJson + nasIdentifierJson +
+		acctDelayTimeJson + nasIpAddressJson + framedIpAddressJson +
+		acctUniqueSessionIdJson + realmJson + clientIpJson +
+                measurementOriginJson + probeNumberJson + requesterSubnetJson + 
+		encryptedIPJson + apBuildingJson + apFloorJson + apLocationJson +
                 apNotesJson + "}";
 
         String jsonString = jsonStringDraft.replace("\", }", "\"}");
@@ -358,9 +403,9 @@ public class AggregatorResource {
         try {
             final SearchSourceBuilder builder = new SearchSourceBuilder()
             .query(QueryBuilders.matchAllQuery())
-            .sort(new FieldSortBuilder(TIMESTAMP).order(SortOrder.DESC))
+            .sort(new FieldSortBuilder(DHCP_TIMESTAMP).order(SortOrder.DESC))
             .from(0)
-            .fetchSource(new String[]{TIMESTAMP, "IP-Address", "MAC-Address"}, null)
+            .fetchSource(new String[]{DHCP_TIMESTAMP, "IP-Address", "MAC-Address"}, null)
             .postFilter(QueryBuilders.termQuery("IP-Address", ip))
             .size(1)
             .explain(true);
@@ -389,34 +434,44 @@ public class AggregatorResource {
         try {
             final SearchSourceBuilder builder = new SearchSourceBuilder()
                     .query(QueryBuilders.matchAllQuery())
-                    .sort(new FieldSortBuilder(TIMESTAMP).order(SortOrder.DESC))
+                    .sort(new FieldSortBuilder(RADIUS_TIMESTAMP_KEYWORD).order(SortOrder.DESC))
                     .from(0)
-                    .fetchSource(new String[]{USERNAME, TIMESTAMP,
-                            NAS_PORT, CALLING_STATION_ID,
-                            NAS_IDENTIFIER, CALLED_STATION_ID, NAS_IP_ADDRESS,
-                            FRAMED_IP_ADDRESS, ACCT_STATUS_TYPE}, null)
-                    .postFilter(QueryBuilders.termQuery(FRAMED_IP_ADDRESS, ip))
-                    .query(QueryBuilders.termQuery(ACCT_STATUS_TYPE, "Start"))
+                    .fetchSource(new String[]{RADIUS_TIMESTAMP, SERVICE_TYPE, NAS_PORT_ID,
+                            NAS_PORT_TYPE, USERNAME, ACCT_SESSION_ID, ACCT_MULTI_SESSION_ID,
+			    CALLING_STATION_ID, CALLED_STATION_ID, ACCT_AUTHENTIC,
+                            ACCT_STATUS_TYPE, NAS_IDENTIFIER, ACCT_DELAY_TIME,
+		            NAS_IP_ADDRESS, FRAMED_IP_ADDRESS, ACCT_UNIQUE_SESSION_ID, REALM}, null)
+                    .postFilter(QueryBuilders.termQuery(FRAMED_IP_ADDRESS_KEYWORD, ip))
+                    .query(QueryBuilders.termQuery(ACCT_STATUS_TYPE_KEYWORD, "Start"))
                     .size(1)
                     .explain(true);
 
             final SearchRequest request = new SearchRequest(environment.getProperty(ES_INDEXNAME_RADIUS))
                     .source(builder);
             final SearchResponse response = AggregatorResource.restHighLevelClient.search(request, RequestOptions.DEFAULT);
-
             final SearchHits hits = response.getHits();
             if (response.getHits().getTotalHits().value > 0) {
                     SearchHit hit = hits.getAt(0);
                     Map map = hit.getSourceAsMap();
+		    System.out.println(hit);
+		    System.out.println(map);
+                    r.setRadiusTimestamp(((map.get(RADIUS_TIMESTAMP) != null) ? map.get(RADIUS_TIMESTAMP).toString() : "N/A"));
+                    r.setServiceType(((map.get(SERVICE_TYPE) != null) ? map.get(SERVICE_TYPE).toString() : "N/A"));
+                    r.setNasPortId(((map.get(NAS_PORT_ID) != null) ? map.get(NAS_PORT_ID).toString() : "N/A"));
+                    r.setNasPortType(((map.get(NAS_PORT_TYPE) != null) ? map.get(NAS_PORT_TYPE).toString() : "N/A"));
                     r.setUserName(((map.get(USERNAME) != null) ? map.get(USERNAME).toString() : "N/A"));
-                    r.setTimestamp(((map.get(TIMESTAMP) != null) ? map.get(TIMESTAMP).toString() : "N/A"));
-                    r.setNasPort(((map.get(NAS_PORT) != null) ? map.get(NAS_PORT).toString() : "N/A"));
+                    r.setAcctSessionId(((map.get(ACCT_SESSION_ID) != null) ? map.get(ACCT_SESSION_ID).toString() : "N/A"));
+                    r.setAcctMultiSessionId(((map.get(ACCT_MULTI_SESSION_ID) != null) ? map.get(ACCT_MULTI_SESSION_ID).toString() : "N/A"));
                     r.setCallingStationId(((map.get(CALLING_STATION_ID) != null) ? map.get(CALLING_STATION_ID).toString() : "N/A"));
-                    r.setNasIdentifier(((map.get(NAS_IDENTIFIER) != null) ? map.get(NAS_IDENTIFIER).toString() : "N/A"));
                     r.setCalledStationId(((map.get(CALLED_STATION_ID) != null) ? map.get(CALLED_STATION_ID).toString() : "N/A"));
+                    r.setAcctAuthentic(((map.get(ACCT_AUTHENTIC) != null) ? map.get(ACCT_AUTHENTIC).toString() : "N/A"));
+                    r.setAcctStatusType(((map.get(ACCT_STATUS_TYPE) != null) ? map.get(ACCT_STATUS_TYPE).toString() : "N/A"));
+                    r.setNasIdentifier(((map.get(NAS_IDENTIFIER) != null) ? map.get(NAS_IDENTIFIER).toString() : "N/A"));
+                    r.setAcctDelayTime(((map.get(ACCT_DELAY_TIME) != null) ? map.get(ACCT_DELAY_TIME).toString() : "N/A"));
                     r.setNasIpAddress(((map.get(NAS_IP_ADDRESS) != null) ? map.get(NAS_IP_ADDRESS).toString() : "N/A"));
                     r.setFramedIpAddress(((map.get(FRAMED_IP_ADDRESS) != null) ? map.get(FRAMED_IP_ADDRESS).toString() : "N/A"));
-                    r.setAcctStatusType(((map.get(ACCT_STATUS_TYPE) != null) ? map.get(ACCT_STATUS_TYPE).toString() : "N/A"));
+                    r.setAcctUniqueSessionId(((map.get(ACCT_UNIQUE_SESSION_ID) != null) ? map.get(ACCT_UNIQUE_SESSION_ID).toString() : "N/A"));
+                    r.setRealm(((map.get(REALM) != null) ? map.get(REALM).toString() : "N/A"));
             } else {
                 r = null;
             }
@@ -435,13 +490,14 @@ public class AggregatorResource {
         try {
             final SearchSourceBuilder builder = new SearchSourceBuilder()
                     .query(QueryBuilders.matchAllQuery())
-                    .sort(new FieldSortBuilder(TIMESTAMP).order(SortOrder.DESC))
+                    .sort(new FieldSortBuilder(RADIUS_TIMESTAMP_KEYWORD).order(SortOrder.DESC))
                     .from(0)
-                    .fetchSource(new String[]{USERNAME, TIMESTAMP,
-                            NAS_PORT, CALLING_STATION_ID,
-                            NAS_IDENTIFIER, CALLED_STATION_ID, NAS_IP_ADDRESS,
-                            FRAMED_IP_ADDRESS, ACCT_STATUS_TYPE}, null)
-                    .postFilter(QueryBuilders.wildcardQuery(CALLING_STATION_ID, "*" + mac.replace(":", "-").toLowerCase() + "*"))
+                    .fetchSource(new String[]{RADIUS_TIMESTAMP, SERVICE_TYPE, NAS_PORT_ID,
+			    NAS_PORT_TYPE, USERNAME, ACCT_SESSION_ID, ACCT_MULTI_SESSION_ID,
+			    CALLING_STATION_ID, CALLED_STATION_ID, ACCT_AUTHENTIC, 
+			    ACCT_STATUS_TYPE, NAS_IDENTIFIER, ACCT_DELAY_TIME, NAS_IP_ADDRESS,
+			    FRAMED_IP_ADDRESS, ACCT_UNIQUE_SESSION_ID, REALM}, null)
+                    .postFilter(QueryBuilders.wildcardQuery(CALLING_STATION_ID_KEYWORD, "*" + mac.replace(":", "-").toLowerCase() + "*"))
                     .size(1)
                     .explain(true);
 
@@ -454,15 +510,23 @@ public class AggregatorResource {
             if (response.getHits().getTotalHits().value > 0) {
 		    SearchHit hit = hits.getAt(0); 
                     Map map = hit.getSourceAsMap();
+                    r.setRadiusTimestamp(((map.get(RADIUS_TIMESTAMP) != null) ? map.get(RADIUS_TIMESTAMP).toString() : "N/A"));
+                    r.setServiceType(((map.get(SERVICE_TYPE) != null) ? map.get(SERVICE_TYPE).toString() : "N/A"));
+                    r.setNasPortId(((map.get(NAS_PORT_ID) != null) ? map.get(NAS_PORT_ID).toString() : "N/A"));
+                    r.setNasPortType(((map.get(NAS_PORT_TYPE) != null) ? map.get(NAS_PORT_TYPE).toString() : "N/A"));
                     r.setUserName(((map.get(USERNAME) != null) ? map.get(USERNAME).toString() : "N/A"));
-                    r.setTimestamp(((map.get(TIMESTAMP) != null) ? map.get(TIMESTAMP).toString() : "N/A"));
-                    r.setNasPort(((map.get(NAS_PORT) != null) ? map.get(NAS_PORT).toString() : "N/A"));
+                    r.setAcctSessionId(((map.get(ACCT_SESSION_ID) != null) ? map.get(ACCT_SESSION_ID).toString() : "N/A"));
+                    r.setAcctMultiSessionId(((map.get(ACCT_MULTI_SESSION_ID) != null) ? map.get(ACCT_MULTI_SESSION_ID).toString() : "N/A"));
                     r.setCallingStationId(((map.get(CALLING_STATION_ID) != null) ? map.get(CALLING_STATION_ID).toString() : "N/A"));
-                    r.setNasIdentifier(((map.get(NAS_IDENTIFIER) != null) ? map.get(NAS_IDENTIFIER).toString() : "N/A"));
                     r.setCalledStationId(((map.get(CALLED_STATION_ID) != null) ? map.get(CALLED_STATION_ID).toString() : "N/A"));
+                    r.setAcctAuthentic(((map.get(ACCT_AUTHENTIC) != null) ? map.get(ACCT_AUTHENTIC).toString() : "N/A"));
+                    r.setAcctStatusType(((map.get(ACCT_STATUS_TYPE) != null) ? map.get(ACCT_STATUS_TYPE).toString() : "N/A"));
+                    r.setNasIdentifier(((map.get(NAS_IDENTIFIER) != null) ? map.get(NAS_IDENTIFIER).toString() : "N/A"));
+                    r.setAcctDelayTime(((map.get(ACCT_DELAY_TIME) != null) ? map.get(ACCT_DELAY_TIME).toString() : "N/A"));
                     r.setNasIpAddress(((map.get(NAS_IP_ADDRESS) != null) ? map.get(NAS_IP_ADDRESS).toString() : "N/A"));
                     r.setFramedIpAddress(((map.get(FRAMED_IP_ADDRESS) != null) ? map.get(FRAMED_IP_ADDRESS).toString() : "N/A"));
-                    r.setAcctStatusType(((map.get(ACCT_STATUS_TYPE) != null) ? map.get(ACCT_STATUS_TYPE).toString() : "N/A"));
+                    r.setAcctUniqueSessionId(((map.get(ACCT_UNIQUE_SESSION_ID) != null) ? map.get(ACCT_UNIQUE_SESSION_ID).toString() : "N/A"));
+                    r.setRealm(((map.get(REALM) != null) ? map.get(REALM).toString() : "N/A"));
             } else {
                 r = null;
             }

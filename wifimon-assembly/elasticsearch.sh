@@ -6,30 +6,41 @@ curl -XPUT 'http://FQDN:9200/wifimon?pretty' -H 'Content-Type: application/json'
 	"mappings" : {
 		"properties" : {
 			"timestamp" : { "type" : "date" },
-			"downloadThroughput" : { "type" : "float" },
-			"uploadThroughput" : { "type" : "float" },
-			"localPing" : { "type" : "float" },
-			"location" : { "type" : "geo_point" },
-			"locationMethod" : { "type" : "keyword" },
-			"clientIp" : { "type" : "keyword" },
-			"userAgent" : { "type" : "keyword" },
-			"userBrowser" : { "type" : "keyword" },
-			"userOS" : { "type" : "keyword" },
-			"testTool" : { "type" : "keyword" },
-			"origin" : { "type" : "keyword" },
-			"probeNo" : { "type" : "keyword" },
-			"username" : { "type" : "keyword" },
-			"nasPort" : { "type" : "keyword" },
-			"callingStationId" : { "type" : "keyword" },
-			"nasIdentifier" : { "type" : "keyword" },
-			"calledStationId" : { "type" : "keyword" },
-			"nasIpAddress" : { "type" : "keyword" },
-			"apBuilding" : { "type" : "keyword" },
-			"apFloor" : { "type" : "keyword" },
-			"apLocation" : { "type" : "geo_point" },
-			"apNotes" : { "type" : "keyword" },
-			"requesterSubnet" : { "type" : "keyword" },
-			"encryptedIP" : { "type" : "keyword" }
+			"Download-Throughput" : { "type" : "float" },
+			"Upload-Throughput" : { "type" : "float" },
+			"Local-Ping" : { "type" : "float" },
+			"Location" : { "type" : "geo_point" },
+			"Location-Method" : { "type" : "keyword" },
+			"Client-Ip" : { "type" : "keyword" },
+			"User-Agent" : { "type" : "keyword" },
+			"User-Browser" : { "type" : "keyword" },
+			"user-OS" : { "type" : "keyword" },
+			"Test-Tool" : { "type" : "keyword" },
+			"Origin" : { "type" : "keyword" },
+			"Probe-No" : { "type" : "keyword" },
+			"RADIUS-Timestamp" : { "type" : "keyword" },
+			"Service-Type" : { "type" : "keyword" },
+			"NAS-Port-Id" : { "type" : "keyword" },
+			"NAS-Port-Type" : { "type" : "keyword" },
+			"User-Name" : { "type" : "keyword" },
+			"Acct-Session-Id" : { "type" : "keyword" },
+			"Acct-Multi-Session-Id" : { "type" : "keyword" },
+			"Calling-Station-Id" : { "type" : "keyword" },
+			"Called-Station-Id" : { "type" : "keyword" },
+			"Acct-Authentic" : { "type" : "keyword" },
+			"Acct-Status-Type" : { "type" : "keyword" },
+			"NAS-Identifier" : { "type" : "keyword" },
+			"Acct-Delay-Time" : { "type" : "keyword" },
+			"NAS-IP-Address" : { "type" : "keyword" },
+			"Framed-IP-Address" : { "type" : "keyword" },
+			"Acct-Unique-Session-Id" : { "type" : "keyword" },
+			"Realm" : { "type" : "keyword" },
+			"Ap-Building" : { "type" : "keyword" },
+			"Ap-Floor" : { "type" : "keyword" },
+			"Ap-Location" : { "type" : "geo_point" },
+			"Ap-Notes" : { "type" : "keyword" },
+			"Requester-Subnet" : { "type" : "keyword" },
+			"Encrypted-IP" : { "type" : "keyword" }
 		}
 	}
 }'
@@ -39,41 +50,13 @@ curl -XPUT 'http://FQDN:9200/probes?pretty' -H 'Content-Type: application/json' 
 { 
 	"mappings" : {
 		"properties" : {
-			"timestamp" : { "type" : "date" },
-			"bitRate" : { "type" : "float" },
-			"txPower" : { "type" : "float" },
-			"linkQuality" : { "type" : "float" },
-			"signalLevel" : { "type" : "float" },
-			"probeNo" : { "type" : "keyword" }
-		}
-	}
-}'
-
-# Create RADIUS logs index
-curl -XPUT 'http://FQDN:9200/radiuslogs?pretty' -H 'Content-Type: application/json' -d' 
-{
-	"mappings" : {
-		"properties" :  {
-		      "Timestamp" : { "type" : "date" },
-		      "User-Name" : { "type" : "keyword" },
-		      "Calling-Station-Id" : { "type" : "keyword" },
-		      "NAS-Identifier" : { "type" : "keyword" },
-		      "Called-Station-Id" : { "type" : "keyword" },
-		      "NAS-IP-Address" : { "type" : "ip" },
-		      "Framed-IP-Address" : { "type" : "keyword" },
-		      "Acct-Status-Type" : { "type" : "keyword" }
-	      }
-	}
-}'
-
-# Create DHCP logs index
-curl -XPUT 'http://FQDN:9200/dhcplogs?pretty' -H 'Content-Type: application/json' -d'
-{ 
-	"mappings" : {
-		"properties" : {
 			"Timestamp" : { "type" : "date" },
-			"IP-Address" : { "type" : "keyword" },
-			"MAC-Address" : { "type" : "keyword" }
+			"Bit-Rate" : { "type" : "float" },
+			"Tx-Power" : { "type" : "float" },
+			"Link-Quality" : { "type" : "float" },
+			"Signal-Level" : { "type" : "float" },
+			"Accesspoint" : { "type" : "keyword" },
+			"Probe-No" : { "type" : "keyword" }
 		}
 	}
 }'
@@ -81,8 +64,4 @@ curl -XPUT 'http://FQDN:9200/dhcplogs?pretty' -H 'Content-Type: application/json
 # Default Data
 curl -XPOST 'http://FQDN:9200/wifimon/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
 
-curl -XPOST 'http://FQDN:9200/radiuslogs/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
-
 curl -XPOST 'http://FQDN:9200/probes/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
-
-curl -XPOST 'http://FQDN:9200/dhcplogs/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'

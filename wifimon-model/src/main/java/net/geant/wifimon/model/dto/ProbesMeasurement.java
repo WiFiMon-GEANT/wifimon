@@ -9,11 +9,13 @@ import java.io.Serializable;
 public class ProbesMeasurement implements Serializable {
 
     private Long timestamp;
+    private String accesspoint;
     private Double bitRate;
     private Double txPower;
     private String linkQuality;
     private Double signalLevel;
-    private String testTool;
+    private String probeNo;
+    private String monitor;
 
     public Long getTimestamp() {
         return timestamp;
@@ -21,6 +23,14 @@ public class ProbesMeasurement implements Serializable {
 
     public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getAccesspoint() {
+	    return accesspoint;
+    }
+
+    public void setAccesspoint(String accesspoint) {
+	    this.accesspoint = accesspoint;
     }
 
     public Double getBitRate() {
@@ -55,12 +65,20 @@ public class ProbesMeasurement implements Serializable {
         this.signalLevel = signalLevel;
     }
 
-    public String getTestTool() {
-        return testTool;
+    public String getProbeNo() {
+        return probeNo;
     }
 
-    public void setTestTool(String testTool) {
-        this.testTool = testTool;
+    public void setProbeNo(String probeNo) {
+        this.probeNo = probeNo;
+    }
+
+    public String getMonitor() {
+	    return monitor;
+    }
+
+    public void setMonitor(String monitor) {
+	    this.monitor = monitor;
     }
 
     @Override
@@ -74,6 +92,8 @@ public class ProbesMeasurement implements Serializable {
 
         if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null)
             return false;
+	if (accesspoint != null ? !accesspoint.equals(that.accesspoint) : that.accesspoint != null)
+	    return false;
         if (bitRate != null ? !bitRate.equals(that.bitRate) : that.bitRate != null)
             return false;
         if (txPower != null ? !txPower.equals(that.txPower) : that.txPower != null)
@@ -82,17 +102,21 @@ public class ProbesMeasurement implements Serializable {
             return false;
         if (signalLevel != null ? !signalLevel.equals(that.signalLevel) : that.signalLevel != null)
             return false;
-        return testTool != null ? testTool.equals(that.testTool) : that.testTool == null;
+        if (probeNo != null ? !probeNo.equals(that.probeNo) : that.probeNo != null)
+            return false;
+        return monitor != null ? monitor.equals(that.monitor) : that.monitor == null;
     }
 
     @Override
     public int hashCode() {
         int result = timestamp != null ? timestamp.hashCode() : 0;
+	result = 31 * result + (accesspoint != null ? accesspoint.hashCode() : 0);
         result = 31 * result + (bitRate != null ? bitRate.hashCode() : 0);
         result = 31 * result + (txPower != null ? txPower.hashCode() : 0);
         result = 31 * result + (linkQuality != null ? linkQuality.hashCode() : 0);
         result = 31 * result + (signalLevel != null ? signalLevel.hashCode() : 0);
-        result = 31 * result + (testTool != null ? testTool.hashCode() : 0);
+        result = 31 * result + (probeNo != null ? probeNo.hashCode() : 0);
+        result = 31 * result + (monitor != null ? monitor.hashCode() : 0);
         return result;
     }
 }
