@@ -10,11 +10,11 @@ public class ProbesMeasurement implements Serializable {
 
     private Long timestamp;
     private String accesspoint;
-    private Double bitRate;
-    private Double txPower;
-    private String linkQuality;
-    private Double signalLevel;
-    private String probeNo;
+    private Long bitRate;
+    private Long txPower;
+    private Long linkQuality;
+    private Long signalLevel;
+    private Long probeNo;
     private String monitor;
 
     public Long getTimestamp() {
@@ -33,43 +33,43 @@ public class ProbesMeasurement implements Serializable {
 	    this.accesspoint = accesspoint;
     }
 
-    public Double getBitRate() {
+    public Long getBitRate() {
         return bitRate;
     }
 
-    public void setBitRate(Double bitRate) {
+    public void setBitRate(Long bitRate) {
         this.bitRate = bitRate;
     }
 
-    public Double getTxPower() {
+    public Long getTxPower() {
         return txPower;
     }
 
-    public void setTxPower(Double txPower) {
+    public void setTxPower(Long txPower) {
         this.txPower = txPower;
     }
 
-    public String getLinkQuality() {
+    public Long getLinkQuality() {
         return linkQuality;
     }
 
-    public void setLinkQuality(String linkQuality) {
+    public void setLinkQuality(Long linkQuality) {
         this.linkQuality = linkQuality;
     }
 
-    public Double getSignalLevel() {
+    public Long getSignalLevel() {
         return signalLevel;
     }
 
-    public void setSignalLevel(Double signalLevel) {
+    public void setSignalLevel(Long signalLevel) {
         this.signalLevel = signalLevel;
     }
 
-    public String getProbeNo() {
+    public Long getProbeNo() {
         return probeNo;
     }
 
-    public void setProbeNo(String probeNo) {
+    public void setProbeNo(Long probeNo) {
         this.probeNo = probeNo;
     }
 
@@ -116,7 +116,7 @@ public class ProbesMeasurement implements Serializable {
         result = 31 * result + (linkQuality != null ? linkQuality.hashCode() : 0);
         result = 31 * result + (signalLevel != null ? signalLevel.hashCode() : 0);
         result = 31 * result + (probeNo != null ? probeNo.hashCode() : 0);
-        result = 31 * result + (monitor != null ? monitor.hashCode() : 0);
+	result = 31 * result + (monitor != null ? monitor.hashCode() : 0);
         return result;
     }
 }

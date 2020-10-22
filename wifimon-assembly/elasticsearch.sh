@@ -1,11 +1,11 @@
 #!/bin/sh
 
 # Create wifimon index
-curl -XPUT 'http://FQDN:9200/wifimon?pretty' -H 'Content-Type: application/json' -d'
+curl -XPUT 'http://localhost:9200/wifimon?pretty' -H 'Content-Type: application/json' -d'
 {
 	"mappings" : {
 		"properties" : {
-			"timestamp" : { "type" : "date" },
+			"Timestamp" : { "type" : "date" },
 			"Download-Throughput" : { "type" : "float" },
 			"Upload-Throughput" : { "type" : "float" },
 			"Local-Ping" : { "type" : "float" },
@@ -14,7 +14,7 @@ curl -XPUT 'http://FQDN:9200/wifimon?pretty' -H 'Content-Type: application/json'
 			"Client-Ip" : { "type" : "keyword" },
 			"User-Agent" : { "type" : "keyword" },
 			"User-Browser" : { "type" : "keyword" },
-			"user-OS" : { "type" : "keyword" },
+			"User-OS" : { "type" : "keyword" },
 			"Test-Tool" : { "type" : "keyword" },
 			"Origin" : { "type" : "keyword" },
 			"Probe-No" : { "type" : "keyword" },
@@ -46,7 +46,7 @@ curl -XPUT 'http://FQDN:9200/wifimon?pretty' -H 'Content-Type: application/json'
 }'
 
 # Create probes index
-curl -XPUT 'http://FQDN:9200/probes?pretty' -H 'Content-Type: application/json' -d'
+curl -XPUT 'http://localhost:9200/probes?pretty' -H 'Content-Type: application/json' -d'
 { 
 	"mappings" : {
 		"properties" : {
@@ -62,6 +62,6 @@ curl -XPUT 'http://FQDN:9200/probes?pretty' -H 'Content-Type: application/json' 
 }'
 
 # Default Data
-curl -XPOST 'http://FQDN:9200/wifimon/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
+curl -XPOST 'http://localhost:9200/wifimon/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
 
-curl -XPOST 'http://FQDN:9200/probes/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
+curl -XPOST 'http://localhost:9200/probes/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'

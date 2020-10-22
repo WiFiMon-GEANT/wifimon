@@ -83,7 +83,25 @@ public class AggregatorResource {
     private static final String SSL_TRUSTSTORE_PHRASE = "ssl.http.truststore.phrase";
     private static final String SSL_KEY_PHRASE = "ssl.http.key.phrase";
     private static final String HMAC_SHA512_KEY = "sha.key";
-    private static final String AGENT = "User-Agent";
+    private static final String TIMESTAMP = "Timestamp";
+    private static final String DOWNLOAD_THROUGHPUT = "Download-Throughput";
+    private static final String UPLOAD_THROUGHPUT = "Upload-Throughput";
+    private static final String LOCAL_PING = "Local-Ping";
+    private static final String LOCATION = "Location";
+    private static final String LOCATION_METHOD = "Location-Method";
+    private static final String CLIENT_IP = "Client-Ip";
+    private static final String USER_AGENT = "User-Agent";
+    private static final String USER_BROWSER = "User-Browser";
+    private static final String USER_OS = "User-OS";
+    private static final String TEST_TOOL = "Test-Tool";
+    private static final String ORIGIN = "Origin";
+    private static final String PROBE_NUMBER = "Probe-No";
+    private static final String REQUESTER_SUBNET = "Requester-Subnet";
+    private static final String ENCRYPTED_IP = "Encrypted-IP";
+    private static final String AP_BUILDING = "Ap-Building";
+    private static final String AP_FLOOR = "Ap-Floor";
+    private static final String AP_LOCATION = "Ap-Location";
+    private static final String AP_NOTES = "Ap-Notes";
     private static final String RADIUS_TIMESTAMP_KEYWORD = "RADIUS-Timestamp.keyword";
     private static final String RADIUS_TIMESTAMP = "RADIUS-Timestamp";
     private static final String DHCP_TIMESTAMP_KEYWORD = "DHCP-Timestamp.keyword";
@@ -107,6 +125,9 @@ public class AggregatorResource {
     private static final String FRAMED_IP_ADDRESS = "Framed-IP-Address";
     private static final String ACCT_UNIQUE_SESSION_ID = "Acct-Unique-Session-Id";
     private static final String REALM = "Realm";
+    private static final String IP_ADDRESS = "IP-Address";
+    private static final String IP_ADDRESS_KEYWORD = "IP-Address.keyword";
+    private static final String MAC_ADDRESS = "MAC-Address";
 
     private static Logger logger = Logger.getLogger(AggregatorResource.class.getName());
     private static RestHighLevelClient restHighLevelClient;
@@ -140,24 +161,23 @@ public class AggregatorResource {
     @POST
     @Path("/probes")
     public Response correlate(final ProbesMeasurement measurement, @Context HttpServletRequest request) {
-        Response response = null;
+	     Response response = null;
 
         try {
-
             // Get Wireless Network Performance Metrics
-	    String accesspointJson = measurement.getAccesspoint() != null ? "\"Accessopint\" : " + measurement.getAccesspoint() + ", " : "";
-            String bitRateJson = measurement.getBitRate() != null ? "\"Bit_Rate\" : " + measurement.getBitRate() + ", " : "";
-            String txPowerJson = measurement.getTxPower() != null ? "\"Tx_Power\" : " + measurement.getTxPower() + ", " : "";
-            String linkQualityJson = measurement.getLinkQuality() != null ? "\"Link_Quality\" : " + measurement.getLinkQuality() + ", " : "";
-            String signalLevelJson = measurement.getSignalLevel() != null ? "\"Signal_Level\" : " + measurement.getSignalLevel() + ", " : "";
-            String probeNoJson = measurement.getProbeNo() != null ? "\"Probe_No\" : \"" + measurement.getProbeNo() + "\"" : "";
-            String monitorJson = measurement.getMonitor() != null ? "\"Monitor\" : \"" + measurement.getMonitor() + "\"" : "";
+            String timestampJson = measurement.getTimestamp() != null ? "\"Timestamp\" : " + measurement.getTimestamp() + ", " : "";
+            String accesspointJson = measurement.getAccesspoint() != null ? "\"Accesspoint\" : \"" + measurement.getAccesspoint() + "\", " : "";
+            String bitRateJson = measurement.getBitRate() != null ? "\"Bit-Rate\" : " + measurement.getBitRate() + ", " : "";
+            String txPowerJson = measurement.getTxPower() != null ? "\"Tx-Power\" : " + measurement.getTxPower() + ", " : "";
+            String linkQualityJson = measurement.getLinkQuality() != null ? "\"Link-Quality\" : " + measurement.getLinkQuality() + ", " : "";
+            String signalLevelJson = measurement.getSignalLevel() != null ? "\"Signal-Level\" : " + measurement.getSignalLevel() + ", " : "";
+            String probeNoJson = measurement.getProbeNo() != null ? "\"Probe-No\" : " + measurement.getProbeNo() + ", " : "";
+	    String monitorJson = measurement.getMonitor() != null ? "\"Monitor\" : " + measurement.getMonitor() : "";
 
             // Construct JSON object that will be stored in Elasticsearch
             String jsonStringDraft = "{" +
-                    "\"Timestamp\" : " + measurement.getTimestamp() + ", " +
-                    accesspointJson + bitRateJson + txPowerJson + linkQualityJson +
-                    signalLevelJson + probeNoJson + monitorJson + "}";
+                    timestampJson + accesspointJson + bitRateJson + txPowerJson + 
+		    linkQualityJson + signalLevelJson + probeNoJson + monitorJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
@@ -174,12 +194,11 @@ public class AggregatorResource {
         return response;
     }
 
-
     @POST
     @Path("/add")
     public Response correlate(final NetTestMeasurement measurement, @Context HttpServletRequest request) {
         Response response;
-	String agent = request.getHeader(AGENT) != null || request.getHeader(AGENT).isEmpty() ? request.getHeader(AGENT) : "N/A";
+	String agent = request.getHeader(USER_AGENT) != null || request.getHeader(USER_AGENT).isEmpty() ? request.getHeader(USER_AGENT) : "N/A";
 
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
@@ -217,7 +236,6 @@ public class AggregatorResource {
 	    logger.info(e.toString());
         }
 
-
         // What is the correlation method defined by the administrator in the WiFiMon GUI?
         String correlationmethod = visualOptionsRepository.findCorrelationmethod();
         if (correlationmethod == null || correlationmethod.isEmpty()) {
@@ -234,7 +252,6 @@ public class AggregatorResource {
         } else {
             r = retrieveLastRadiusEntryByIp(encryptedIP);
         }
-
 
         try {
             if (r != null) {
@@ -336,16 +353,16 @@ public class AggregatorResource {
 	}
 
         // Define Strings for the different measurement fields and results from correlation with RADIUS Logs
-        String downloadThroughputJson = measurement.getDownloadThroughput() != null ? "\"Download-Throughput\" : " + measurement.getDownloadThroughput() + ", " : "";
-        String uploadThroughputJson = measurement.getUploadThroughput() != null ? "\"Upload-Throughput\" : " + measurement.getUploadThroughput() + ", " : "";
-        String localPingJson = measurement.getLocalPing() != null ? "\"Local-Ping\" : " + measurement.getLocalPing() + ", " : "";
-        String locationJson = measurement.getLatitude() != null ? "\"Location\" : \"" + measurement.getLatitude() + "," + measurement.getLongitude() + "\", " : "";
-        String locationMethodJson = measurement.getLocationMethod() != null ? "\"Location-Method\" : \"" + measurement.getLocationMethod() + "\", " : "";
-        String clientIpJson = measurement.getClientIp() != null ? "\"Client-Ip\" : \"" + measurement.getClientIp() + "\", " : "";
-        String userAgentJson = measurement.getUserAgent() != null ? "\"User-Agent\" : \"" + measurement.getUserAgent() + "\", " : "";
-        String userBrowserJson = userBrowser != null ? "\"User-Browser\" : \"" + userBrowser + "\", " : "";
-        String userOsJson = userOs != null ? "\"User-OS\" : \"" + userOs + "\", " : "";
-        String testToolJson = measurement.getTestTool() != null ? "\"Test-Tool\" : \"" + measurement.getTestTool() + "\", " : "";
+        String downloadThroughputJson = measurement.getDownloadThroughput() != null ? "\"" + DOWNLOAD_THROUGHPUT + "\" : " + measurement.getDownloadThroughput() + ", " : "";
+        String uploadThroughputJson = measurement.getUploadThroughput() != null ? "\"" + UPLOAD_THROUGHPUT + "\" : " + measurement.getUploadThroughput() + ", " : "";
+        String localPingJson = measurement.getLocalPing() != null ? "\"" + LOCAL_PING + "\" : " + measurement.getLocalPing() + ", " : "";
+        String locationJson = measurement.getLatitude() != null ? "\"" + LOCATION + "\" : \"" + measurement.getLatitude() + "," + measurement.getLongitude() + "\", " : "";
+        String locationMethodJson = measurement.getLocationMethod() != null ? "\"" + LOCATION_METHOD + "\" : \"" + measurement.getLocationMethod() + "\", " : "";
+        String clientIpJson = measurement.getClientIp() != null ? "\"" + CLIENT_IP + "\" : \"" + measurement.getClientIp() + "\", " : "";
+        String userAgentJson = measurement.getUserAgent() != null ? "\"" + USER_AGENT + "\" : \"" + measurement.getUserAgent() + "\", " : "";
+        String userBrowserJson = userBrowser != null ? "\"" + USER_BROWSER + "\" : \"" + userBrowser + "\", " : "";
+        String userOsJson = userOs != null ? "\"" + USER_OS + "\" : \"" + userOs + "\", " : "";
+        String testToolJson = measurement.getTestTool() != null ? "\"" + TEST_TOOL + "\" : \"" + measurement.getTestTool() + "\", " : "";
         String radiusTimestampJson = measurement.getRadiusTimestamp() != null ? "\"" + RADIUS_TIMESTAMP + "\" : \"" + measurement.getRadiusTimestamp() + "\", " : "";
         String serviceTypeJson = measurement.getServiceType() != null ? "\"" + SERVICE_TYPE + "\" : \"" + measurement.getServiceType() + "\", " : "";
         String nasPortIdJson = measurement.getNasPortId() != null ? "\"" + NAS_PORT_ID + "\" : \"" + measurement.getNasPortId() + "\", " : "";
@@ -363,18 +380,18 @@ public class AggregatorResource {
         String framedIpAddressJson = measurement.getFramedIpAddress() != null ? "\"" + FRAMED_IP_ADDRESS + "\" : \"" + measurement.getFramedIpAddress() + "\", " : "";
         String acctUniqueSessionIdJson = measurement.getAcctUniqueSessionId() != null ? "\"" + ACCT_UNIQUE_SESSION_ID + "\" : \"" + measurement.getAcctUniqueSessionId() + "\", " : "";
         String realmJson = measurement.getRealm() != null ? "\"" + REALM + "\" : \"" + measurement.getRealm() + "\", " : "";
-        String measurementOriginJson = measurementOrigin != null ? "\"Origin\" : \"" + measurementOrigin + "\", " : "";
-        String probeNumberJson = probeNumber != null ? "\"Probe-No\" : \"" + probeNumber + "\", " : "";
-        String requesterSubnetJson = requesterSubnet != null ? "\"Requester-Subnet\" : \"" + requesterSubnet + "\", " : "";
-        String encryptedIPJson = encryptedIP != null ? "\"Encrypted-IP\" : \"" + encryptedIP + "\", " : "";
-        String apBuildingJson = measurement.getApBuilding() != null ? "\"Ap-Building\" : \"" + measurement.getApBuilding() + "\", " : "";
-        String apFloorJson = measurement.getApFloor() != null ? "\"Ap-Floor\" : \"" + measurement.getApFloor() + "\", " : "";
-        String apLocationJson = measurement.getApLatitude() != null ? "\"Ap-Location\" : \"" + measurement.getApLatitude() + "," + measurement.getApLongitude() + "\", " : "";
-        String apNotesJson = measurement.getApNotes() != null ? "\"Ap-Notes\" : \"" + measurement.getApNotes() + "\"" : "";
+        String measurementOriginJson = measurementOrigin != null ? "\"" + ORIGIN + "\" : \"" + measurementOrigin + "\", " : "";
+        String probeNumberJson = probeNumber != null ? "\"" + PROBE_NUMBER + "\" : \"" + probeNumber + "\", " : "";
+        String requesterSubnetJson = requesterSubnet != null ? "\"" + REQUESTER_SUBNET + "\" : \"" + requesterSubnet + "\", " : "";
+        String encryptedIPJson = encryptedIP != null ? "\"" + ENCRYPTED_IP + "\" : \"" + encryptedIP + "\", " : "";
+        String apBuildingJson = measurement.getApBuilding() != null ? "\"" + AP_BUILDING + "\" : \"" + measurement.getApBuilding() + "\", " : "";
+        String apFloorJson = measurement.getApFloor() != null ? "\"" + AP_FLOOR + "\" : \"" + measurement.getApFloor() + "\", " : "";
+        String apLocationJson = measurement.getApLatitude() != null ? "\"" + AP_LOCATION + "\" : \"" + measurement.getApLatitude() + "," + measurement.getApLongitude() + "\", " : "";
+        String apNotesJson = measurement.getApNotes() != null ? "\"" + AP_NOTES + "\" : \"" + measurement.getApNotes() + "\"" : "";
 
         // Build the Json String to store in the elasticsearch cluster
         String jsonStringDraft = "{" +
-                "\"Timestamp\" : " + measurement.getTimestamp() + ", " +
+                "\"" + TIMESTAMP + "\" : " + measurement.getTimestamp() + ", " +
                 downloadThroughputJson + uploadThroughputJson + localPingJson +
                 locationJson + locationMethodJson + userAgentJson + userBrowserJson + 
 		userOsJson + testToolJson + radiusTimestampJson + serviceTypeJson +
@@ -401,10 +418,10 @@ public class AggregatorResource {
         try {
             final SearchSourceBuilder builder = new SearchSourceBuilder()
             .query(QueryBuilders.matchAllQuery())
-            .sort(new FieldSortBuilder(DHCP_TIMESTAMP).order(SortOrder.DESC))
+            .sort(new FieldSortBuilder(DHCP_TIMESTAMP_KEYWORD).order(SortOrder.DESC))
             .from(0)
-            .fetchSource(new String[]{DHCP_TIMESTAMP, "IP-Address", "MAC-Address"}, null)
-            .postFilter(QueryBuilders.termQuery("IP-Address", ip))
+            .fetchSource(new String[]{DHCP_TIMESTAMP, IP_ADDRESS, MAC_ADDRESS}, null)
+            .postFilter(QueryBuilders.termQuery(IP_ADDRESS_KEYWORD, ip))
             .size(1)
             .explain(true);
 
@@ -416,7 +433,7 @@ public class AggregatorResource {
             if (response.getHits().getTotalHits().value > 0) {
                     SearchHit hit = hits.getAt(0);
                     Map map = hit.getSourceAsMap();
-                    macAddress = (map.get("MAC-Address") != null) ? map.get("MAC-Address").toString() : "N/A";
+                    macAddress = (map.get(MAC_ADDRESS) != null) ? map.get(MAC_ADDRESS).toString() : "N/A";
             }
         } catch (Exception e) {
             logger.info(e.toString());
@@ -526,7 +543,6 @@ public class AggregatorResource {
             } else {
                 r = null;
             }
-
         } catch (Exception e) {
             logger.info(e.toString());
         }
