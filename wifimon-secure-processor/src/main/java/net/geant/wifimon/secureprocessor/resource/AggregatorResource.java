@@ -128,6 +128,12 @@ public class AggregatorResource {
     private static final String IP_ADDRESS = "IP-Address";
     private static final String IP_ADDRESS_KEYWORD = "IP-Address.keyword";
     private static final String MAC_ADDRESS = "MAC-Address";
+    private static final String PROBE_ACCESSPOINT = "Accesspoint";
+    private static final String PROBE_BIT_RATE = "Bit-Rate";
+    private static final String PROBE_TX_POWER = "Tx-Power";
+    private static final String PROBE_LINK_QUALITY = "Link-Quality";
+    private static final String PROBE_SIGNAL_LEVEL = "Signal-Level";
+    private static final String PROBE_MONITOR = "Monitor";
 
     private static Logger logger = Logger.getLogger(AggregatorResource.class.getName());
     private static RestHighLevelClient restHighLevelClient;
@@ -165,14 +171,14 @@ public class AggregatorResource {
 
         try {
             // Get Wireless Network Performance Metrics
-            String timestampJson = measurement.getTimestamp() != null ? "\"Timestamp\" : " + measurement.getTimestamp() + ", " : "";
-            String accesspointJson = measurement.getAccesspoint() != null ? "\"Accesspoint\" : \"" + measurement.getAccesspoint() + "\", " : "";
-            String bitRateJson = measurement.getBitRate() != null ? "\"Bit-Rate\" : " + measurement.getBitRate() + ", " : "";
-            String txPowerJson = measurement.getTxPower() != null ? "\"Tx-Power\" : " + measurement.getTxPower() + ", " : "";
-            String linkQualityJson = measurement.getLinkQuality() != null ? "\"Link-Quality\" : " + measurement.getLinkQuality() + ", " : "";
-            String signalLevelJson = measurement.getSignalLevel() != null ? "\"Signal-Level\" : " + measurement.getSignalLevel() + ", " : "";
-            String probeNoJson = measurement.getProbeNo() != null ? "\"Probe-No\" : " + measurement.getProbeNo() + ", " : "";
-	    String monitorJson = measurement.getMonitor() != null ? "\"Monitor\" : " + measurement.getMonitor() : "";
+            String timestampJson = measurement.getTimestamp() != null ? "\"" + TIMESTAMP + "\" : " + measurement.getTimestamp() + ", " : "";
+            String accesspointJson = measurement.getAccesspoint() != null ? "\"" + PROBE_ACCESSPOINT + "\" : \"" + measurement.getAccesspoint() + "\", " : "";
+            String bitRateJson = measurement.getBitRate() != null ? "\"" + PROBE_BIT_RATE + "\" : " + measurement.getBitRate() + ", " : "";
+            String txPowerJson = measurement.getTxPower() != null ? "\"" + PROBE_TX_POWER + "\" : " + measurement.getTxPower() + ", " : "";
+            String linkQualityJson = measurement.getLinkQuality() != null ? "\"" + PROBE_LINK_QUALITY + "\" : " + measurement.getLinkQuality() + ", " : "";
+            String signalLevelJson = measurement.getSignalLevel() != null ? "\"" + PROBE_SIGNAL_LEVEL + "\" : " + measurement.getSignalLevel() + ", " : "";
+            String probeNoJson = measurement.getProbeNo() != null ? "\"" + PROBE_NUMBER + "\" : " + measurement.getProbeNo() + ", " : "";
+	    String monitorJson = measurement.getMonitor() != null ? "\"" + PROBE_MONITOR + "\" : " + measurement.getMonitor() : "";
 
             // Construct JSON object that will be stored in Elasticsearch
             String jsonStringDraft = "{" +
