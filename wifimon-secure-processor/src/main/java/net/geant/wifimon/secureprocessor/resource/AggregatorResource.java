@@ -292,7 +292,6 @@ public class AggregatorResource {
         m.setServiceType(radius != null ? radius.getServiceType() : null);
         m.setNasPortId(radius != null ? radius.getNasPortId() : null);
         m.setNasPortType(radius != null ? radius.getNasPortType() : null);
-        m.setUserName(radius != null ? radius.getUserName() : null);
         m.setAcctSessionId(radius != null ? radius.getAcctSessionId() : null);
         m.setAcctMultiSessionId(radius != null ? radius.getAcctMultiSessionId() : null);
         m.setCallingStationId(radius != null ? radius.getCallingStationId() : null);
