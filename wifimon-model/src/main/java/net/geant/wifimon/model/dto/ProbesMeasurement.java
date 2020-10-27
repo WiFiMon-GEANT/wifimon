@@ -9,11 +9,13 @@ import java.io.Serializable;
 public class ProbesMeasurement implements Serializable {
 
     private Long timestamp;
-    private Double bitRate;
-    private Double txPower;
-    private String linkQuality;
-    private Double signalLevel;
-    private String testTool;
+    private String accesspoint;
+    private Long bitRate;
+    private Long txPower;
+    private Long linkQuality;
+    private Long signalLevel;
+    private Long probeNo;
+    private String monitor;
 
     public Long getTimestamp() {
         return timestamp;
@@ -23,44 +25,60 @@ public class ProbesMeasurement implements Serializable {
         this.timestamp = timestamp;
     }
 
-    public Double getBitRate() {
+    public String getAccesspoint() {
+	    return accesspoint;
+    }
+
+    public void setAccesspoint(String accesspoint) {
+	    this.accesspoint = accesspoint;
+    }
+
+    public Long getBitRate() {
         return bitRate;
     }
 
-    public void setBitRate(Double bitRate) {
+    public void setBitRate(Long bitRate) {
         this.bitRate = bitRate;
     }
 
-    public Double getTxPower() {
+    public Long getTxPower() {
         return txPower;
     }
 
-    public void setTxPower(Double txPower) {
+    public void setTxPower(Long txPower) {
         this.txPower = txPower;
     }
 
-    public String getLinkQuality() {
+    public Long getLinkQuality() {
         return linkQuality;
     }
 
-    public void setLinkQuality(String linkQuality) {
+    public void setLinkQuality(Long linkQuality) {
         this.linkQuality = linkQuality;
     }
 
-    public Double getSignalLevel() {
+    public Long getSignalLevel() {
         return signalLevel;
     }
 
-    public void setSignalLevel(Double signalLevel) {
+    public void setSignalLevel(Long signalLevel) {
         this.signalLevel = signalLevel;
     }
 
-    public String getTestTool() {
-        return testTool;
+    public Long getProbeNo() {
+        return probeNo;
     }
 
-    public void setTestTool(String testTool) {
-        this.testTool = testTool;
+    public void setProbeNo(Long probeNo) {
+        this.probeNo = probeNo;
+    }
+
+    public String getMonitor() {
+	    return monitor;
+    }
+
+    public void setMonitor(String monitor) {
+	    this.monitor = monitor;
     }
 
     @Override
@@ -74,6 +92,8 @@ public class ProbesMeasurement implements Serializable {
 
         if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null)
             return false;
+	if (accesspoint != null ? !accesspoint.equals(that.accesspoint) : that.accesspoint != null)
+	    return false;
         if (bitRate != null ? !bitRate.equals(that.bitRate) : that.bitRate != null)
             return false;
         if (txPower != null ? !txPower.equals(that.txPower) : that.txPower != null)
@@ -82,17 +102,21 @@ public class ProbesMeasurement implements Serializable {
             return false;
         if (signalLevel != null ? !signalLevel.equals(that.signalLevel) : that.signalLevel != null)
             return false;
-        return testTool != null ? testTool.equals(that.testTool) : that.testTool == null;
+        if (probeNo != null ? !probeNo.equals(that.probeNo) : that.probeNo != null)
+            return false;
+        return monitor != null ? monitor.equals(that.monitor) : that.monitor == null;
     }
 
     @Override
     public int hashCode() {
         int result = timestamp != null ? timestamp.hashCode() : 0;
+	result = 31 * result + (accesspoint != null ? accesspoint.hashCode() : 0);
         result = 31 * result + (bitRate != null ? bitRate.hashCode() : 0);
         result = 31 * result + (txPower != null ? txPower.hashCode() : 0);
         result = 31 * result + (linkQuality != null ? linkQuality.hashCode() : 0);
         result = 31 * result + (signalLevel != null ? signalLevel.hashCode() : 0);
-        result = 31 * result + (testTool != null ? testTool.hashCode() : 0);
+        result = 31 * result + (probeNo != null ? probeNo.hashCode() : 0);
+	result = 31 * result + (monitor != null ? monitor.hashCode() : 0);
         return result;
     }
 }

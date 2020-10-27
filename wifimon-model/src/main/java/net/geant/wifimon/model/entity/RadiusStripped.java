@@ -7,42 +7,81 @@ import java.io.Serializable;
  */
 
 public class RadiusStripped implements Serializable {
+<<<<<<< HEAD
 
     private String timestamp;
     private String nasPort;
     private String sourceHost;
+=======
+    private String radiusTimestamp;
+    private String serviceType;
+    private String nasPortId;
+    private String nasPortType;
+    private String acctSessionId;
+    private String acctMultiSessionId;
+>>>>>>> nikos
     private String callingStationId;
-    private String result;
-    private String traceId;
-    private String nasIdentifier;
     private String calledStationId;
-    private String framedIpAddress;
-    private String nasIpAddress;
+    private String acctAuthentic;
     private String acctStatusType;
+    private String nasIdentifier;
+    private String acctDelayTime;
+    private String nasIpAddress;
+    private String framedIpAddress;
+    private String acctUniqueSessionId;
+    private String realm;
 
+    public String getRadiusTimestamp() {
+	    return radiusTimestamp;
+    }
 
+    public void setRadiusTimestamp(String radiusTimestamp) {
+	    this.radiusTimestamp = radiusTimestamp;
+    }
+
+    public String getServiceType() {
+	    return serviceType;
+    }
+
+    public void setServiceType(String serviceType) {
+	    this.serviceType = serviceType;
+    }
+
+<<<<<<< HEAD
     public String getTimestamp() {
         return timestamp;
+=======
+    public String getNasPortId() {
+	    return nasPortId;
     }
 
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
+    public void setNasPortId(String nasPortId) {
+	    this.nasPortId = nasPortId;
     }
 
-    public String getNasPort() {
-        return nasPort;
+    public String getNasPortType() {
+	    return nasPortType;
+>>>>>>> nikos
     }
 
-    public void setNasPort(String nasPort) {
-        this.nasPort = nasPort;
+    public void setNasPortType(String nasPortType) {
+	    this.nasPortType = nasPortType;
     }
 
-    public String getSourceHost() {
-        return sourceHost;
+    public String getAcctSessionId() {
+	    return acctSessionId;
     }
 
-    public void setSourceHost(String sourceHost) {
-        this.sourceHost = sourceHost;
+    public void setAcctSessionId(String acctSessionId) {
+	    this.acctSessionId = acctSessionId;
+    }
+
+    public String getAcctMultiSessionId() {
+	    return acctMultiSessionId;
+    }
+
+    public void setAcctMultiSessionId(String acctMultiSessionId) {
+	    this.acctMultiSessionId = acctMultiSessionId;
     }
 
     public String getCallingStationId() {
@@ -53,30 +92,6 @@ public class RadiusStripped implements Serializable {
         this.callingStationId = callingStationId;
     }
 
-    public String getResult() {
-        return result;
-    }
-
-    public void setResult(String result) {
-        this.result = result;
-    }
-
-    public String getTraceId() {
-        return traceId;
-    }
-
-    public void setTraceId(String traceId) {
-        this.traceId = traceId;
-    }
-
-    public String getNasIdentifier() {
-        return nasIdentifier;
-    }
-
-    public void setNasIdentifier(String nasIdentifier) {
-        this.nasIdentifier = nasIdentifier;
-    }
-
     public String getCalledStationId() {
         return calledStationId;
     }
@@ -85,12 +100,36 @@ public class RadiusStripped implements Serializable {
         this.calledStationId = calledStationId;
     }
 
-    public String getFramedIpAddress() {
-        return framedIpAddress;
+    public String getAcctAuthentic() {
+	    return acctAuthentic;
     }
 
-    public void setFramedIpAddress(String framedIpAddress) {
-        this.framedIpAddress = framedIpAddress;
+    public void setAcctAuthentic(String acctAuthentic) {
+	    this.acctAuthentic = acctAuthentic;
+    }
+
+    public String getAcctStatusType() {
+	    return acctStatusType;
+    }
+
+    public void setAcctStatusType(String acctStatusType) {
+	    this.acctStatusType = acctStatusType;
+    }
+
+    public String getNasIdentifier() {
+	    return nasIdentifier;
+    }
+
+    public void setNasIdentifier(String nasIdentifier) {
+	    this.nasIdentifier = nasIdentifier;
+    }
+
+    public String getAcctDelayTime() {
+	    return acctDelayTime;
+    }
+
+    public void setAcctDelayTime(String acctDelayTime) {
+	    this.acctDelayTime = acctDelayTime;
     }
 
     public String getNasIpAddress() {
@@ -101,11 +140,28 @@ public class RadiusStripped implements Serializable {
         this.nasIpAddress = nasIpAddress;
     }
 
-    public String getAcctStatusType() {
-        return acctStatusType;
+    public String getFramedIpAddress() {
+	    return framedIpAddress;
     }
 
-    public void setAcctStatusType(String acctStatusType) {
-        this.acctStatusType = acctStatusType;
+    public void setFramedIpAddress(String framedIpAddress) {
+	    this.framedIpAddress = framedIpAddress;
     }
+
+    public String getAcctUniqueSessionId() {
+	    return acctUniqueSessionId;
+    }
+
+    public void setAcctUniqueSessionId(String acctUniqueSessionId) {
+	    this.acctUniqueSessionId = acctUniqueSessionId;
+    }
+
+    public String getRealm() {
+	    return realm;
+    }
+
+    public void setRealm(String realm) {
+	    this.realm = realm;
+    }
+
 }
