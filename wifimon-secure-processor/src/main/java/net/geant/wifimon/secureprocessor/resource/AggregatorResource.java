@@ -246,7 +246,6 @@ public class AggregatorResource {
         m.setLocationMethod(measurement.getLocationMethod());
         m.setUserAgent(agent);
         m.setTestTool(measurement.getTestTool());
-        m.setUserName(radius != null ? radius.getUserName() : null);
         m.setNasPort(radius != null ? radius.getNasPort() : null);
         m.setCallingStationId(radius != null ? radius.getCallingStationId() : null);
         m.setNasIdentifier(radius != null ? radius.getNasIdentifier() : null);
