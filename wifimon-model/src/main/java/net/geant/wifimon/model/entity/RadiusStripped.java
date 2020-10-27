@@ -11,7 +11,6 @@ public class RadiusStripped implements Serializable {
     private String serviceType;
     private String nasPortId;
     private String nasPortType;
-    private String userName;
     private String acctSessionId;
     private String acctMultiSessionId;
     private String callingStationId;
@@ -55,14 +54,6 @@ public class RadiusStripped implements Serializable {
 
     public void setNasPortType(String nasPortType) {
 	    this.nasPortType = nasPortType;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
     }
 
     public String getAcctSessionId() {

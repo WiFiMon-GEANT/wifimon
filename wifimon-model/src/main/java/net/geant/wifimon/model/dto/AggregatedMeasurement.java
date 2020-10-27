@@ -22,7 +22,6 @@ public class AggregatedMeasurement implements Serializable {
     private String serviceType;
     private String nasPortId;
     private String nasPortType;
-    private String userName;
     private String acctSessionId;
     private String acctMultiSessionId;
     private String callingStationId;
@@ -151,14 +150,6 @@ public class AggregatedMeasurement implements Serializable {
 
     public void setNasPortType(String nasPortType) {
 	    this.nasPortType = nasPortType;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
     }
 
     public String getAcctSessionId() {
@@ -334,8 +325,6 @@ public class AggregatedMeasurement implements Serializable {
 	    return false;
         if (nasPortType != null ? !nasPortType.equals(that.nasPortType) : that.nasPortType != null)
 	    return false;
-        if (userName != null ? !userName.equals(that.userName) : that.userName != null)
-	    return false;
         if (acctSessionId != null ? !acctSessionId.equals(that.acctSessionId) : that.acctSessionId != null)
 	    return false;
         if (acctMultiSessionId != null ? !acctMultiSessionId.equals(that.acctMultiSessionId) : that.acctMultiSessionId != null)
@@ -387,7 +376,6 @@ public class AggregatedMeasurement implements Serializable {
         result = 31 * result + (serviceType != null ? serviceType.hashCode() : 0);
         result = 31 * result + (nasPortId != null ? nasPortId.hashCode() : 0);
         result = 31 * result + (nasPortType != null ? nasPortType.hashCode() : 0);
-        result = 31 * result + (userName != null ? userName.hashCode() : 0);
         result = 31 * result + (acctSessionId != null ? acctSessionId.hashCode() : 0);
         result = 31 * result + (acctMultiSessionId != null ? acctMultiSessionId.hashCode() : 0);
         result = 31 * result + (callingStationId != null ? callingStationId.hashCode() : 0);

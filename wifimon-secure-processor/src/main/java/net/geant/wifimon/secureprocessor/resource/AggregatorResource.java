@@ -109,7 +109,6 @@ public class AggregatorResource {
     private static final String SERVICE_TYPE = "Service-Type";
     private static final String NAS_PORT_ID = "NAS-Port-Id";
     private static final String NAS_PORT_TYPE = "NAS-Port-Type";
-    private static final String USERNAME = "User-Name";
     private static final String ACCT_SESSION_ID = "Acct-Session-Id";
     private static final String ACCT_MULTI_SESSION_ID = "Acct-Multi-Session-Id";
     private static final String CALLING_STATION_ID_KEYWORD = "Calling-Station-Id.keyword";
@@ -373,7 +372,6 @@ public class AggregatorResource {
         String serviceTypeJson = measurement.getServiceType() != null ? "\"" + SERVICE_TYPE + "\" : \"" + measurement.getServiceType() + "\", " : "";
         String nasPortIdJson = measurement.getNasPortId() != null ? "\"" + NAS_PORT_ID + "\" : \"" + measurement.getNasPortId() + "\", " : "";
         String nasPortTypeJson = measurement.getNasPortType() != null ? "\"" + NAS_PORT_TYPE + "\" : \"" + measurement.getNasPortType() + "\", " : "";
-        String usernameJson = measurement.getUserName() != null ? "\"" + USERNAME + "\" : \"" + measurement.getUserName() + "\", " : "";
         String acctSessionIdJson = measurement.getAcctSessionId() != null ? "\"" + ACCT_SESSION_ID + "\" : \"" + measurement.getAcctSessionId() + "\", " : "";
         String acctMultiSessionIdJson = measurement.getAcctMultiSessionId() != null ? "\"" + ACCT_MULTI_SESSION_ID + "\" : \"" + measurement.getAcctMultiSessionId() + "\", " : "";
         String callingStationIdJson = measurement.getCallingStationId() != null ? "\"" + CALLING_STATION_ID + "\" : \"" + measurement.getCallingStationId() + "\", " : "";
@@ -401,7 +399,7 @@ public class AggregatorResource {
                 downloadThroughputJson + uploadThroughputJson + localPingJson +
                 locationJson + locationMethodJson + userAgentJson + userBrowserJson + 
 		userOsJson + testToolJson + radiusTimestampJson + serviceTypeJson +
- 		nasPortIdJson + nasPortTypeJson + usernameJson + acctSessionIdJson +
+ 		nasPortIdJson + nasPortTypeJson + acctSessionIdJson +
 		acctMultiSessionIdJson + callingStationIdJson + calledStationIdJson +
 		acctAuthenticJson + acctStatusTypeJson + nasIdentifierJson +
 		acctDelayTimeJson + nasIpAddressJson + framedIpAddressJson +
@@ -458,7 +456,7 @@ public class AggregatorResource {
                     .sort(new FieldSortBuilder(RADIUS_TIMESTAMP_KEYWORD).order(SortOrder.DESC))
                     .from(0)
                     .fetchSource(new String[]{RADIUS_TIMESTAMP, SERVICE_TYPE, NAS_PORT_ID,
-                            NAS_PORT_TYPE, USERNAME, ACCT_SESSION_ID, ACCT_MULTI_SESSION_ID,
+                            NAS_PORT_TYPE, ACCT_SESSION_ID, ACCT_MULTI_SESSION_ID,
 			    CALLING_STATION_ID, CALLED_STATION_ID, ACCT_AUTHENTIC,
                             ACCT_STATUS_TYPE, NAS_IDENTIFIER, ACCT_DELAY_TIME,
 		            NAS_IP_ADDRESS, FRAMED_IP_ADDRESS, ACCT_UNIQUE_SESSION_ID, REALM}, null)
@@ -478,7 +476,6 @@ public class AggregatorResource {
                     r.setServiceType(((map.get(SERVICE_TYPE) != null) ? map.get(SERVICE_TYPE).toString() : "N/A"));
                     r.setNasPortId(((map.get(NAS_PORT_ID) != null) ? map.get(NAS_PORT_ID).toString() : "N/A"));
                     r.setNasPortType(((map.get(NAS_PORT_TYPE) != null) ? map.get(NAS_PORT_TYPE).toString() : "N/A"));
-                    r.setUserName(((map.get(USERNAME) != null) ? map.get(USERNAME).toString() : "N/A"));
                     r.setAcctSessionId(((map.get(ACCT_SESSION_ID) != null) ? map.get(ACCT_SESSION_ID).toString() : "N/A"));
                     r.setAcctMultiSessionId(((map.get(ACCT_MULTI_SESSION_ID) != null) ? map.get(ACCT_MULTI_SESSION_ID).toString() : "N/A"));
                     r.setCallingStationId(((map.get(CALLING_STATION_ID) != null) ? map.get(CALLING_STATION_ID).toString() : "N/A"));
@@ -512,7 +509,7 @@ public class AggregatorResource {
                     .sort(new FieldSortBuilder(RADIUS_TIMESTAMP_KEYWORD).order(SortOrder.DESC))
                     .from(0)
                     .fetchSource(new String[]{RADIUS_TIMESTAMP, SERVICE_TYPE, NAS_PORT_ID,
-			    NAS_PORT_TYPE, USERNAME, ACCT_SESSION_ID, ACCT_MULTI_SESSION_ID,
+			    NAS_PORT_TYPE, ACCT_SESSION_ID, ACCT_MULTI_SESSION_ID,
 			    CALLING_STATION_ID, CALLED_STATION_ID, ACCT_AUTHENTIC, 
 			    ACCT_STATUS_TYPE, NAS_IDENTIFIER, ACCT_DELAY_TIME, NAS_IP_ADDRESS,
 			    FRAMED_IP_ADDRESS, ACCT_UNIQUE_SESSION_ID, REALM}, null)
@@ -533,7 +530,6 @@ public class AggregatorResource {
                     r.setServiceType(((map.get(SERVICE_TYPE) != null) ? map.get(SERVICE_TYPE).toString() : "N/A"));
                     r.setNasPortId(((map.get(NAS_PORT_ID) != null) ? map.get(NAS_PORT_ID).toString() : "N/A"));
                     r.setNasPortType(((map.get(NAS_PORT_TYPE) != null) ? map.get(NAS_PORT_TYPE).toString() : "N/A"));
-                    r.setUserName(((map.get(USERNAME) != null) ? map.get(USERNAME).toString() : "N/A"));
                     r.setAcctSessionId(((map.get(ACCT_SESSION_ID) != null) ? map.get(ACCT_SESSION_ID).toString() : "N/A"));
                     r.setAcctMultiSessionId(((map.get(ACCT_MULTI_SESSION_ID) != null) ? map.get(ACCT_MULTI_SESSION_ID).toString() : "N/A"));
                     r.setCallingStationId(((map.get(CALLING_STATION_ID) != null) ? map.get(CALLING_STATION_ID).toString() : "N/A"));
