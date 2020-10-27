@@ -85,7 +85,7 @@ def wireless_info():
     bit_rate, tx_power, link_quality, signal_level, accesspoint = parse_iwconfig(iface_name)
     information = parse_iwlist(iface_name, accesspoint)
     timestamp = int(datetime.datetime.now().strftime("%s")) * 1000
-    probe_no = "10"
+    probe_no = "x"
     json_data = convert_info_to_json(timestamp, accesspoint, bit_rate, tx_power, link_quality, signal_level, probe_no, information)
     stream_data(json_data)
 
