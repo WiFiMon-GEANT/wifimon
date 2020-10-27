@@ -85,7 +85,6 @@ public class AggregatorResource {
     private static final String HMAC_SHA512_KEY = "sha.key";
     private static final String AGENT = "User-Agent";
     private static final String TIMESTAMP = "Timestamp";
-    private static final String USERNAME = "User-Name";
     private static final String CALLING_STATION_ID = "Calling-Station-Id";
     private static final String NAS_PORT = "nas_port";
     private static final String CALLED_STATION_ID = "Called-Station-Id";
@@ -321,7 +320,6 @@ public class AggregatorResource {
         String probeNumberJson = probeNumber != null ? "\"probeNo\" : \"" + probeNumber + "\", " : "";
         String requesterSubnetJson = requesterSubnet != null ? "\"requesterSubnet\" : \"" + requesterSubnet + "\", " : "";
         String encryptedIPJson = encryptedIP != null ? "\"encryptedIP\" : \"" + encryptedIP + "\", " : "";
-        String usernameJson = measurement.getUserName() != null ? "\"username\" : \"" + measurement.getUserName() + "\", " : "";
         String nasPortJson = measurement.getNasPort() != null ? "\"nasPort\" : \"" + measurement.getNasPort() + "\", " : "";
         String callingStationIdJson = measurement.getCallingStationId() != null ? "\"callingStationId\" : \"" + measurement.getCallingStationId() + "\", " : "";
         String nasIdentifierJson = measurement.getNasIdentifier() != null ? "\"nasIdentifier\" : \"" + measurement.getNasIdentifier() + "\", " : "";
@@ -339,7 +337,7 @@ public class AggregatorResource {
                 locationJson + locationMethodJson +
                 userAgentJson + userBrowserJson + userOsJson + clientIpJson +
                 testToolJson + measurementOriginJson + probeNumberJson +
-	       	requesterSubnetJson + encryptedIPJson + usernameJson + nasPortJson + 
+	       	requesterSubnetJson + encryptedIPJson + nasPortJson + 
 		callingStationIdJson + nasIdentifierJson + calledStationIdJson +
                 nasIpAddressJson + apBuildingJson + apFloorJson + apLocationJson +
                 apNotesJson + "}";
@@ -391,7 +389,7 @@ public class AggregatorResource {
                     .query(QueryBuilders.matchAllQuery())
                     .sort(new FieldSortBuilder(TIMESTAMP).order(SortOrder.DESC))
                     .from(0)
-                    .fetchSource(new String[]{USERNAME, TIMESTAMP,
+                    .fetchSource(new String[]{TIMESTAMP,
                             NAS_PORT, CALLING_STATION_ID,
                             NAS_IDENTIFIER, CALLED_STATION_ID, NAS_IP_ADDRESS,
                             FRAMED_IP_ADDRESS, ACCT_STATUS_TYPE}, null)
@@ -408,7 +406,6 @@ public class AggregatorResource {
             if (response.getHits().getTotalHits().value > 0) {
                     SearchHit hit = hits.getAt(0);
                     Map map = hit.getSourceAsMap();
-                    r.setUserName(((map.get(USERNAME) != null) ? map.get(USERNAME).toString() : "N/A"));
                     r.setTimestamp(((map.get(TIMESTAMP) != null) ? map.get(TIMESTAMP).toString() : "N/A"));
                     r.setNasPort(((map.get(NAS_PORT) != null) ? map.get(NAS_PORT).toString() : "N/A"));
                     r.setCallingStationId(((map.get(CALLING_STATION_ID) != null) ? map.get(CALLING_STATION_ID).toString() : "N/A"));
@@ -437,7 +434,7 @@ public class AggregatorResource {
                     .query(QueryBuilders.matchAllQuery())
                     .sort(new FieldSortBuilder(TIMESTAMP).order(SortOrder.DESC))
                     .from(0)
-                    .fetchSource(new String[]{USERNAME, TIMESTAMP,
+                    .fetchSource(new String[]{TIMESTAMP,
                             NAS_PORT, CALLING_STATION_ID,
                             NAS_IDENTIFIER, CALLED_STATION_ID, NAS_IP_ADDRESS,
                             FRAMED_IP_ADDRESS, ACCT_STATUS_TYPE}, null)
@@ -454,7 +451,6 @@ public class AggregatorResource {
             if (response.getHits().getTotalHits().value > 0) {
 		    SearchHit hit = hits.getAt(0); 
                     Map map = hit.getSourceAsMap();
-                    r.setUserName(((map.get(USERNAME) != null) ? map.get(USERNAME).toString() : "N/A"));
                     r.setTimestamp(((map.get(TIMESTAMP) != null) ? map.get(TIMESTAMP).toString() : "N/A"));
                     r.setNasPort(((map.get(NAS_PORT) != null) ? map.get(NAS_PORT).toString() : "N/A"));
                     r.setCallingStationId(((map.get(CALLING_STATION_ID) != null) ? map.get(CALLING_STATION_ID).toString() : "N/A"));

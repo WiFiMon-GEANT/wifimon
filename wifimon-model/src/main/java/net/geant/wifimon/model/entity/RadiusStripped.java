@@ -8,7 +8,6 @@ import java.io.Serializable;
 
 public class RadiusStripped implements Serializable {
 
-    private String userName;
     private String timestamp;
     private String nasPort;
     private String sourceHost;
@@ -21,14 +20,6 @@ public class RadiusStripped implements Serializable {
     private String nasIpAddress;
     private String acctStatusType;
 
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
 
     public String getTimestamp() {
         return timestamp;

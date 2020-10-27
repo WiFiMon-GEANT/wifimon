@@ -18,7 +18,6 @@ public class AggregatedMeasurement implements Serializable {
     private String clientIp;
     private String userAgent;
     private String testTool;
-    private String userName;
     private String nasPort;
     private String callingStationId;
     private String nasIdentifier;
@@ -135,14 +134,6 @@ public class AggregatedMeasurement implements Serializable {
         this.testTool = testTool;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
     public String getNasPort() {
         return nasPort;
     }
@@ -228,8 +219,6 @@ public class AggregatedMeasurement implements Serializable {
             return false;
         if (testTool != null ? !testTool.equals(that.testTool) : that.testTool != null)
             return false;
-        if (userName != null ? !userName.equals(that.userName) : that.userName != null)
-            return false;
         if (nasPort != null ? !nasPort.equals(that.nasPort) : that.nasPort != null)
             return false;
         if (callingStationId != null ? !callingStationId.equals(that.callingStationId) : that.callingStationId != null)
@@ -263,7 +252,6 @@ public class AggregatedMeasurement implements Serializable {
         result = 31 * result + (clientIp != null ? clientIp.hashCode() : 0);
         result = 31 * result + (userAgent != null ? userAgent.hashCode() : 0);
         result = 31 * result + (testTool != null ? testTool.hashCode() : 0);
-        result = 31 * result + (userName != null ? userName.hashCode() : 0);
         result = 31 * result + (nasPort != null ? nasPort.hashCode() : 0);
         result = 31 * result + (callingStationId != null ? callingStationId.hashCode() : 0);
         result = 31 * result + (nasIdentifier != null ? nasIdentifier.hashCode() : 0);
