@@ -102,9 +102,7 @@ public class AggregatorResource {
     private static final String AP_FLOOR = "Ap-Floor";
     private static final String AP_LOCATION = "Ap-Location";
     private static final String AP_NOTES = "Ap-Notes";
-    private static final String RADIUS_TIMESTAMP_KEYWORD = "RADIUS-Timestamp.keyword";
     private static final String RADIUS_TIMESTAMP = "RADIUS-Timestamp";
-    private static final String DHCP_TIMESTAMP_KEYWORD = "DHCP-Timestamp.keyword";
     private static final String DHCP_TIMESTAMP = "DHCP-Timestamp";
     private static final String SERVICE_TYPE = "Service-Type";
     private static final String NAS_PORT_ID = "NAS-Port-Id";
@@ -421,7 +419,7 @@ public class AggregatorResource {
         try {
             final SearchSourceBuilder builder = new SearchSourceBuilder()
             .query(QueryBuilders.matchAllQuery())
-            .sort(new FieldSortBuilder(DHCP_TIMESTAMP_KEYWORD).order(SortOrder.DESC))
+            .sort(new FieldSortBuilder(DHCP_TIMESTAMP).order(SortOrder.DESC))
             .from(0)
             .fetchSource(new String[]{DHCP_TIMESTAMP, IP_ADDRESS, MAC_ADDRESS}, null)
             .postFilter(QueryBuilders.termQuery(IP_ADDRESS_KEYWORD, ip))
@@ -452,7 +450,7 @@ public class AggregatorResource {
         try {
             final SearchSourceBuilder builder = new SearchSourceBuilder()
                     .query(QueryBuilders.matchAllQuery())
-                    .sort(new FieldSortBuilder(RADIUS_TIMESTAMP_KEYWORD).order(SortOrder.DESC))
+                    .sort(new FieldSortBuilder(RADIUS_TIMESTAMP).order(SortOrder.DESC))
                     .from(0)
                     .fetchSource(new String[]{RADIUS_TIMESTAMP, SERVICE_TYPE, NAS_PORT_ID,
                             NAS_PORT_TYPE, ACCT_SESSION_ID, ACCT_MULTI_SESSION_ID,
@@ -505,7 +503,7 @@ public class AggregatorResource {
         try {
             final SearchSourceBuilder builder = new SearchSourceBuilder()
                     .query(QueryBuilders.matchAllQuery())
-                    .sort(new FieldSortBuilder(RADIUS_TIMESTAMP_KEYWORD).order(SortOrder.DESC))
+                    .sort(new FieldSortBuilder(RADIUS_TIMESTAMP).order(SortOrder.DESC))
                     .from(0)
                     .fetchSource(new String[]{RADIUS_TIMESTAMP, SERVICE_TYPE, NAS_PORT_ID,
 			    NAS_PORT_TYPE, ACCT_SESSION_ID, ACCT_MULTI_SESSION_ID,
