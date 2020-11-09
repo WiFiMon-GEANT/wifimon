@@ -65,3 +65,23 @@ curl -XPUT 'http://localhost:9200/probes?pretty' -H 'Content-Type: application/j
 curl -XPOST 'http://localhost:9200/wifimon/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
 
 curl -XPOST 'http://localhost:9200/probes/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
+
+curl -X PUT 'http://localhost:9200/_ilm/policy/wifimon_policy?pretty' -H 'Content-Type: application/json' -d'
+{
+	"policy": {
+		"phases": {
+			"delete": {
+				"min_age": "1d",
+				"actions": {
+				"delete": {}
+				}
+			}
+		}
+	}
+}'
+
+curl -X PUT 'http://localhost:9200/_template/wifimon_template?pretty' -H 'Content-Type: application/json' -d'
+{
+	"index_patterns": ["radiuslogs", "dhcplogs"],
+	"settings": {"index.lifecycle.name": "wifimon_policy"}
+}'
