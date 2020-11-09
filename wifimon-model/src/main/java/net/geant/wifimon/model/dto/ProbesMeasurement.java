@@ -8,7 +8,6 @@ import java.io.Serializable;
 
 public class ProbesMeasurement implements Serializable {
 
-    private Long timestamp;
     private String accesspoint;
     private Long bitRate;
     private Long txPower;
@@ -16,14 +15,6 @@ public class ProbesMeasurement implements Serializable {
     private Long signalLevel;
     private Long probeNo;
     private String monitor;
-
-    public Long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Long timestamp) {
-        this.timestamp = timestamp;
-    }
 
     public String getAccesspoint() {
 	    return accesspoint;
@@ -90,8 +81,6 @@ public class ProbesMeasurement implements Serializable {
 
         ProbesMeasurement that = (ProbesMeasurement) o;
 
-        if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null)
-            return false;
 	if (accesspoint != null ? !accesspoint.equals(that.accesspoint) : that.accesspoint != null)
 	    return false;
         if (bitRate != null ? !bitRate.equals(that.bitRate) : that.bitRate != null)
@@ -109,8 +98,7 @@ public class ProbesMeasurement implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = timestamp != null ? timestamp.hashCode() : 0;
-	result = 31 * result + (accesspoint != null ? accesspoint.hashCode() : 0);
+        int result = accesspoint != null ? accesspoint.hashCode() : 0;
         result = 31 * result + (bitRate != null ? bitRate.hashCode() : 0);
         result = 31 * result + (txPower != null ? txPower.hashCode() : 0);
         result = 31 * result + (linkQuality != null ? linkQuality.hashCode() : 0);

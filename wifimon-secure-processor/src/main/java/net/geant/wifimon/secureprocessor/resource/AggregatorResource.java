@@ -168,19 +168,21 @@ public class AggregatorResource {
 
         try {
             // Get Wireless Network Performance Metrics
-            String timestampJson = measurement.getTimestamp() != null ? "\"" + TIMESTAMP + "\" : " + measurement.getTimestamp() + ", " : "";
+	    String timestampCurrent = String.valueOf(System.currentTimeMillis());
+            String timestampJson = timestampCurrent != null ? "\"" + TIMESTAMP + "\" : " + timestampCurrent + ", " : "";
             String accesspointJson = measurement.getAccesspoint() != null ? "\"" + PROBE_ACCESSPOINT + "\" : \"" + measurement.getAccesspoint() + "\", " : "";
             String bitRateJson = measurement.getBitRate() != null ? "\"" + PROBE_BIT_RATE + "\" : " + measurement.getBitRate() + ", " : "";
             String txPowerJson = measurement.getTxPower() != null ? "\"" + PROBE_TX_POWER + "\" : " + measurement.getTxPower() + ", " : "";
             String linkQualityJson = measurement.getLinkQuality() != null ? "\"" + PROBE_LINK_QUALITY + "\" : " + measurement.getLinkQuality() + ", " : "";
             String signalLevelJson = measurement.getSignalLevel() != null ? "\"" + PROBE_SIGNAL_LEVEL + "\" : " + measurement.getSignalLevel() + ", " : "";
             String probeNoJson = measurement.getProbeNo() != null ? "\"" + PROBE_NUMBER + "\" : " + measurement.getProbeNo() + ", " : "";
+	    String originJson = "\"" + ORIGIN + "\": \"Probe\""; 
 	    String monitorJson = measurement.getMonitor() != null ? "\"" + PROBE_MONITOR + "\" : " + measurement.getMonitor() : "";
 
             // Construct JSON object that will be stored in Elasticsearch
             String jsonStringDraft = "{" +
                     timestampJson + accesspointJson + bitRateJson + txPowerJson + 
-		    linkQualityJson + signalLevelJson + probeNoJson + monitorJson + "}";
+		    linkQualityJson + signalLevelJson + probeNoJson + originJson + monitorJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
