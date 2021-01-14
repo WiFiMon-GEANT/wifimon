@@ -546,6 +546,7 @@ public class AggregatorResource {
             }
         } catch (Exception e) {
             logger.info(e.toString());
+	    r = null;
         }
         return r;
     }
