@@ -247,13 +247,15 @@ public class AggregatorResource {
             correlationmethod = "RADIUS_ONLY";
         }
 
-	RadiusStripped r;
-	Accesspoint ap;
+	RadiusStripped r = null;
+	Accesspoint ap = null;
 
         // Perform correlations and insert new measurements in the elasticsearch cluster
         if (correlationmethod.equals(CorrelationMethod.DHCP_AND_RADIUS.toString())) {
             String callingStationIdTemp = retrieveLastMacEntryByIp(encryptedIP);
-            r = retrieveLastRadiusEntryByMac(callingStationIdTemp);
+	    if (!callingStationIdTemp.equals("")) {
+            	r = retrieveLastRadiusEntryByMac(callingStationIdTemp);
+	    }
         } else {
             r = retrieveLastRadiusEntryByIp(encryptedIP);
         }
@@ -512,7 +514,7 @@ public class AggregatorResource {
 			    CALLING_STATION_ID, CALLED_STATION_ID, ACCT_AUTHENTIC, 
 			    ACCT_STATUS_TYPE, NAS_IDENTIFIER, ACCT_DELAY_TIME, NAS_IP_ADDRESS,
 			    FRAMED_IP_ADDRESS, ACCT_UNIQUE_SESSION_ID, REALM}, null)
-                    .postFilter(QueryBuilders.wildcardQuery(CALLING_STATION_ID_KEYWORD, "*" + mac.replace(":", "-").toLowerCase() + "*"))
+                    .postFilter(QueryBuilders.termQuery(CALLING_STATION_ID_KEYWORD, mac))
                     .size(1)
                     .explain(true);
 
