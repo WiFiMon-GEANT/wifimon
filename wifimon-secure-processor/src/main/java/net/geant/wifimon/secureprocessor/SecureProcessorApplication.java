@@ -73,6 +73,8 @@ public class SecureProcessorApplication extends SpringBootServletInitializer {
     }
 
     public static void main(String[] args) {
+        String ver = SecureProcessorApplication.class.getPackage().getImplementationVersion();
+        loggerSecureProcessor.info("WiFiMon version: " + ver);
         SpringApplication.run(SecureProcessorApplication.class, args);
     }
 }
