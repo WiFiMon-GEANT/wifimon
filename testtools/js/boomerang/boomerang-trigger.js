@@ -14,7 +14,7 @@ var agent_ip = document.getElementById("settings").getAttribute("agentIp");
 //Determine image location
 
 if (typeof document.getElementById("settings").getAttribute("imagesLocation") === 'undefined' || document.getElementById("settings").getAttribute("imagesLocation") == '') {
-    images_location = "https://WTS_FQDN/wifimon/images/";
+    images_location = "https://fl-5-205.unil.cloud.switch.ch/wifimon/images/";
 } else {
     images_location = document.getElementById("settings").getAttribute("imagesLocation");
 }
@@ -25,8 +25,8 @@ BOOMR.init({
     autorun: false, //don't run the page automatically
     BW: {
         base_url: images_location,
-        block_beacon: true
-
+        block_beacon: true,
+	test_https: true
     },
     RT: {
         cookie: 'RT',
