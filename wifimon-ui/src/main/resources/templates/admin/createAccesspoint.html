@@ -29,7 +29,7 @@
                                placeholder="Access Point MAC address"
                                th:field="*{mac}"/>
                     </div>
-                    <div class="col-lg-offset-2" th:if="${#fields.hasErrors('mac')}" th:errors="*{mac}">Problem with
+                    <div class="text-danger" th:if="${#fields.hasErrors('mac')}" th:errors="*{mac}">Problem with
                         AP MAC address
                     </div>
                 </div>
@@ -41,7 +41,7 @@
                                placeholder="Access Point latitude"
                                th:field="*{latitude}"/>
                     </div>
-                    <div class="col-lg-offset-2" th:if="${#fields.hasErrors('latitude')}" th:errors="*{latitude}">
+                    <div class="text-danger" th:if="${#fields.hasErrors('latitude')}" th:errors="*{latitude}">
                         Problem with AP latitude
                     </div>
                 </div>
@@ -53,7 +53,7 @@
                                placeholder="Access Point longitude"
                                th:field="*{longitude}"/>
                     </div>
-                    <div class="col-lg-offset-2" th:if="${#fields.hasErrors('longitude')}" th:errors="*{longitude}">
+                    <div class="text-danger" th:if="${#fields.hasErrors('longitude')}" th:errors="*{longitude}">
                         Problem with AP longitude
                     </div>
                 </div>

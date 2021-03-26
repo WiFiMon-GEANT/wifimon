@@ -29,7 +29,7 @@
                                placeholder="email"
                                th:field="*{email}"/>
                     </div>
-                    <div class="col-lg-offset-2" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Problem with
+                    <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Problem with
                         email
                     </div>
                 </div>
@@ -40,7 +40,7 @@
                                placeholder="password"
                                th:field="*{password}"/>
                     </div>
-                    <div class="col-lg-offset-2" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
+                    <div class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
                         Problem with password
                     </div>
                 </div>
@@ -51,7 +51,7 @@
                                name="passwordRepeated"
                                placeholder="confirm password" th:field="*{passwordRepeated}"/>
                     </div>
-                    <div class="col-lg-offset-2" th:if="${#fields.hasErrors('passwordRepeated')}"
+                    <div class="text-danger" th:if="${#fields.hasErrors('passwordRepeated')}"
                          th:errors="*{passwordRepeated}">Problem with confirm password
                     </div>
                 </div>
