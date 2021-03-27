@@ -37,8 +37,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .deleteCookies("remember-me")
                 .logoutSuccessUrl("/login")
                 .permitAll().and()
-                .rememberMe().and()
-                .csrf().disable();
+                .rememberMe();
     }
 
     @Autowired
