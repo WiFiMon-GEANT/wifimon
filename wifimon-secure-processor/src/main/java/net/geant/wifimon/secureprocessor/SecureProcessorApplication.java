@@ -1,13 +1,10 @@
 package net.geant.wifimon.secureprocessor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
-
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -19,7 +16,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -31,9 +27,6 @@ import java.util.logging.Logger;
 public class SecureProcessorApplication extends SpringBootServletInitializer {
     public static final String BASE_PACKAGE = "net.geant.wifimon";
     private static Logger loggerSecureProcessor = Logger.getLogger(SecureProcessorApplication.class.getName());
-
-    @Autowired
-    private Environment env;
 
     @Bean
     public Client client() {
@@ -63,7 +56,7 @@ public class SecureProcessorApplication extends SpringBootServletInitializer {
             sslcontext.init(null, certs, new SecureRandom());
             HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
         } catch (NoSuchAlgorithmException | NullPointerException | KeyManagementException e) {
-            loggerSecureProcessor.log(Level.INFO, e.toString());
+            loggerSecureProcessor.info(e.toString());
         }
 
         return  ClientBuilder.newBuilder().
@@ -73,8 +66,6 @@ public class SecureProcessorApplication extends SpringBootServletInitializer {
     }
 
     public static void main(String[] args) {
-        String ver = SecureProcessorApplication.class.getPackage().getImplementationVersion();
-        loggerSecureProcessor.info("WiFiMon version: " + ver);
         SpringApplication.run(SecureProcessorApplication.class, args);
     }
 }

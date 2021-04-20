@@ -4,7 +4,7 @@
     <parent>
         <groupId>net.geant.wifimon</groupId>
         <artifactId>agent</artifactId>
-        <version>1.2.2-SNAPSHOT</version>
+        <version>1.3.0</version>
     </parent>
 
     <artifactId>dist</artifactId>
@@ -27,7 +27,6 @@
         </dependency>
     </dependencies>
 
-
     <build>
         <extensions>
             <extension>
@@ -44,7 +43,7 @@
                     <version>1.8</version>
                     <configuration>
                         <controlDir>${basedir}</controlDir>
-                        <deb>${project.build.directory}/wifimon-agent-${version}.deb</deb>
+                        <deb>${project.build.directory}/wifimon-agent-${project.version}.deb</deb>
                     </configuration>
                     <executions>
                         <execution>
@@ -90,5 +89,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
