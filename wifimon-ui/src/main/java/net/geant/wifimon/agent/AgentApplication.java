@@ -37,7 +37,7 @@ public class AgentApplication extends SpringBootServletInitializer {
 			JSONObject json = new JSONObject(IOUtils.toString(new URL(vmUrl), Charset.forName("UTF-8")));
 			String mostRecentVersion = json.getString("version");
 			loggerAgentApplication.info("WiFiMon Most Recent Version: " + mostRecentVersion);
-			if (mostRecentVersion == runningVersion) {
+			if (mostRecentVersion.equals(runningVersion)) {
 				loggerAgentApplication.info("You are running the most recent WiFiMon Version");
 			} else {
 				loggerAgentApplication.info("There is a new WiFiMon version available!");
