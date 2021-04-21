@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Controller
 public class VersionController {
 
-	private static final String USER_TRACKING = "user.tracking";
+	private static final String VERSION_CHECK = "version.check";
 	private static final String VM_URL = "vmUrl";
 
 	@Autowired
@@ -21,8 +21,8 @@ public class VersionController {
 	public String version(@RequestParam(name = "vers", required = false, defaultValue = "") String name, Model model) {
 	    String vers = VersionController.class.getPackage().getImplementationVersion();
 	    model.addAttribute("vers", vers);
-	    String userTracking = environment.getProperty(USER_TRACKING);
-	    model.addAttribute("user_tracking", userTracking);
+	    String versionCheck = environment.getProperty(VERSION_CHECK);
+	    model.addAttribute("version_check", versionCheck);
 	    String vmUrl = environment.getProperty(VM_URL);
 	    model.addAttribute("vmUrl", vmUrl);
 	    return "secure/version";

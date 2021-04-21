@@ -21,9 +21,9 @@
    <script th:inline="javascript">
     function getVersion(){
 	    var vmUrl = /*[[${vmUrl}]]*/;
-	    var userTracking = /*[[${user_tracking}]]*/;
+	    var versionCheck = /*[[${version_check}]]*/;
 
-	    if (!(userTracking.localeCompare("yes"))) {
+	    if (!(versionCheck.localeCompare("yes"))) {
 	    	var request = new Request(vmUrl, {
 		    method: 'GET',
 		    headers: new Headers({ 'Content-Type': 'application/json'})
@@ -36,7 +36,7 @@
 		    document.getElementById("latest").innerHTML = latest;
 	        });
 	     } else {
-		    var latest = "WiFiMon Version Tracking is disabled";
+		    var latest = "WiFiMon Version Checking is disabled";
 		    document.getElementById("latest").innerHTML = latest;
 	     }
      }
