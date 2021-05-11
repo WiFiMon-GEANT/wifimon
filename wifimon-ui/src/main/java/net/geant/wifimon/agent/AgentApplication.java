@@ -7,6 +7,8 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.context.ApplicationContext;
+
+import java.net.InetAddress;
 import java.util.logging.Logger;
 import org.json.*;
 import java.net.URL;
@@ -21,7 +23,7 @@ import java.nio.charset.Charset;
 public class AgentApplication extends SpringBootServletInitializer {
     public static final String BASE_PACKAGE = "net.geant.wifimon";
 
-    private static Logger loggerAgentApplication = Logger.getLogger(AgentApplication.class.getName());
+    private static final Logger loggerAgentApplication = Logger.getLogger(AgentApplication.class.getName());
 
     public static void main(String[] args) {
         ApplicationContext context = SpringApplication.run(AgentApplication.class, args);
@@ -34,7 +36,14 @@ public class AgentApplication extends SpringBootServletInitializer {
             String runningVersion = AgentApplication.class.getPackage().getImplementationVersion();
             loggerAgentApplication.info("WiFiMon Running Version: " + runningVersion);
             try {
-                JSONObject json = new JSONObject(IOUtils.toString(new URL(vmUrl), Charset.forName("UTF-8")));
+                InetAddress ipAddress = null;
+                try {
+                    ipAddress = InetAddress.getLocalHost();
+                } catch (Exception e) {
+                    loggerAgentApplication.info("Could not find local ip address:" + e.getMessage());
+                }
+                String targetUrl = vmUrl + "?checkTrigger=startup&version=" + runningVersion + "&ip=" + ipAddress;
+                JSONObject json = new JSONObject(IOUtils.toString(new URL(targetUrl), Charset.forName("UTF-8")));
                 String mostRecentVersion = json.getString("version");
                 loggerAgentApplication.info("WiFiMon Most Recent Version: " + mostRecentVersion);
                 if (mostRecentVersion.equals(runningVersion)) {

@@ -10,38 +10,14 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 
-<body onload="javascript:getVersion()">
+<body>
 
 <div th:replace="fragments/header :: header">
 </div>
 <br/>
 <div>
-   <p><div id="used" th:text="'Used WiFiMon Version: ' + ${vers}"></div></p>
-   <p><div id="latest"></div></p>
-   <script th:inline="javascript">
-    function getVersion(){
-	    var vmUrl = /*[[${vmUrl}]]*/;
-	    var versionCheck = /*[[${version_check}]]*/;
-
-	    if (!(versionCheck.localeCompare("yes"))) {
-	    	var request = new Request(vmUrl, {
-		    method: 'GET',
-		    headers: new Headers({ 'Content-Type': 'application/json'})
-	    	});
-		
-	    	fetch(request)
-	    	.then(response => response.json())
-            	.then(function(json) {
-		    var latest = "Latest WiFiMon Version: " + json.version;
-		    document.getElementById("latest").innerHTML = latest;
-	        });
-	     } else {
-		    var latest = "WiFiMon Version Checking is disabled";
-		    document.getElementById("latest").innerHTML = latest;
-	     }
-     }
-</script>
-
+   <p><div id="used" th:text="'Used WiFiMon Version: ' + ${runningVersion}"></div></p>
+   <p><div id="latest" th:text="'Latest WiFiMon Version: ' + ${latestVersion}"></div></p>
 </div>
 <br/><br/>
 
