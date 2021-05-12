@@ -5,34 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.css"/>
     <link href="../../static/css/headerCss.css" rel="stylesheet" />
+    <link href="../../static/css/versionCss.css" rel="stylesheet" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 
-<body onload="javascript:getVersion()">
+<body>
 
 <div th:replace="fragments/header :: header">
 </div>
 <br/>
 <div>
-   <p id="used" th:text="'Used WiFiMon Version: ' + ${vers}" />
-   <p id="latest"></p>
-   <script th:inline="javascript">
-    function getVersion(){
-	    var request = new Request('https://fl-5-205.unil.cloud.switch.ch/version.json', {
-		    method: 'GET',
-		    headers: new Headers({ 'Content-Type': 'application/json'})
-	    });
-
-	    fetch(request)
-	    .then(response => response.json())
-            .then(function(json) {
-		 var latest = "Latest WiFiMon Version: " + json.version;
-		 document.getElementById("latest").innerHTML = latest;
-	    });
-    }
-</script>
-
+   <p><div id="used" th:text="'Used WiFiMon Version: ' + ${runningVersion}"></div></p>
+   <p><div id="latest" th:text="'Latest WiFiMon Version: ' + ${latestVersion}"></div></p>
 </div>
 <br/><br/>
 
