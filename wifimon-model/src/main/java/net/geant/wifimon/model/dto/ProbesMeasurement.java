@@ -8,13 +8,26 @@ import java.io.Serializable;
 
 public class ProbesMeasurement implements Serializable {
 
+    private String macAddress;
     private String accesspoint;
+    private String essid;
     private Long bitRate;
     private Long txPower;
     private Long linkQuality;
     private Long signalLevel;
     private Long probeNo;
     private String monitor;
+    private String locationName;
+    private String testDeviceLocationDescription;
+    private String nat;
+
+    public String getMacAddress() {
+	    return macAddress;
+    }
+
+    public void setMacAddress(String macAddress) {
+	    this.macAddress = macAddress;
+    }
 
     public String getAccesspoint() {
 	    return accesspoint;
@@ -22,6 +35,14 @@ public class ProbesMeasurement implements Serializable {
 
     public void setAccesspoint(String accesspoint) {
 	    this.accesspoint = accesspoint;
+    }
+
+    public String getEssid() {
+	    return essid;
+    }
+
+    public void setEssid(String essid) {
+	    this.essid = essid;
     }
 
     public Long getBitRate() {
@@ -72,6 +93,30 @@ public class ProbesMeasurement implements Serializable {
 	    this.monitor = monitor;
     }
 
+    public String getLocationName() {
+	    return locationName;
+    }
+    
+    public void setLocationName(String locationName) {
+	    this.locationName = locationName;
+    }
+
+    public String getTestDeviceLocationDescription() {
+	    return testDeviceLocationDescription;
+    }
+
+    public void setTestDeviceLocationDescription(String testDeviceLocationDescription) {
+	    this.testDeviceLocationDescription = testDeviceLocationDescription;
+    }
+    
+    public String getNat() {
+	    return nat;
+    }
+
+    public void setNat(String nat) {
+	    this.nat = nat;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -81,7 +126,11 @@ public class ProbesMeasurement implements Serializable {
 
         ProbesMeasurement that = (ProbesMeasurement) o;
 
+	if (macAddress != null ? !macAddress.equals(that.macAddress) : that.macAddress != null)
+	    return false;
 	if (accesspoint != null ? !accesspoint.equals(that.accesspoint) : that.accesspoint != null)
+	    return false;
+	if (essid != null ? !essid.equals(that.essid) : that.essid != null)
 	    return false;
         if (bitRate != null ? !bitRate.equals(that.bitRate) : that.bitRate != null)
             return false;
@@ -93,18 +142,29 @@ public class ProbesMeasurement implements Serializable {
             return false;
         if (probeNo != null ? !probeNo.equals(that.probeNo) : that.probeNo != null)
             return false;
-        return monitor != null ? monitor.equals(that.monitor) : that.monitor == null;
+        if (monitor != null ? !monitor.equals(that.monitor) : that.monitor != null)
+	    return false;
+        if (locationName != null ? !locationName.equals(that.locationName) : that.locationName != null)
+	    return false;
+        if (testDeviceLocationDescription != null ? !testDeviceLocationDescription.equals(that.testDeviceLocationDescription) : that.testDeviceLocationDescription != null)
+	    return false;
+        return nat != null ? nat.equals(that.nat) : that.nat == null;
     }
 
     @Override
     public int hashCode() {
-        int result = accesspoint != null ? accesspoint.hashCode() : 0;
+        int result = macAddress != null ? macAddress.hashCode() : 0;
+        result = 31 * result + (accesspoint != null ? accesspoint.hashCode() : 0);
+	result = 31 * result + (essid != null ? essid.hashCode() : 0);
         result = 31 * result + (bitRate != null ? bitRate.hashCode() : 0);
         result = 31 * result + (txPower != null ? txPower.hashCode() : 0);
         result = 31 * result + (linkQuality != null ? linkQuality.hashCode() : 0);
         result = 31 * result + (signalLevel != null ? signalLevel.hashCode() : 0);
         result = 31 * result + (probeNo != null ? probeNo.hashCode() : 0);
 	result = 31 * result + (monitor != null ? monitor.hashCode() : 0);
+	result = 31 * result + (locationName != null ? locationName.hashCode() : 0);
+	result = 31 * result + (testDeviceLocationDescription != null ? testDeviceLocationDescription.hashCode() : 0);
+	result = 31 * result + (nat != null ? nat.hashCode() : 0);
         return result;
     }
 }

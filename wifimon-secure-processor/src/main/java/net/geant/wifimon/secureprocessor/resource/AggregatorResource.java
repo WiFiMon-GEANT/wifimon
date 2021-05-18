@@ -68,6 +68,7 @@ public class AggregatorResource {
     @Autowired
     Environment environment;
 
+    // Environment headers for ELK Stack, X-Pack security, encrypting sensitive information
     private static final String ES_HOST = "elasticsearch.host";
     private static final String ES_PORT = "elasticsearch.port";
     private static final String ES_INDEXNAME_MEASUREMENT = "elasticsearch.indexnamemeasurement";
@@ -83,6 +84,7 @@ public class AggregatorResource {
     private static final String SSL_TRUSTSTORE_PHRASE = "ssl.http.truststore.phrase";
     private static final String SSL_KEY_PHRASE = "ssl.http.key.phrase";
     private static final String HMAC_SHA512_KEY = "sha.key";
+    // JSON headers for WiFiMon crowdsourced/deterministic measurements (wifimon index)
     private static final String TIMESTAMP = "Timestamp";
     private static final String DOWNLOAD_THROUGHPUT = "Download-Throughput";
     private static final String UPLOAD_THROUGHPUT = "Upload-Throughput";
@@ -98,6 +100,7 @@ public class AggregatorResource {
     private static final String PROBE_NUMBER = "Probe-No";
     private static final String REQUESTER_SUBNET = "Requester-Subnet";
     private static final String ENCRYPTED_IP = "Encrypted-IP";
+    // JSON headers for correlation with RADIUS logs (correlation of radiuslogs index with wifimon index)
     private static final String AP_BUILDING = "Ap-Building";
     private static final String AP_FLOOR = "Ap-Floor";
     private static final String AP_LOCATION = "Ap-Location";
@@ -122,15 +125,21 @@ public class AggregatorResource {
     private static final String FRAMED_IP_ADDRESS = "Framed-IP-Address";
     private static final String ACCT_UNIQUE_SESSION_ID = "Acct-Unique-Session-Id";
     private static final String REALM = "Realm";
+    // JSON Headers for correlation with DHCP Logs (correlation of dhcplogs index with wifimon index)
     private static final String IP_ADDRESS = "IP-Address";
     private static final String IP_ADDRESS_KEYWORD = "IP-Address.keyword";
     private static final String MAC_ADDRESS = "MAC-Address";
+    // JSON headers for WiFiMon Hardware Probes (WiFiMon Side, JSON that is stored in ELK cluster)
     private static final String PROBE_ACCESSPOINT = "Accesspoint";
+    private static final String PROBE_ESSID = "Essid";
     private static final String PROBE_BIT_RATE = "Bit-Rate";
     private static final String PROBE_TX_POWER = "Tx-Power";
     private static final String PROBE_LINK_QUALITY = "Link-Quality";
     private static final String PROBE_SIGNAL_LEVEL = "Signal-Level";
     private static final String PROBE_MONITOR = "Monitor";
+    private static final String PROBE_LOCATION_NAME = "Location-Name";
+    private static final String PROBE_TEST_DEVICE_LOCATION_DESCRIPTION = "Test-Device-Location-Description";
+    private static final String PROBE_NAT_NETWORK = "NAT-Network";
 
     private static Logger logger = Logger.getLogger(AggregatorResource.class.getName());
     private static RestHighLevelClient restHighLevelClient;
@@ -161,6 +170,28 @@ public class AggregatorResource {
         return Response.ok(false).build();
     }
 
+    private String dataValidator(String item, String label, boolean numericValue, boolean finalString, boolean sanitize) {
+            String endingString = "\"";
+            String endingNumeric = "";
+            if (finalString == false) {
+                    endingString = "\", ";
+                    endingNumeric = ", ";
+            }
+            String sanitizedItemJson = "";
+            String sanitizedItem = item;
+            if (sanitize == true) {
+                sanitizedItem = JsonSanitizer.sanitize(item);
+                sanitizedItem = sanitizedItem.replace("\"", "");
+            }
+
+            if (numericValue == true) {
+                sanitizedItemJson = sanitizedItem != null ? "\"" + label + "\" : " + sanitizedItem + endingNumeric : "";
+            } else {
+                sanitizedItemJson = sanitizedItem != null ? "\"" + label + "\" : \"" + sanitizedItem + endingString : "";
+            }
+            return sanitizedItemJson;
+    }
+
     @POST
     @Path("/probes")
     public Response correlate(final ProbesMeasurement measurement, @Context HttpServletRequest request) {
@@ -170,25 +201,31 @@ public class AggregatorResource {
             // Get Wireless Network Performance Metrics
 	    String timestampCurrent = String.valueOf(System.currentTimeMillis());
             String timestampJson = timestampCurrent != null ? "\"" + TIMESTAMP + "\" : " + timestampCurrent + ", " : "";
-            String accesspointJson = measurement.getAccesspoint() != null ? "\"" + PROBE_ACCESSPOINT + "\" : \"" + measurement.getAccesspoint() + "\", " : "";
-            String bitRateJson = measurement.getBitRate() != null ? "\"" + PROBE_BIT_RATE + "\" : " + measurement.getBitRate() + ", " : "";
-            String txPowerJson = measurement.getTxPower() != null ? "\"" + PROBE_TX_POWER + "\" : " + measurement.getTxPower() + ", " : "";
-            String linkQualityJson = measurement.getLinkQuality() != null ? "\"" + PROBE_LINK_QUALITY + "\" : " + measurement.getLinkQuality() + ", " : "";
-            String signalLevelJson = measurement.getSignalLevel() != null ? "\"" + PROBE_SIGNAL_LEVEL + "\" : " + measurement.getSignalLevel() + ", " : "";
-            String probeNoJson = measurement.getProbeNo() != null ? "\"" + PROBE_NUMBER + "\" : " + measurement.getProbeNo() + ", " : "";
-	    String originJson = "\"" + ORIGIN + "\": \"Probe\""; 
-	    String monitorJson = measurement.getMonitor() != null ? "\"" + PROBE_MONITOR + "\" : " + measurement.getMonitor() : "";
+	    String macAddressJson = dataValidator(measurement.getMacAddress(), MAC_ADDRESS, false, false, true);
+	    String accesspointJson = dataValidator(measurement.getAccesspoint(), PROBE_ACCESSPOINT, false, false, true);
+	    String essidJson = dataValidator(measurement.getEssid(), PROBE_ESSID, false, false, true);
+	    String bitRateJson = dataValidator(measurement.getBitRate().toString(), PROBE_BIT_RATE, true, false, true);
+	    String txPowerJson = dataValidator(measurement.getTxPower().toString(), PROBE_TX_POWER, true, false, true);
+	    String linkQualityJson = dataValidator(measurement.getLinkQuality().toString(), PROBE_LINK_QUALITY, true, false, true);
+	    String signalLevelJson = dataValidator(measurement.getSignalLevel().toString(), PROBE_SIGNAL_LEVEL, true, false, true);
+	    String probeNoJson = dataValidator(measurement.getProbeNo().toString(), PROBE_NUMBER, true, false, true);
+	    String originJson = "\"" + ORIGIN + "\": \"Probe\", "; 
+	    String locationNameJson = dataValidator(measurement.getLocationName(), PROBE_LOCATION_NAME, false, false, true);
+	    String testDeviceLocationDescriptionJson = dataValidator(measurement.getTestDeviceLocationDescription(), PROBE_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
+	    String natNetworkJson = dataValidator(measurement.getNat(), PROBE_NAT_NETWORK, false, false, true);
+	    String monitorJson = dataValidator(measurement.getMonitor(), PROBE_MONITOR, false, true, true);
 
             // Construct JSON object that will be stored in Elasticsearch
             String jsonStringDraft = "{" +
-                    timestampJson + accesspointJson + bitRateJson + txPowerJson + 
-		    linkQualityJson + signalLevelJson + probeNoJson + originJson + monitorJson + "}";
+                    timestampJson + macAddressJson + accesspointJson +essidJson + bitRateJson + 
+		    txPowerJson + linkQualityJson + signalLevelJson + probeNoJson + originJson +
+		    locationNameJson + testDeviceLocationDescriptionJson + natNetworkJson + 
+		    monitorJson + "}";
 
-            String jsonString = jsonStringDraft.replace("\", }", "\"}");
+            String jsonString = jsonStringDraft;//.replace("\", }", "\"}");
 
             // Store measurements in elasticsearch
-	    String sanitizedJsonString = JsonSanitizer.sanitize(jsonString);
-            indexMeasurementProbes(sanitizedJsonString);
+            indexMeasurementProbes(jsonString);
 
             return Response.ok().build();
 
@@ -359,40 +396,45 @@ public class AggregatorResource {
 	}
 
         // Define Strings for the different measurement fields and results from correlation with RADIUS Logs
-        String downloadThroughputJson = measurement.getDownloadThroughput() != null ? "\"" + DOWNLOAD_THROUGHPUT + "\" : " + measurement.getDownloadThroughput() + ", " : "";
-        String uploadThroughputJson = measurement.getUploadThroughput() != null ? "\"" + UPLOAD_THROUGHPUT + "\" : " + measurement.getUploadThroughput() + ", " : "";
-        String localPingJson = measurement.getLocalPing() != null ? "\"" + LOCAL_PING + "\" : " + measurement.getLocalPing() + ", " : "";
-        String locationJson = measurement.getLatitude() != null ? "\"" + LOCATION + "\" : \"" + measurement.getLatitude() + "," + measurement.getLongitude() + "\", " : "";
-        String locationMethodJson = measurement.getLocationMethod() != null ? "\"" + LOCATION_METHOD + "\" : \"" + measurement.getLocationMethod() + "\", " : "";
-        String clientIpJson = measurement.getClientIp() != null ? "\"" + CLIENT_IP + "\" : \"" + measurement.getClientIp() + "\", " : "";
-        String userAgentJson = measurement.getUserAgent() != null ? "\"" + USER_AGENT + "\" : \"" + measurement.getUserAgent() + "\", " : "";
-        String userBrowserJson = userBrowser != null ? "\"" + USER_BROWSER + "\" : \"" + userBrowser + "\", " : "";
-        String userOsJson = userOs != null ? "\"" + USER_OS + "\" : \"" + userOs + "\", " : "";
-        String testToolJson = measurement.getTestTool() != null ? "\"" + TEST_TOOL + "\" : \"" + measurement.getTestTool() + "\", " : "";
-        String radiusTimestampJson = measurement.getRadiusTimestamp() != null ? "\"" + RADIUS_TIMESTAMP + "\" : \"" + measurement.getRadiusTimestamp() + "\", " : "";
-        String serviceTypeJson = measurement.getServiceType() != null ? "\"" + SERVICE_TYPE + "\" : \"" + measurement.getServiceType() + "\", " : "";
-        String nasPortIdJson = measurement.getNasPortId() != null ? "\"" + NAS_PORT_ID + "\" : \"" + measurement.getNasPortId() + "\", " : "";
-        String nasPortTypeJson = measurement.getNasPortType() != null ? "\"" + NAS_PORT_TYPE + "\" : \"" + measurement.getNasPortType() + "\", " : "";
-        String acctSessionIdJson = measurement.getAcctSessionId() != null ? "\"" + ACCT_SESSION_ID + "\" : \"" + measurement.getAcctSessionId() + "\", " : "";
-        String acctMultiSessionIdJson = measurement.getAcctMultiSessionId() != null ? "\"" + ACCT_MULTI_SESSION_ID + "\" : \"" + measurement.getAcctMultiSessionId() + "\", " : "";
-        String callingStationIdJson = measurement.getCallingStationId() != null ? "\"" + CALLING_STATION_ID + "\" : \"" + measurement.getCallingStationId() + "\", " : "";
-        String calledStationIdJson = measurement.getCalledStationId() != null ? "\"" + CALLED_STATION_ID + "\" : \"" + measurement.getCalledStationId() + "\", " : "";
-        String acctAuthenticJson = measurement.getAcctAuthentic() != null ? "\"" + ACCT_AUTHENTIC + "\" : \"" + measurement.getAcctAuthentic() + "\", " : "";
-        String acctStatusTypeJson = measurement.getAcctStatusType() != null ? "\"" + ACCT_STATUS_TYPE + "\" : \"" + measurement.getAcctStatusType() + "\", " : "";
-        String nasIdentifierJson = measurement.getNasIdentifier() != null ? "\"" + NAS_IDENTIFIER + "\" : \"" + measurement.getNasIdentifier() + "\", " : "";
-        String acctDelayTimeJson = measurement.getAcctDelayTime() != null ? "\"" + ACCT_DELAY_TIME + "\" : \"" + measurement.getAcctDelayTime() + "\", " : "";
-        String nasIpAddressJson = measurement.getNasIpAddress() != null ? "\"" + NAS_IP_ADDRESS + "\" : \"" + measurement.getNasIpAddress() + "\", " : "";
-        String framedIpAddressJson = measurement.getFramedIpAddress() != null ? "\"" + FRAMED_IP_ADDRESS + "\" : \"" + measurement.getFramedIpAddress() + "\", " : "";
-        String acctUniqueSessionIdJson = measurement.getAcctUniqueSessionId() != null ? "\"" + ACCT_UNIQUE_SESSION_ID + "\" : \"" + measurement.getAcctUniqueSessionId() + "\", " : "";
-        String realmJson = measurement.getRealm() != null ? "\"" + REALM + "\" : \"" + measurement.getRealm() + "\", " : "";
-        String measurementOriginJson = measurementOrigin != null ? "\"" + ORIGIN + "\" : \"" + measurementOrigin + "\", " : "";
-        String probeNumberJson = probeNumber != null ? "\"" + PROBE_NUMBER + "\" : \"" + probeNumber + "\", " : "";
-        String requesterSubnetJson = requesterSubnet != null ? "\"" + REQUESTER_SUBNET + "\" : \"" + requesterSubnet + "\", " : "";
-        String encryptedIPJson = encryptedIP != null ? "\"" + ENCRYPTED_IP + "\" : \"" + encryptedIP + "\", " : "";
-        String apBuildingJson = measurement.getApBuilding() != null ? "\"" + AP_BUILDING + "\" : \"" + measurement.getApBuilding() + "\", " : "";
-        String apFloorJson = measurement.getApFloor() != null ? "\"" + AP_FLOOR + "\" : \"" + measurement.getApFloor() + "\", " : "";
-        String apLocationJson = measurement.getApLatitude() != null ? "\"" + AP_LOCATION + "\" : \"" + measurement.getApLatitude() + "," + measurement.getApLongitude() + "\", " : "";
-        String apNotesJson = measurement.getApNotes() != null ? "\"" + AP_NOTES + "\" : \"" + measurement.getApNotes() + "\"" : "";
+	String downloadThroughputJson = dataValidator(measurement.getDownloadThroughput().toString(), DOWNLOAD_THROUGHPUT, true, false, true);
+	String uploadThroughputJson = dataValidator(measurement.getUploadThroughput().toString(), UPLOAD_THROUGHPUT, true, false, true);
+	String localPingJson = dataValidator(measurement.getLocalPing().toString(), LOCAL_PING, true, false, true);
+	String locationJson = JsonSanitizer.sanitize(measurement.getLatitude().toString()) != null ? "\"" + LOCATION + "\" : \"" + JsonSanitizer.sanitize(measurement.getLatitude().toString()) + "," + JsonSanitizer.sanitize(measurement.getLongitude().toString()) + "\", " : "";
+	String locationMethodJson = dataValidator(measurement.getLocationMethod(), LOCATION_METHOD, false, false, true);
+	String clientIpJson = dataValidator(measurement.getClientIp(), CLIENT_IP, false, false, true);
+	String userAgentJson = dataValidator(measurement.getUserAgent(), USER_AGENT, false, false, true);
+	String userBrowserJson = dataValidator(userBrowser, USER_BROWSER, false, false, false);
+	String userOsJson = dataValidator(userOs, USER_OS, false, false, false);
+	String testToolJson = dataValidator(measurement.getTestTool(), TEST_TOOL, false, false, true);
+String radiusTimestampJson = dataValidator(measurement.getRadiusTimestamp(), RADIUS_TIMESTAMP, false, false, true);
+        String serviceTypeJson = dataValidator(measurement.getServiceType(), SERVICE_TYPE, false, false, true);
+        String nasPortIdJson = dataValidator(measurement.getNasPortId(), NAS_PORT_ID, false, false, true);
+        String nasPortTypeJson = dataValidator(measurement.getNasPortType(), NAS_PORT_TYPE, false, false, true);
+        String acctSessionIdJson = dataValidator(measurement.getAcctSessionId(), ACCT_SESSION_ID, false, false, true);
+        String acctMultiSessionIdJson = dataValidator(measurement.getAcctMultiSessionId(), ACCT_MULTI_SESSION_ID, false, false, true);
+        String callingStationIdJson = dataValidator(measurement.getCallingStationId(), CALLING_STATION_ID, false, false, true);
+        String calledStationIdJson = dataValidator(measurement.getCalledStationId(), CALLED_STATION_ID, false, false, true);
+        String acctAuthenticJson = dataValidator(measurement.getAcctAuthentic(), ACCT_AUTHENTIC, false, false, true);
+        String acctStatusTypeJson = dataValidator(measurement.getAcctStatusType(), ACCT_STATUS_TYPE, false, false, true);
+        String nasIdentifierJson = dataValidator(measurement.getNasIdentifier(), NAS_IDENTIFIER, false, false, true);
+        String acctDelayTimeJson = dataValidator(measurement.getAcctDelayTime(), ACCT_DELAY_TIME, false, false, true);
+        String nasIpAddressJson = dataValidator(measurement.getNasIpAddress(), NAS_IP_ADDRESS, false, false, true);
+        String framedIpAddressJson = dataValidator(measurement.getFramedIpAddress(), FRAMED_IP_ADDRESS, false, false, true);
+        String acctUniqueSessionIdJson = dataValidator(measurement.getAcctUniqueSessionId(), ACCT_UNIQUE_SESSION_ID, false, false, true);
+        String realmJson = dataValidator(measurement.getRealm(), REALM, false, false, true);
+        String measurementOriginJson = dataValidator(measurementOrigin, ORIGIN, false, false, false);
+        String probeNumberJson = dataValidator(probeNumber, PROBE_NUMBER, false, false, false);
+        String requesterSubnetJson = dataValidator(requesterSubnet, REQUESTER_SUBNET, false, false, false);
+        String encryptedIPJson = dataValidator(encryptedIP, ENCRYPTED_IP, false, false, false);
+        String apBuildingJson = dataValidator(measurement.getApBuilding(), AP_BUILDING, false, false, true);
+        String apFloorJson = dataValidator(measurement.getApFloor(), AP_FLOOR, false, false, true);
+        String apLocationJson = "";
+        try {
+                apLocationJson = JsonSanitizer.sanitize(measurement.getApLatitude().toString()) != null ? "\"" + AP_LOCATION + "\" : \"" + JsonSanitizer.sanitize(measurement.getApLatitude().toString()) + "," + JsonSanitizer.sanitize(measurement.getApLongitude().toString()) + "\", " : "";
+        } catch(Exception e) {
+                logger.info(e.toString());
+        }
+        String apNotesJson = dataValidator(measurement.getApNotes(), AP_NOTES, false, true, true);
 
         // Build the Json String to store in the elasticsearch cluster
         String jsonStringDraft = "{" +
@@ -412,8 +454,7 @@ public class AggregatorResource {
         String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
         // Store measurements in elasticsearch
-	String sanitizedJsonString = JsonSanitizer.sanitize(jsonString);
-        indexMeasurement(sanitizedJsonString);
+        indexMeasurement(jsonString);
 
         return Response.ok().build();
     }
