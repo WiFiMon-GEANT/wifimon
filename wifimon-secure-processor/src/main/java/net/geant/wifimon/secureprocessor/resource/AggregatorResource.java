@@ -42,12 +42,14 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.io.File;
+import java.io.*;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.nio.charset.StandardCharsets;
 import javax.annotation.PostConstruct;
 import com.google.json.JsonSanitizer;
@@ -125,7 +127,7 @@ public class AggregatorResource {
     private static final String FRAMED_IP_ADDRESS = "Framed-IP-Address";
     private static final String ACCT_UNIQUE_SESSION_ID = "Acct-Unique-Session-Id";
     private static final String REALM = "Realm";
-    // JSON Headers for correlation with DHCP Logs (correlation of dhcplogs index with wifimon index)
+    // JSON headers for correlation with DHCP Logs (correlation of dhcplogs index with wifimon index)
     private static final String IP_ADDRESS = "IP-Address";
     private static final String IP_ADDRESS_KEYWORD = "IP-Address.keyword";
     private static final String MAC_ADDRESS = "MAC-Address";
@@ -140,6 +142,32 @@ public class AggregatorResource {
     private static final String PROBE_LOCATION_NAME = "Location-Name";
     private static final String PROBE_TEST_DEVICE_LOCATION_DESCRIPTION = "Test-Device-Location-Description";
     private static final String PROBE_NAT_NETWORK = "NAT-Network";
+    // JSON headers for WiFiMon Hardware Probes (Streaming to JSON Listener)
+    private static final String JSON_COLLECT = "json.collect";
+    private static final String JSON_COLLECTOR = "json.collector";
+    private static final String EXPORTER_PERFORMANCE_MEASUREMENTS = "performance";
+    private static final String EXPORTER_ORIGIN = "reportOrigin";
+    private static final String EXPORTER_CONNECTIVITY = "connectivity";
+    private static final String EXPORTER_LATITUDE = "latitude";
+    private static final String EXPORTER_LONGITUDE = "longitude";
+    private static final String EXPORTER_LOCATION_METHOD = "locationMethod";
+    private static final String EXPORTER_ENVIRONMENT = "environment";
+    private static final String EXPORTER_DEVICE_TYPE = "testDeviceType";
+    private static final String EXPORTER_DEVICE_VERSION = "testDeviceVersion";
+    private static final String EXPORTER_DEVICE_ID = "testDeviceId";
+    private static final String EXPORTER_TEST_INSTANCE_UNIQUE_ID = "testInstanceUniqueId";
+    private static final String EXPORTER_START_TIMESTAMP = "testStartTimestamp";
+    private static final String EXPORTER_FINISHED_TIMESTAMP = "testFinishedTimestamp";
+    private static final String EXPORTER_DOWNLOAD_THROUGHPUT = "downloadThroughput";
+    private static final String EXPORTER_UPLOAD_THROUGHPUT = "uploadThroughput";
+    private static final String EXPORTER_IPV4_LOCAL_PING = "ipv4LocalPing";
+    private static final String EXPORTER_IPV6_LOCAL_PING = "ipv6LocalPing";
+    private static final String EXPORTER_TEST_TOOL = "testTool";
+    private static final String EXPORTER_TEST_TIMESTAMP = "testTimestamp";
+    private static final String EXPORTER_WIFI_SURROUND = "wifiSurround";
+    private static final String EXPORTER_LOCATION_NAME = "locationName";
+    private static final String EXPORTER_TEST_DEVICE_LOCATION_DESCRIPTION = "testDeviceLocationDescription";
+    private static final String EXPORTER_NAT_NETWORK = "NAT";
 
     private static Logger logger = Logger.getLogger(AggregatorResource.class.getName());
     private static RestHighLevelClient restHighLevelClient;
@@ -195,7 +223,8 @@ public class AggregatorResource {
     @POST
     @Path("/probes")
     public Response correlate(final ProbesMeasurement measurement, @Context HttpServletRequest request) {
-	     Response response = null;
+	Response response = null;
+	String probeNumber = "", timestamp = "";
 
         try {
             // Get Wireless Network Performance Metrics
@@ -208,6 +237,7 @@ public class AggregatorResource {
 	    String txPowerJson = dataValidator(measurement.getTxPower().toString(), PROBE_TX_POWER, true, false, true);
 	    String linkQualityJson = dataValidator(measurement.getLinkQuality().toString(), PROBE_LINK_QUALITY, true, false, true);
 	    String signalLevelJson = dataValidator(measurement.getSignalLevel().toString(), PROBE_SIGNAL_LEVEL, true, false, true);
+	    probeNumber = measurement.getProbeNo().toString();
 	    String probeNoJson = dataValidator(measurement.getProbeNo().toString(), PROBE_NUMBER, true, false, true);
 	    String originJson = "\"" + ORIGIN + "\": \"Probe\", "; 
 	    String locationNameJson = dataValidator(measurement.getLocationName(), PROBE_LOCATION_NAME, false, false, true);
@@ -222,12 +252,124 @@ public class AggregatorResource {
 		    locationNameJson + testDeviceLocationDescriptionJson + natNetworkJson + 
 		    monitorJson + "}";
 
-            String jsonString = jsonStringDraft;//.replace("\", }", "\"}");
+            String jsonString = jsonStringDraft.replace("\", }", "\"}");
+
+            final SearchSourceBuilder builderForTimestamp = new SearchSourceBuilder()
+                    .query(QueryBuilders.matchAllQuery())
+                    .sort(new FieldSortBuilder(TIMESTAMP).order(SortOrder.DESC))
+                    .from(0)
+                    .fetchSource(new String[]{TIMESTAMP}, null)
+                    .postFilter(QueryBuilders.termQuery(PROBE_NUMBER, probeNumber))
+                    .size(1)
+                    .explain(true);
+
+            final SearchRequest requestForTimestamp = new SearchRequest(environment.getProperty(ES_INDEXNAME_PROBES)).source(builderForTimestamp);
+            final SearchResponse responseForTimestamp = AggregatorResource.restHighLevelClient.search(requestForTimestamp, RequestOptions.DEFAULT);
+            final SearchHits hitsForTimestamp = responseForTimestamp.getHits();
+            if (responseForTimestamp.getHits().getTotalHits().value > 0) {
+                    SearchHit hitForTimestamp = hitsForTimestamp.getAt(0);
+                    Map mapForTimestamp = hitForTimestamp.getSourceAsMap();
+                    timestamp = (mapForTimestamp.get(TIMESTAMP) != null) ? mapForTimestamp.get(TIMESTAMP).toString() : "N/A";
+            }
 
             // Store measurements in elasticsearch
-            indexMeasurementProbes(jsonString);
+	    System.out.println(jsonString);
+	    System.out.println("--------");
+            //indexMeasurementProbes(jsonString);
+
+	    if (environment.getProperty(JSON_COLLECT).equals("true")) {
+                SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+                sourceBuilder.query(QueryBuilders.rangeQuery("Timestamp").from(timestamp).to("now"));
+                sourceBuilder.postFilter(QueryBuilders.termQuery(PROBE_NUMBER,probeNumber));
+                SearchRequest searchRequest = new SearchRequest(environment.getProperty(ES_INDEXNAME_MEASUREMENT));
+                searchRequest.source(sourceBuilder);
+
+                SearchResponse searchResponse = AggregatorResource.restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+                final SearchHits hits = searchResponse.getHits();
+
+                int sequence = 1;
+                Iterator<SearchHit> iterator = hits.iterator();
+                Map<String, SearchHit> distinctObjects = new HashMap<String,SearchHit>();
+
+                String probeDownloadThroughput = "", probeUploadThroughput = "", probeIpv4Ping = "", probeIpv6Ping = "", probeTestTool = "", probeTimestamp = "";
+
+                while (iterator.hasNext()) {
+                        if (sequence > 1) {
+                                probeDownloadThroughput += ", ";
+                                probeUploadThroughput += ", ";
+                                probeIpv4Ping += ", ";
+                                probeIpv6Ping += ", ";
+                                probeTestTool += ", ";
+                                probeTimestamp += ", ";
+                        }
+                        SearchHit searchHit = (SearchHit) iterator.next();
+                        Map<String, Object> source = searchHit.getSourceAsMap();
+                        if (source.get(DOWNLOAD_THROUGHPUT) != null) {
+                                probeDownloadThroughput += source.get(DOWNLOAD_THROUGHPUT).toString();
+                        }
+                        if (source.get(UPLOAD_THROUGHPUT) != null) {
+                                probeUploadThroughput += source.get(UPLOAD_THROUGHPUT).toString();
+                        }
+                        if (source.get(LOCAL_PING) != null) {
+                                probeIpv4Ping += source.get(LOCAL_PING).toString();
+                        }
+                        if (source.get(TIMESTAMP) != null) {
+                                probeTimestamp += source.get(TIMESTAMP).toString();
+                        }
+                        if (source.get(TEST_TOOL) != null) {
+                                probeTestTool += source.get(TEST_TOOL).toString();
+                        }
+                        probeIpv6Ping += "-1";
+                        sequence += 1;
+                }
+
+                String overallJson = "";
+		// Stream report origin part of JSON specification
+                String reportOriginJson = "\"" + EXPORTER_ORIGIN + "\": {";
+		reportOriginJson += dataValidator("WiFiMon Hardware Probe", EXPORTER_DEVICE_TYPE, false, false, false);
+		reportOriginJson += dataValidator("4.0", EXPORTER_DEVICE_VERSION, false, false, false);
+		reportOriginJson += dataValidator(measurement.getAccesspoint(), EXPORTER_DEVICE_ID, false, false, true);
+		reportOriginJson += dataValidator(measurement.getAccesspoint() + "-" + timestampCurrent, EXPORTER_TEST_INSTANCE_UNIQUE_ID, false, false, true);
+		reportOriginJson += dataValidator(timestamp, EXPORTER_START_TIMESTAMP, true, false, false);
+		reportOriginJson += dataValidator(timestampCurrent, EXPORTER_FINISHED_TIMESTAMP, true, true, false);
+		reportOriginJson += "}";
+
+                // Stream environment part of JSON specification
+                String environmentJson = "\"" + EXPORTER_ENVIRONMENT + "\": {";
+		environmentJson += dataValidator("-1000", EXPORTER_LONGITUDE, true, false, false);
+		environmentJson += dataValidator("-1000", EXPORTER_LATITUDE, true, false, false);
+		environmentJson += dataValidator(measurement.getLocationName(), EXPORTER_LOCATION_NAME, false, false, true);
+		environmentJson += dataValidator(measurement.getTestDeviceLocationDescription(), EXPORTER_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
+		environmentJson += dataValidator("Geolocation", EXPORTER_LOCATION_METHOD, false, false, false);
+		environmentJson += dataValidator(measurement.getMonitor(), EXPORTER_WIFI_SURROUND, false, true, true);
+                environmentJson += "}";
+
+                // Stream connectivity part of JSON specification
+                String connectivityJson = "\"" + EXPORTER_CONNECTIVITY + "\": {";
+		connectivityJson += dataValidator(measurement.getNat(), EXPORTER_NAT_NETWORK, false, true, true);
+                connectivityJson += "}";
+
+                // Stream performance part of JSON specification
+                String performanceMeasurementsJson = "\"" + EXPORTER_PERFORMANCE_MEASUREMENTS + "\": { ";
+		performanceMeasurementsJson += dataValidator(probeDownloadThroughput.toString(), EXPORTER_DOWNLOAD_THROUGHPUT, false, false, false);
+		performanceMeasurementsJson += dataValidator(probeUploadThroughput.toString(), EXPORTER_UPLOAD_THROUGHPUT, false, false, false);
+		performanceMeasurementsJson += dataValidator(probeIpv4Ping.toString(), EXPORTER_IPV4_LOCAL_PING, false, false, false);
+		performanceMeasurementsJson += dataValidator(probeIpv6Ping.toString(), EXPORTER_IPV6_LOCAL_PING, false, false, false);
+		performanceMeasurementsJson += dataValidator(probeTimestamp.toString(), EXPORTER_TEST_TIMESTAMP, false, false, false);
+		performanceMeasurementsJson += dataValidator(probeTestTool.toString(), EXPORTER_TEST_TOOL, false, true, false);
+                performanceMeasurementsJson += "}";
+
+                overallJson = "{ " + reportOriginJson + ", " + environmentJson + ", " + connectivityJson + ", " + performanceMeasurementsJson + "}";
+
+                String toPost = "typev100&message=" + overallJson;
+		System.out.println(toPost);
+		System.out.println("--------");
+                String[] commands = new String[] {"curl", "--data-urlencode", toPost, environment.getProperty(JSON_COLLECTOR)};
+                Process process = Runtime.getRuntime().exec(commands);
+                process.destroy();
 
             return Response.ok().build();
+	    }
 
         } catch (Exception e) {
 	    logger.info(e.toString());
@@ -406,7 +548,7 @@ public class AggregatorResource {
 	String userBrowserJson = dataValidator(userBrowser, USER_BROWSER, false, false, false);
 	String userOsJson = dataValidator(userOs, USER_OS, false, false, false);
 	String testToolJson = dataValidator(measurement.getTestTool(), TEST_TOOL, false, false, true);
-String radiusTimestampJson = dataValidator(measurement.getRadiusTimestamp(), RADIUS_TIMESTAMP, false, false, true);
+	String radiusTimestampJson = dataValidator(measurement.getRadiusTimestamp(), RADIUS_TIMESTAMP, false, false, true);
         String serviceTypeJson = dataValidator(measurement.getServiceType(), SERVICE_TYPE, false, false, true);
         String nasPortIdJson = dataValidator(measurement.getNasPortId(), NAS_PORT_ID, false, false, true);
         String nasPortTypeJson = dataValidator(measurement.getNasPortType(), NAS_PORT_TYPE, false, false, true);

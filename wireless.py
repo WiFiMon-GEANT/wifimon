@@ -65,19 +65,19 @@ def parse_iwlist(iface, accesspoint):
 
 def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network):
     overall_dictionary = {}
-    overall_dictionary["macAddress"] = str(mac)
-    overall_dictionary["accesspoint"] = str(accesspoint)
-    overall_dictionary["essid"] = str(essid)
+    overall_dictionary["macAddress"] = "\"" + str(mac) + "\""
+    overall_dictionary["accesspoint"] = "\"" + str(accesspoint) + "\""
+    overall_dictionary["essid"] = "\"" + str(essid) + "\""
     overall_dictionary["bitRate"] = str(bit_rate)
     overall_dictionary["txPower"] = str(tx_power)
     overall_dictionary["linkQuality"] = str(link_quality)
     overall_dictionary["signalLevel"] = str(signal_level)
     overall_dictionary["probeNo"] = str(probe_no)
     information = json.dumps(information)
-    overall_dictionary["wifiSurround"] = information
-    overall_dictionary["locationName"] = str(location_name)
-    overall_dictionary["testDeviceLocationDescription"] = str(test_device_location_description)
-    overall_dictionary["nat"] = str(nat_network)
+    overall_dictionary["monitor"] = information
+    overall_dictionary["locationName"] = "\"" + str(location_name) + "\""
+    overall_dictionary["testDeviceLocationDescription"] = "\"" + str(test_device_location_description) + "\""
+    overall_dictionary["nat"] = "\"" + str(nat_network) + "\""
     json_data = json.dumps(overall_dictionary)
     return json_data
 
