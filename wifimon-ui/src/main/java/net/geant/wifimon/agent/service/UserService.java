@@ -1,5 +1,6 @@
 package net.geant.wifimon.agent.service;
 
+import net.geant.wifimon.agent.model.UserChangePasswordFormModel;
 import net.geant.wifimon.agent.model.UserCreateFormModel;
 import net.geant.wifimon.model.entity.User;
 
@@ -18,6 +19,8 @@ public interface UserService {
     Collection<User> getAllUsers();
 
     User create(UserCreateFormModel form);
+
+    User changePassword(UserChangePasswordFormModel form);
 
     void delete(Long id);
 }

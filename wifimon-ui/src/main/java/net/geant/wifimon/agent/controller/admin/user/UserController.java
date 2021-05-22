@@ -1,7 +1,9 @@
 package net.geant.wifimon.agent.controller.admin.user;
 
+import net.geant.wifimon.agent.model.UserChangePasswordFormModel;
 import net.geant.wifimon.agent.model.UserCreateFormModel;
 import net.geant.wifimon.agent.service.UserService;
+import net.geant.wifimon.agent.validator.UserChangePasswordFormValidator;
 import net.geant.wifimon.agent.validator.UserCreateFormValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -24,19 +26,27 @@ import java.util.NoSuchElementException;
 public class UserController {
 
     public static final String CREATE_USER_VIEW = "admin/createUser";
+    public static final String CHANGE_PASS_VIEW = "admin/changePassword";
 
     private final UserService userService;
     private final UserCreateFormValidator userCreateFormValidator;
+    private final UserChangePasswordFormValidator userChangePasswordFormValidator;
 
     @Autowired
-    public UserController(UserService userService, UserCreateFormValidator userCreateFormValidator) {
+    public UserController(UserService userService, UserCreateFormValidator userCreateFormValidator, UserChangePasswordFormValidator userChangePasswordFormValidator) {
         this.userService = userService;
         this.userCreateFormValidator = userCreateFormValidator;
+        this.userChangePasswordFormValidator = userChangePasswordFormValidator;
     }
 
     @InitBinder("userCreateModel")
     public void initBinder(WebDataBinder binder) {
         binder.addValidators(userCreateFormValidator);
+    }
+
+    @InitBinder("userChangePasswordModel")
+    public void initBinderPassword(WebDataBinder binder) {
+        binder.addValidators(userChangePasswordFormValidator);
     }
 
     @GetMapping("/admin/user/{id}")
@@ -62,6 +72,18 @@ public class UserController {
         if (bindingResult.hasErrors()) return CREATE_USER_VIEW;
         userService.create(userCreateFormModel);
         return String.join("/", "redirect:", UsersController.USERS_VIEW);
+    }
+
+    @GetMapping(value = "/admin/user/changePassword")
+    public String getUserChangePasswordPage(@ModelAttribute("userChangePasswordModel") final UserChangePasswordFormModel userChangePasswordFormModel) {
+        return CHANGE_PASS_VIEW;
+    }
+
+    @PostMapping(value = "/admin/user/changePassword")
+    public String handleUserChangePasswordForm(@Valid @ModelAttribute("userChangePasswordModel") final UserChangePasswordFormModel userChangePasswordFormModel, BindingResult bindingResult) {
+               if (bindingResult.hasErrors()) return CHANGE_PASS_VIEW;
+               userService.changePassword(userChangePasswordFormModel);
+               return String.join("/", "redirect:", UsersController.USERS_VIEW);
     }
 
     @ModelAttribute("classActiveSettingsConfig")
