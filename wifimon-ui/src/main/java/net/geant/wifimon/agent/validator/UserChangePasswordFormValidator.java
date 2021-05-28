@@ -1,14 +1,14 @@
 package net.geant.wifimon.agent.validator;
 
-        import net.geant.wifimon.agent.model.UserChangePasswordFormModel;
-        import net.geant.wifimon.agent.service.UserService;
-        import net.geant.wifimon.model.entity.User;
-        import org.springframework.beans.factory.annotation.Autowired;
-        import org.springframework.security.core.context.SecurityContextHolder;
-        import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-        import org.springframework.stereotype.Component;
-        import org.springframework.validation.Errors;
-        import org.springframework.validation.Validator;
+import net.geant.wifimon.agent.model.UserChangePasswordFormModel;
+import net.geant.wifimon.agent.service.UserService;
+import net.geant.wifimon.model.entity.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 
 @Component
 public class UserChangePasswordFormValidator implements Validator {
