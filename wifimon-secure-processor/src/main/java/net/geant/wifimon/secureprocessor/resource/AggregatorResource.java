@@ -232,6 +232,10 @@ public class AggregatorResource {
             String timestampJson = timestampCurrent != null ? "\"" + TIMESTAMP + "\" : " + timestampCurrent + ", " : "";
 	    String macAddressJson = dataValidator(measurement.getMacAddress(), MAC_ADDRESS, false, false, true);
 	    String accesspointJson = dataValidator(measurement.getAccesspoint(), PROBE_ACCESSPOINT, false, false, true);
+	    System.out.println("---------");
+	    System.out.println("Accesspoint");
+	    System.out.println(accesspointJson);
+	    System.out.println("---------");
 	    String essidJson = dataValidator(measurement.getEssid(), PROBE_ESSID, false, false, true);
 	    String bitRateJson = dataValidator(measurement.getBitRate().toString(), PROBE_BIT_RATE, true, false, true);
 	    String txPowerJson = dataValidator(measurement.getTxPower().toString(), PROBE_TX_POWER, true, false, true);
@@ -274,8 +278,7 @@ public class AggregatorResource {
 
             // Store measurements in elasticsearch
 	    System.out.println(jsonString);
-	    System.out.println("--------");
-            //indexMeasurementProbes(jsonString);
+            indexMeasurementProbes(jsonString);
 
 	    if (environment.getProperty(JSON_COLLECT).equals("true")) {
                 SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -341,7 +344,8 @@ public class AggregatorResource {
 		environmentJson += dataValidator(measurement.getLocationName(), EXPORTER_LOCATION_NAME, false, false, true);
 		environmentJson += dataValidator(measurement.getTestDeviceLocationDescription(), EXPORTER_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
 		environmentJson += dataValidator("Geolocation", EXPORTER_LOCATION_METHOD, false, false, false);
-		environmentJson += dataValidator(measurement.getMonitor(), EXPORTER_WIFI_SURROUND, false, true, true);
+		//environmentJson += dataValidator(measurement.getMonitor(), EXPORTER_WIFI_SURROUND, false, true, false);
+		environmentJson += measurement.getMonitor() != null ? "\"" + PROBE_MONITOR + "\" : " + measurement.getMonitor() : "";
                 environmentJson += "}";
 
                 // Stream connectivity part of JSON specification
@@ -362,8 +366,9 @@ public class AggregatorResource {
                 overallJson = "{ " + reportOriginJson + ", " + environmentJson + ", " + connectivityJson + ", " + performanceMeasurementsJson + "}";
 
                 String toPost = "typev100&message=" + overallJson;
+		System.out.println("-------");
 		System.out.println(toPost);
-		System.out.println("--------");
+		System.out.println("-------");
                 String[] commands = new String[] {"curl", "--data-urlencode", toPost, environment.getProperty(JSON_COLLECTOR)};
                 Process process = Runtime.getRuntime().exec(commands);
                 process.destroy();
