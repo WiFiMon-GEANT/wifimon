@@ -371,7 +371,7 @@ public class AggregatorResource {
 		System.out.println("-------");
                 String[] commands = new String[] {"curl", "--data-urlencode", toPost, environment.getProperty(JSON_COLLECTOR)};
                 Process process = Runtime.getRuntime().exec(commands);
-                process.destroy();
+                //process.destroy();
 
             return Response.ok().build();
 	    }
