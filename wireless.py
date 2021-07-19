@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import subprocess
 import datetime
@@ -68,9 +68,13 @@ def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quali
     overall_dictionary["macAddress"] = "\"" + str(mac) + "\""
     overall_dictionary["accesspoint"] = "\"" + str(accesspoint) + "\""
     overall_dictionary["essid"] = "\"" + str(essid) + "\""
+    bit_rate = int(float(bit_rate))
     overall_dictionary["bitRate"] = str(bit_rate)
+    tx_power = int(float(tx_power))
     overall_dictionary["txPower"] = str(tx_power)
+    link_quality = int(float(link_quality))
     overall_dictionary["linkQuality"] = str(link_quality)
+    signal_level = int(float(signal_level))
     overall_dictionary["signalLevel"] = str(signal_level)
     overall_dictionary["probeNo"] = str(probe_no)
     information = json.dumps(information)
@@ -86,7 +90,7 @@ def stream_data(data):
     try:
         session = requests.Session()
         session.verify = False
-        session.post(url='https://WAS_FQDN:8443/wifimon/probes/', data=data, headers=headers, timeout=15)
+        session.post(url='https://WAS_FQDN:8443/wifimon/probes/', data=data, headers=headers, timeout=30)
     except:
         pass
 
