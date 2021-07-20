@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import subprocess
 import datetime
@@ -33,6 +33,7 @@ def parse_iwconfig(iface):
     accesspoint = return_command_output("sudo iwconfig " + iface + " | grep Mode | awk '{print $6}' | sed 's/Point: //'").decode('utf8')
     accesspoint = accesspoint.replace(":", "-")
     essid = return_command_output("sudo iwconfig " + iface + " | grep ESSID | awk '{print $4}' | sed 's/ESSID://'").decode('utf8')
+    essid = essid.replace("\"", "")
     return bit_rate, tx_power, link_quality, signal_level, accesspoint, essid
 
 def parse_iwlist(iface, accesspoint):
@@ -52,31 +53,35 @@ def parse_iwlist(iface, accesspoint):
         line0 = ' '.join(aps[index].split())
         ap_mac = line0.split()[-1]
         ap_mac = ap_mac.replace(":", "-")
-        if ap_mac == accesspoint:
-            continue
         information[ap_mac] = {}
         line1 = ' '.join(aps[index + 1].split())
         parts = line1.split()
-        information[ap_mac]["linkQuality"] = parts[0].split("=")[1]
-        information[ap_mac]["signalLevel"] = parts[2].split("=")[1]
+        information[ap_mac]["drillTest"] = float(parts[2].split("=")[1])
         line2 = ' '.join(aps[index + 2].split())
         parts = line2.split(":")
-        information[ap_mac]["essid"] = parts[1].replace('"', '')
+        information[ap_mac][str(parts[1].replace('"', ''))] = information[ap_mac]["drillTest"]
 
     return information
 
-def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information):
+def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network):
     overall_dictionary = {}
-    overall_dictionary["macAddress"] = str(mac)
-    overall_dictionary["accesspoint"] = str(accesspoint)
-    overall_dictionary["essid"] = str(essid)
+    overall_dictionary["macAddress"] = "\"" + str(mac) + "\""
+    overall_dictionary["accesspoint"] = "\"" + str(accesspoint) + "\""
+    overall_dictionary["essid"] = "\"" + str(essid) + "\""
+    bit_rate = int(float(bit_rate))
     overall_dictionary["bitRate"] = str(bit_rate)
+    tx_power = int(float(tx_power))
     overall_dictionary["txPower"] = str(tx_power)
+    link_quality = int(float(link_quality))
     overall_dictionary["linkQuality"] = str(link_quality)
+    signal_level = int(float(signal_level))
     overall_dictionary["signalLevel"] = str(signal_level)
     overall_dictionary["probeNo"] = str(probe_no)
     information = json.dumps(information)
     overall_dictionary["monitor"] = information
+    overall_dictionary["locationName"] = "\"" + str(location_name) + "\""
+    overall_dictionary["testDeviceLocationDescription"] = "\"" + str(test_device_location_description) + "\""
+    overall_dictionary["nat"] = "\"" + str(nat_network) + "\""
     json_data = json.dumps(overall_dictionary)
     return json_data
 
@@ -85,17 +90,24 @@ def stream_data(data):
     try:
         session = requests.Session()
         session.verify = False
-        session.post(url='https://WAS_FQDN:8443/wifimon/probes/', data=data, headers=headers, timeout=15)
+        session.post(url='https://WAS_FQDN:8443/wifimon/probes/', data=data, headers=headers, timeout=30)
     except:
         pass
 
+def set_location_information():
+    location_name = ""
+    test_device_location_description = ""
+    nat_network = ""
+    return location_name, test_device_location_description, nat_network
+
 def wireless_info():
+    location_name, test_device_location_description, nat_network = set_location_information()
     iface_name = find_wlan_iface_name()
     mac = get_mac(iface_name)
     bit_rate, tx_power, link_quality, signal_level, accesspoint, essid = parse_iwconfig(iface_name)
     information = parse_iwlist(iface_name, accesspoint)
-    probe_no = "2"
-    json_data = convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information)
+    probe_no = ""
+    json_data = convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network)
     stream_data(json_data)
 
 if __name__ == "__main__":
