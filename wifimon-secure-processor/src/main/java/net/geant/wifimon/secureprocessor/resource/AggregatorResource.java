@@ -53,6 +53,8 @@ import java.util.Iterator;
 import java.nio.charset.StandardCharsets;
 import javax.annotation.PostConstruct;
 import com.google.json.JsonSanitizer;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 @Component
 @Path("/wifimon")
@@ -276,6 +278,9 @@ public class AggregatorResource {
             indexMeasurementProbes(jsonString);
 
 	    if (environment.getProperty(JSON_COLLECT).equals("true")) {
+		SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC+0"));
+
                 SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
                 sourceBuilder.query(QueryBuilders.rangeQuery("Timestamp").from(timestamp).to("now"));
                 sourceBuilder.postFilter(QueryBuilders.termQuery(PROBE_NUMBER,probeNumber));
@@ -312,7 +317,10 @@ public class AggregatorResource {
                                 probeIpv4Ping += source.get(LOCAL_PING).toString();
                         }
                         if (source.get(TIMESTAMP) != null) {
-                                probeTimestamp += source.get(TIMESTAMP).toString();
+				long tempTimestamp = Long.parseLong(source.get(TIMESTAMP).toString());
+				Date dateTempTimestamp = new java.util.Date(tempTimestamp * 1L);
+				String tempTimestampFormatted = sdf.format(dateTempTimestamp);
+                                probeTimestamp += tempTimestampFormatted.toString();
                         }
                         if (source.get(TEST_TOOL) != null) {
                                 probeTestTool += source.get(TEST_TOOL).toString();
@@ -321,6 +329,16 @@ public class AggregatorResource {
                         sequence += 1;
                 }
 
+		// format the previous measurement timestamp to the desired form
+		long startTimestampLong = Long.parseLong(timestamp);
+		Date dateStartTimestampLong = new java.util.Date(startTimestampLong * 1L);
+		String startTimestampFormatted = sdf.format(dateStartTimestampLong);
+
+		// format the current measurement timestamp to the desired form
+		long currentTimestampLong = Long.parseLong(timestampCurrent);
+		Date dateCurrentTimestampLong = new java.util.Date(currentTimestampLong * 1L);
+		String currentTimestampFormatted = sdf.format(dateCurrentTimestampLong);
+
                 String overallJson = "";
 		// Stream report origin part of JSON specification
                 String reportOriginJson = "\"" + EXPORTER_ORIGIN + "\": {";
@@ -328,18 +346,17 @@ public class AggregatorResource {
 		reportOriginJson += dataValidator("4.0", EXPORTER_DEVICE_VERSION, false, false, false);
 		reportOriginJson += dataValidator(measurement.getAccesspoint(), EXPORTER_DEVICE_ID, false, false, true);
 		reportOriginJson += dataValidator(measurement.getAccesspoint() + "-" + timestampCurrent, EXPORTER_TEST_INSTANCE_UNIQUE_ID, false, false, true);
-		reportOriginJson += dataValidator(timestamp, EXPORTER_START_TIMESTAMP, true, false, false);
-		reportOriginJson += dataValidator(timestampCurrent, EXPORTER_FINISHED_TIMESTAMP, true, true, false);
+		reportOriginJson += dataValidator(startTimestampFormatted, EXPORTER_START_TIMESTAMP, false, false, false);
+		reportOriginJson += dataValidator(currentTimestampFormatted, EXPORTER_FINISHED_TIMESTAMP, false, true, false);
 		reportOriginJson += "}";
 
                 // Stream environment part of JSON specification
                 String environmentJson = "\"" + EXPORTER_ENVIRONMENT + "\": {";
-		environmentJson += dataValidator("-1000", EXPORTER_LONGITUDE, true, false, false);
-		environmentJson += dataValidator("-1000", EXPORTER_LATITUDE, true, false, false);
+		environmentJson += dataValidator("0", EXPORTER_LONGITUDE, true, false, false);
+		environmentJson += dataValidator("0", EXPORTER_LATITUDE, true, false, false);
 		environmentJson += dataValidator(measurement.getLocationName(), EXPORTER_LOCATION_NAME, false, false, true);
 		environmentJson += dataValidator(measurement.getTestDeviceLocationDescription(), EXPORTER_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
 		environmentJson += dataValidator("Geolocation", EXPORTER_LOCATION_METHOD, false, false, false);
-		//environmentJson += dataValidator(measurement.getMonitor(), EXPORTER_WIFI_SURROUND, false, true, false);
 		environmentJson += measurement.getMonitor() != null ? "\"" + PROBE_MONITOR + "\" : " + measurement.getMonitor() : "";
                 environmentJson += "}";
 
@@ -361,6 +378,7 @@ public class AggregatorResource {
                 overallJson = "{ " + reportOriginJson + ", " + environmentJson + ", " + connectivityJson + ", " + performanceMeasurementsJson + "}";
 
                 String toPost = "type=v100&message=" + overallJson;
+
                 String[] commands = new String[] {"curl", "--data-urlencode", toPost, environment.getProperty(JSON_COLLECTOR)};
                 Process process = Runtime.getRuntime().exec(commands);
                 //process.destroy();
