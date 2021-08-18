@@ -798,6 +798,9 @@ public class AggregatorResource {
 	    RestHighLevelClient restClient = null;
 
         try {
+            char[] truststorePassword = environment.getProperty(SSL_TRUSTSTORE_PHRASE).toCharArray();
+            char[] keystorePassword = environment.getProperty(SSL_KEYSTORE_PHRASE).toCharArray();
+            char[] keyPassword = environment.getProperty(SSL_KEY_PHRASE).toCharArray();
 
             final CredentialsProvider credentialsProvider =
                     new BasicCredentialsProvider();
@@ -806,6 +809,18 @@ public class AggregatorResource {
                             environment.getProperty(SSL_USER_USERNAME),
                             environment.getProperty(SSL_USER_PHRASE)));
 
+            SSLContext sslContextFromJks = SSLContexts
+                    .custom()
+                    .loadKeyMaterial(
+                            new File(environment.getProperty(SSL_KEYSTORE_FILEPATH)),
+                            keystorePassword,
+                            keyPassword)
+                    .loadTrustMaterial(
+                            new File(environment.getProperty(SSL_TRUSTSTORE_FILEPATH)),
+                            truststorePassword, null)
+                    .build();
+
+
             restClient = new RestHighLevelClient(
                     RestClient.builder(new HttpHost(
                             environment.getProperty(ES_HOST),
@@ -813,6 +828,7 @@ public class AggregatorResource {
                             "https"))
                             .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
                                     .setDefaultCredentialsProvider(credentialsProvider)
+                                    .setSSLContext(sslContextFromJks)
                             ));
         } catch (Exception e) {
 	    logger.info(e.toString());
