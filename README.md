@@ -4,8 +4,6 @@
 
     mvn clean install
 
-## Run Sonarqube analysis
+## Official WiFiMon Documentation
 
-    mvn sonar:sonar -Dsonar.host.url=http://62.217.124.244:9000/
-
-Where IP/port can be replaced with a running Sonarqube server.
+The official WiFiMon documentation is available from: https://wiki.geant.org/display/WIF/WiFiMon+User+Documentation
