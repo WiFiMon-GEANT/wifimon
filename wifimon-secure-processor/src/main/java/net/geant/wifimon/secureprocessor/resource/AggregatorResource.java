@@ -55,6 +55,7 @@ import javax.annotation.PostConstruct;
 import com.google.json.JsonSanitizer;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.util.UUID;
 
 @Component
 @Path("/wifimon")
@@ -339,13 +340,17 @@ public class AggregatorResource {
 		Date dateCurrentTimestampLong = new java.util.Date(currentTimestampLong * 1L);
 		String currentTimestampFormatted = sdf.format(dateCurrentTimestampLong);
 
+		// Generate a unique UUID for this measurement
+		UUID uuid = UUID.randomUUID();
+                String uuidAsString = uuid.toString();
+
                 String overallJson = "";
 		// Stream report origin part of JSON specification
                 String reportOriginJson = "\"" + EXPORTER_ORIGIN + "\": {";
 		reportOriginJson += dataValidator("WiFiMon Hardware Probe", EXPORTER_DEVICE_TYPE, false, false, false);
 		reportOriginJson += dataValidator("4.0", EXPORTER_DEVICE_VERSION, false, false, false);
 		reportOriginJson += dataValidator(measurement.getAccesspoint(), EXPORTER_DEVICE_ID, false, false, true);
-		reportOriginJson += dataValidator(measurement.getAccesspoint() + "-" + timestampCurrent, EXPORTER_TEST_INSTANCE_UNIQUE_ID, false, false, true);
+		reportOriginJson += dataValidator(uuidAsString, EXPORTER_TEST_INSTANCE_UNIQUE_ID, false, false, false);
 		reportOriginJson += dataValidator(startTimestampFormatted, EXPORTER_START_TIMESTAMP, false, false, false);
 		reportOriginJson += dataValidator(currentTimestampFormatted, EXPORTER_FINISHED_TIMESTAMP, false, true, false);
 		reportOriginJson += "}";

@@ -90,7 +90,7 @@ def stream_data(data):
     try:
         session = requests.Session()
         session.verify = False
-        session.post(url='https://WAS_FQDN:443/wifimon/probes/', data=data, headers=headers, timeout=30)
+        session.post(url='https://WAS_FQDN:8443/wifimon/probes/', data=data, headers=headers, timeout=30)
     except:
         pass
 
