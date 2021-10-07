@@ -83,11 +83,6 @@ public class AggregatorResource {
     private static final String SSL_ENABLED = "xpack.security.enabled";
     private static final String SSL_USER_USERNAME = "ssl.http.user.username";
     private static final String SSL_USER_PHRASE = "ssl.http.user.phrase";
-    private static final String SSL_KEYSTORE_FILEPATH = "ssl.http.keystore.filepath";
-    private static final String SSL_KEYSTORE_PHRASE = "ssl.http.keystore.phrase";
-    private static final String SSL_TRUSTSTORE_FILEPATH = "ssl.http.truststore.filepath";
-    private static final String SSL_TRUSTSTORE_PHRASE = "ssl.http.truststore.phrase";
-    private static final String SSL_KEY_PHRASE = "ssl.http.key.phrase";
     private static final String HMAC_SHA512_KEY = "sha.key";
     // JSON headers for WiFiMon crowdsourced/deterministic measurements (wifimon index)
     private static final String TIMESTAMP = "Timestamp";
@@ -803,10 +798,6 @@ public class AggregatorResource {
 	    RestHighLevelClient restClient = null;
 
         try {
-            char[] truststorePassword = environment.getProperty(SSL_TRUSTSTORE_PHRASE).toCharArray();
-            char[] keystorePassword = environment.getProperty(SSL_KEYSTORE_PHRASE).toCharArray();
-            char[] keyPassword = environment.getProperty(SSL_KEY_PHRASE).toCharArray();
-
             final CredentialsProvider credentialsProvider =
                     new BasicCredentialsProvider();
             credentialsProvider.setCredentials(AuthScope.ANY,
