@@ -13,6 +13,7 @@ public class NetTestMeasurement implements Serializable {
     private Double localPing;
     private String latitude;
     private String longitude;
+    private String testServerLocation;
     private String locationMethod;
     private String testTool;
 
@@ -62,6 +63,14 @@ public class NetTestMeasurement implements Serializable {
 
     public void setLongitude(String longitude) {
         this.longitude = longitude;
+    }
+
+    public String getTestServerLocation() {
+	return testServerLocation;
+    }
+
+    public void setTestServerLocation(String testServerLocation) {
+	this.testServerLocation = testServerLocation;
     }
 
     public String getLocationMethod() {

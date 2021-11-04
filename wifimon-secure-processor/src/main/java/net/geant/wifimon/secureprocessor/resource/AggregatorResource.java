@@ -100,6 +100,7 @@ public class AggregatorResource {
     private static final String PROBE_NUMBER = "Probe-No";
     private static final String REQUESTER_SUBNET = "Requester-Subnet";
     private static final String ENCRYPTED_IP = "Encrypted-IP";
+    private static final String TEST_SERVER_LOCATION = "TestServerLocation";
     // JSON headers for correlation with RADIUS logs (correlation of radiuslogs index with wifimon index)
     private static final String AP_BUILDING = "Ap-Building";
     private static final String AP_FLOOR = "Ap-Floor";
@@ -482,6 +483,7 @@ public class AggregatorResource {
         m.setLatitude(measurement.getLatitude() != null ? Double.valueOf(measurement.getLatitude()) : null);
         m.setLongitude(measurement.getLongitude() != null ? Double.valueOf(measurement.getLongitude()) : null);
         m.setLocationMethod(measurement.getLocationMethod());
+	m.setTestServerLocation(measurement.getTestServerLocation());
         m.setUserAgent(agent);
         m.setTestTool(measurement.getTestTool());
         m.setRadiusTimestamp(radius != null ? radius.getRadiusTimestamp() : null);
@@ -558,6 +560,7 @@ public class AggregatorResource {
 	String localPingJson = dataValidator(measurement.getLocalPing().toString(), LOCAL_PING, true, false, true);
 	String locationJson = JsonSanitizer.sanitize(measurement.getLatitude().toString()) != null ? "\"" + LOCATION + "\" : \"" + JsonSanitizer.sanitize(measurement.getLatitude().toString()) + "," + JsonSanitizer.sanitize(measurement.getLongitude().toString()) + "\", " : "";
 	String locationMethodJson = dataValidator(measurement.getLocationMethod(), LOCATION_METHOD, false, false, true);
+	String testServerLocationJson = dataValidator("\"" + measurement.getTestServerLocation() + "\"", TEST_SERVER_LOCATION, false, false, true);
 	String clientIpJson = dataValidator(measurement.getClientIp(), CLIENT_IP, false, false, true);
 	String userAgentJson = dataValidator(measurement.getUserAgent(), USER_AGENT, false, false, true);
 	String userBrowserJson = dataValidator(userBrowser, USER_BROWSER, false, false, false);
@@ -575,7 +578,7 @@ public class AggregatorResource {
         String acctStatusTypeJson = dataValidator(measurement.getAcctStatusType(), ACCT_STATUS_TYPE, false, false, true);
         String nasIdentifierJson = dataValidator(measurement.getNasIdentifier(), NAS_IDENTIFIER, false, false, true);
         String acctDelayTimeJson = dataValidator(measurement.getAcctDelayTime(), ACCT_DELAY_TIME, false, false, true);
-        String nasIpAddressJson = dataValidator(measurement.getNasIpAddress(), NAS_IP_ADDRESS, false, false, true);
+        String nasIpAddressJson = dataValidator("\"" + measurement.getNasIpAddress() + "\"", NAS_IP_ADDRESS, false, false, true);
         String framedIpAddressJson = dataValidator(measurement.getFramedIpAddress(), FRAMED_IP_ADDRESS, false, false, true);
         String acctUniqueSessionIdJson = dataValidator(measurement.getAcctUniqueSessionId(), ACCT_UNIQUE_SESSION_ID, false, false, true);
         String realmJson = dataValidator(measurement.getRealm(), REALM, false, false, true);
@@ -597,7 +600,7 @@ public class AggregatorResource {
         String jsonStringDraft = "{" +
                 "\"" + TIMESTAMP + "\" : " + measurement.getTimestamp() + ", " +
                 downloadThroughputJson + uploadThroughputJson + localPingJson +
-                locationJson + locationMethodJson + userAgentJson + userBrowserJson + 
+                locationJson + locationMethodJson + testServerLocationJson + userAgentJson + userBrowserJson + 
 		userOsJson + testToolJson + radiusTimestampJson + serviceTypeJson +
  		nasPortIdJson + nasPortTypeJson + acctSessionIdJson +
 		acctMultiSessionIdJson + callingStationIdJson + calledStationIdJson +

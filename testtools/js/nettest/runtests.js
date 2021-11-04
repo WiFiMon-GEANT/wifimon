@@ -18,6 +18,13 @@ if (typeof document.getElementById("settings").getAttribute("testtool") === 'und
 }else{
 	var test_tool = document.getElementById("settings").getAttribute("testtool");
 }
+
+if (typeof document.getElementById("settings").getAttribute("testServerLocation") === 'undefined' || document.getElementById("settings").getAttribute("testServerLocation") == '') {
+	var testServerLocation = "N/A";
+}else{
+	var testServerLocation = document.getElementById("settings").getAttribute("testServerLocation");
+}
+
 if (typeof document.getElementById("settings").getAttribute("cookieTimeInMinutes") === 'undefined' || document.getElementById("settings").getAttribute("cookieTimeInMinutes") == '') {
 	var cookie_time = 1.5;
 }else{
@@ -90,7 +97,7 @@ function postToAgent() {
   location_method = "N/A";
  }
 
-var measurement = {downloadThroughput: download_throughput, uploadThroughput: upload_throughput, localPing: local_ping, latitude: latitude, longitude: longitude, locationMethod: location_method, testTool: test_tool};
+var measurement = {downloadThroughput: download_throughput, uploadThroughput: upload_throughput, localPing: local_ping, latitude: latitude, longitude: longitude, locationMethod: location_method, testServerLocation: testServerLocation, testTool: test_tool};
 $.ajax({
 	type: "POST",
 	data :JSON.stringify(measurement),

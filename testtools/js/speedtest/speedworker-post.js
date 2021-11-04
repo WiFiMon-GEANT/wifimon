@@ -40,6 +40,12 @@ if (typeof document.getElementById("settings").getAttribute("testtool") === 'und
 	var test_tool = document.getElementById("settings").getAttribute("testtool");
 }
 //------------------------------------------------------
+// What is the WiFiMOn Test Server used?
+if (typeof document.getElementById("settings").getAttribute("testServerLocation") === 'undefined' || document.getElementById("settings").getAttribute("testServerLocation") == '') {
+	var testServerLocation = "N/A";
+}else{
+	var testServerLocation = document.getElementById("settings").getAttribute("testServerLocation");
+}
 //Set and check cookie 
 
 function setCookie(cname,cvalue,exhours) {
@@ -170,8 +176,8 @@ var measurement = {downloadThroughput: download_throughput,
                    latitude: latitude,
                    longitude: longitude,
                    locationMethod: location_method,
-				   testTool: test_tool};
-
+	           testServerLocation: testServerLocation,
+	           testTool: test_tool};
 
 $.ajax({
 	type: "POST",

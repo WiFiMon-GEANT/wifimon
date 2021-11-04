@@ -55,6 +55,12 @@ if (typeof document.getElementById("settings").getAttribute("testtool") === 'und
     var test_tool = document.getElementById("settings").getAttribute("testtool");
 }
 //-----------------------------------------------------------------------------------------------------------------
+// Check for WiFiMon Test Server
+if (typeof document.getElementById("settings").getAttribute("testServerLocation") === 'undefined' || document.getElementById("settings").getAttribute("testServerLocation") == '') {
+    var test_tool = "N/A";
+} else {
+    var test_tool = document.getElementById("settings").getAttribute("testServerLocation");
+}
 //Set and check cookie
 function setCookie(cname, cvalue, exhours) {
     var d = new Date();
@@ -193,6 +199,7 @@ BOOMR.subscribe('before_beacon', function (o) {
                 latitude: latitude,
                 longitude: longitude,
                 locationMethod: location_method,
+		testServerLocation: testServerLocation,
                 testTool: test_tool
             };
 
