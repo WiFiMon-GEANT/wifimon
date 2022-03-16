@@ -24,7 +24,6 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-//import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -139,6 +138,7 @@ public class AggregatorResource {
     private static final String PROBE_LINK_QUALITY = "Link-Quality";
     private static final String PROBE_SIGNAL_LEVEL = "Signal-Level";
     private static final String PROBE_MONITOR = "Monitor";
+    private static final String PROBE_SYSTEM = "System";
     private static final String PROBE_LOCATION_NAME = "Location-Name";
     private static final String PROBE_TEST_DEVICE_LOCATION_DESCRIPTION = "Test-Device-Location-Description";
     private static final String PROBE_NAT_NETWORK = "NAT-Network";
@@ -243,14 +243,15 @@ public class AggregatorResource {
 	    String locationNameJson = dataValidator(measurement.getLocationName(), PROBE_LOCATION_NAME, false, false, true);
 	    String testDeviceLocationDescriptionJson = dataValidator(measurement.getTestDeviceLocationDescription(), PROBE_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
 	    String natNetworkJson = dataValidator(measurement.getNat(), PROBE_NAT_NETWORK, false, false, true);
-	    String monitorJson = dataValidator(measurement.getMonitor(), PROBE_MONITOR, false, true, true);
+	    String monitorJson = dataValidator(measurement.getMonitor(), PROBE_MONITOR, false, false, true);
+	    String systemJson = dataValidator(measurement.getSystem(), PROBE_SYSTEM, false, true, true);
 
             // Construct JSON object that will be stored in Elasticsearch
             String jsonStringDraft = "{" +
-                    timestampJson + macAddressJson + accesspointJson +essidJson + bitRateJson + 
+                    timestampJson + macAddressJson + accesspointJson + essidJson + bitRateJson + 
 		    txPowerJson + linkQualityJson + signalLevelJson + probeNoJson + originJson +
 		    locationNameJson + testDeviceLocationDescriptionJson + natNetworkJson + 
-		    monitorJson + "}";
+		    monitorJson + systemJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
