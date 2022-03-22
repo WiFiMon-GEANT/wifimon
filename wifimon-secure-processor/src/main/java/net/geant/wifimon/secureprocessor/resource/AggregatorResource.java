@@ -24,7 +24,8 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.xcontent.XContentType;
+//import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -83,11 +84,6 @@ public class AggregatorResource {
     private static final String SSL_ENABLED = "xpack.security.enabled";
     private static final String SSL_USER_USERNAME = "ssl.http.user.username";
     private static final String SSL_USER_PHRASE = "ssl.http.user.phrase";
-    private static final String SSL_KEYSTORE_FILEPATH = "ssl.http.keystore.filepath";
-    private static final String SSL_KEYSTORE_PHRASE = "ssl.http.keystore.phrase";
-    private static final String SSL_TRUSTSTORE_FILEPATH = "ssl.http.truststore.filepath";
-    private static final String SSL_TRUSTSTORE_PHRASE = "ssl.http.truststore.phrase";
-    private static final String SSL_KEY_PHRASE = "ssl.http.key.phrase";
     private static final String HMAC_SHA512_KEY = "sha.key";
     // JSON headers for WiFiMon crowdsourced/deterministic measurements (wifimon index)
     private static final String TIMESTAMP = "Timestamp";
@@ -105,6 +101,7 @@ public class AggregatorResource {
     private static final String PROBE_NUMBER = "Probe-No";
     private static final String REQUESTER_SUBNET = "Requester-Subnet";
     private static final String ENCRYPTED_IP = "Encrypted-IP";
+    private static final String TEST_SERVER_LOCATION = "TestServerLocation";
     // JSON headers for correlation with RADIUS logs (correlation of radiuslogs index with wifimon index)
     private static final String AP_BUILDING = "Ap-Building";
     private static final String AP_FLOOR = "Ap-Floor";
@@ -487,6 +484,7 @@ public class AggregatorResource {
         m.setLatitude(measurement.getLatitude() != null ? Double.valueOf(measurement.getLatitude()) : null);
         m.setLongitude(measurement.getLongitude() != null ? Double.valueOf(measurement.getLongitude()) : null);
         m.setLocationMethod(measurement.getLocationMethod());
+	m.setTestServerLocation(measurement.getTestServerLocation());
         m.setUserAgent(agent);
         m.setTestTool(measurement.getTestTool());
         m.setRadiusTimestamp(radius != null ? radius.getRadiusTimestamp() : null);
@@ -563,6 +561,7 @@ public class AggregatorResource {
 	String localPingJson = dataValidator(measurement.getLocalPing().toString(), LOCAL_PING, true, false, true);
 	String locationJson = JsonSanitizer.sanitize(measurement.getLatitude().toString()) != null ? "\"" + LOCATION + "\" : \"" + JsonSanitizer.sanitize(measurement.getLatitude().toString()) + "," + JsonSanitizer.sanitize(measurement.getLongitude().toString()) + "\", " : "";
 	String locationMethodJson = dataValidator(measurement.getLocationMethod(), LOCATION_METHOD, false, false, true);
+	String testServerLocationJson = dataValidator("\"" + measurement.getTestServerLocation() + "\"", TEST_SERVER_LOCATION, false, false, true);
 	String clientIpJson = dataValidator(measurement.getClientIp(), CLIENT_IP, false, false, true);
 	String userAgentJson = dataValidator(measurement.getUserAgent(), USER_AGENT, false, false, true);
 	String userBrowserJson = dataValidator(userBrowser, USER_BROWSER, false, false, false);
@@ -580,7 +579,7 @@ public class AggregatorResource {
         String acctStatusTypeJson = dataValidator(measurement.getAcctStatusType(), ACCT_STATUS_TYPE, false, false, true);
         String nasIdentifierJson = dataValidator(measurement.getNasIdentifier(), NAS_IDENTIFIER, false, false, true);
         String acctDelayTimeJson = dataValidator(measurement.getAcctDelayTime(), ACCT_DELAY_TIME, false, false, true);
-        String nasIpAddressJson = dataValidator(measurement.getNasIpAddress(), NAS_IP_ADDRESS, false, false, true);
+        String nasIpAddressJson = dataValidator("\"" + measurement.getNasIpAddress() + "\"", NAS_IP_ADDRESS, false, false, true);
         String framedIpAddressJson = dataValidator(measurement.getFramedIpAddress(), FRAMED_IP_ADDRESS, false, false, true);
         String acctUniqueSessionIdJson = dataValidator(measurement.getAcctUniqueSessionId(), ACCT_UNIQUE_SESSION_ID, false, false, true);
         String realmJson = dataValidator(measurement.getRealm(), REALM, false, false, true);
@@ -602,7 +601,7 @@ public class AggregatorResource {
         String jsonStringDraft = "{" +
                 "\"" + TIMESTAMP + "\" : " + measurement.getTimestamp() + ", " +
                 downloadThroughputJson + uploadThroughputJson + localPingJson +
-                locationJson + locationMethodJson + userAgentJson + userBrowserJson + 
+                locationJson + locationMethodJson + testServerLocationJson + userAgentJson + userBrowserJson + 
 		userOsJson + testToolJson + radiusTimestampJson + serviceTypeJson +
  		nasPortIdJson + nasPortTypeJson + acctSessionIdJson +
 		acctMultiSessionIdJson + callingStationIdJson + calledStationIdJson +
@@ -803,28 +802,12 @@ public class AggregatorResource {
 	    RestHighLevelClient restClient = null;
 
         try {
-            char[] truststorePassword = environment.getProperty(SSL_TRUSTSTORE_PHRASE).toCharArray();
-            char[] keystorePassword = environment.getProperty(SSL_KEYSTORE_PHRASE).toCharArray();
-            char[] keyPassword = environment.getProperty(SSL_KEY_PHRASE).toCharArray();
-
             final CredentialsProvider credentialsProvider =
                     new BasicCredentialsProvider();
             credentialsProvider.setCredentials(AuthScope.ANY,
                     new UsernamePasswordCredentials(
                             environment.getProperty(SSL_USER_USERNAME),
                             environment.getProperty(SSL_USER_PHRASE)));
-
-            SSLContext sslContextFromJks = SSLContexts
-                    .custom()
-                    .loadKeyMaterial(
-                            new File(environment.getProperty(SSL_KEYSTORE_FILEPATH)),
-                            keystorePassword,
-                            keyPassword)
-                    .loadTrustMaterial(
-                            new File(environment.getProperty(SSL_TRUSTSTORE_FILEPATH)),
-                            truststorePassword, null)
-                    .build();
-
 
             restClient = new RestHighLevelClient(
                     RestClient.builder(new HttpHost(
@@ -833,7 +816,6 @@ public class AggregatorResource {
                             "https"))
                             .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
                                     .setDefaultCredentialsProvider(credentialsProvider)
-                                    .setSSLContext(sslContextFromJks)
                             ));
         } catch (Exception e) {
 	    logger.info(e.toString());

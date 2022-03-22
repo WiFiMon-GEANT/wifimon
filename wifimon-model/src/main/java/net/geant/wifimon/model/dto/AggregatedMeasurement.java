@@ -15,6 +15,7 @@ public class AggregatedMeasurement implements Serializable {
     private Double latitude;
     private Double longitude;
     private String locationMethod;
+    private String testServerLocation;
     private String clientIp;
     private String userAgent;
     private String testTool;
@@ -94,6 +95,14 @@ public class AggregatedMeasurement implements Serializable {
 
     public void setLocationMethod(String locationMethod) {
         this.locationMethod = locationMethod;
+    }
+
+    public String getTestServerLocation() {
+	return testServerLocation;
+    }
+
+    public void setTestServerLocation(String testServerLocation) {
+	this.testServerLocation = testServerLocation;
     }
 
     public String getClientIp() {
