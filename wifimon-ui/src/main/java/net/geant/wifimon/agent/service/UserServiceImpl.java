@@ -1,10 +1,12 @@
 package net.geant.wifimon.agent.service;
 
+import net.geant.wifimon.agent.model.UserChangePasswordFormModel;
 import net.geant.wifimon.agent.model.UserCreateFormModel;
 import net.geant.wifimon.agent.repository.UserRepository;
 import net.geant.wifimon.model.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +48,14 @@ public class UserServiceImpl implements UserService {
         user.setPasswordHash(new BCryptPasswordEncoder().encode(form.getPassword()));
         user.setRole(form.getRole());
         return userRepository.save(user);
+    }
+
+    @Override
+    public User changePassword(UserChangePasswordFormModel form) {
+                String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+                User user = this.getUserByEmail(userEmail).orElse(null);
+                user.setPasswordHash(new BCryptPasswordEncoder().encode(form.getPassword()));
+                return userRepository.save(user);
     }
 
     @Override
