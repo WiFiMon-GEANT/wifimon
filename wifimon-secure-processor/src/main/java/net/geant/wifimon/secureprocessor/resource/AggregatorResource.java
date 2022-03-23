@@ -3,6 +3,7 @@ package net.geant.wifimon.secureprocessor.resource;
 import net.geant.wifimon.model.dto.AggregatedMeasurement;
 import net.geant.wifimon.model.dto.NetTestMeasurement;
 import net.geant.wifimon.model.dto.ProbesMeasurement;
+import net.geant.wifimon.model.dto.TwampMeasurement;
 import net.geant.wifimon.model.entity.Accesspoint;
 import net.geant.wifimon.model.entity.CorrelationMethod;
 import net.geant.wifimon.model.entity.RadiusStripped;
@@ -79,6 +80,7 @@ public class AggregatorResource {
     private static final String ES_INDEXNAME_MEASUREMENT = "elasticsearch.indexnamemeasurement";
     private static final String ES_INDEXNAME_RADIUS = "elasticsearch.indexnameradius";
     private static final String ES_INDEXNAME_PROBES = "elasticsearch.indexnameprobes";
+    private static final String ES_INDEXNAME_TWAMP = "elasticsearch.indexnametwamp";
     private static final String ES_INDEXNAME_DHCP = "elasticsearch.indexnamedhcp";
     private static final String SSL_ENABLED = "xpack.security.enabled";
     private static final String SSL_USER_USERNAME = "ssl.http.user.username";
@@ -168,6 +170,38 @@ public class AggregatorResource {
     private static final String EXPORTER_LOCATION_NAME = "locationName";
     private static final String EXPORTER_TEST_DEVICE_LOCATION_DESCRIPTION = "testDeviceLocationDescription";
     private static final String EXPORTER_NAT_NETWORK = "NAT";
+    // JSON headers for TWAMP measurements from WiFiMon Hardware Probes
+    private static final String TWAMP_TIMESTAMP = "Timestamp";
+    private static final String TWAMP_PROBE_NUMBER = "Probe-Number";
+    private static final String TWAMP_SERVER = "Twamp-Server";
+    private static final String TWAMP_SENT = "Sent";
+    private static final String TWAMP_LOST = "Lost";
+    private static final String TWAMP_SEND_DUPS = "Send-Dups";
+    private static final String TWAMP_REFLECT_DUPS = "Reflect-Dups";
+    private static final String TWAMP_MIN_RTT = "Min-Rtt";
+    private static final String TWAMP_MEDIAN_RTT = "Median-Rtt";
+    private static final String TWAMP_MAX_RTT = "Max-Rtt";
+    private static final String TWAMP_ERR_RTT = "Err-Rtt";
+    private static final String TWAMP_MIN_SEND = "Min-Send";
+    private static final String TWAMP_MEDIAN_SEND = "Median-Send";
+    private static final String TWAMP_MAX_SEND = "Max-Send";
+    private static final String TWAMP_ERR_SEND = "Err-Send";
+    private static final String TWAMP_MIN_REFLECT = "Min-Reflect";
+    private static final String TWAMP_MEDIAN_REFLECT = "Median-Reflect";
+    private static final String TWAMP_MAX_REFLECT = "Max-Reflect";
+    private static final String TWAMP_ERR_REFLECT = "Err-Reflect";
+    private static final String TWAMP_MIN_REFLECTOR_PROCESSING_TIME = "Min-Reflector-Processing-Time";
+    private static final String TWAMP_MAX_REFLECTOR_PROCESSING_TIME = "Max-Reflector-Processing-Time";
+    private static final String TWAMP_TWO_WAY_JITTER_VALUE = "Two-Way-Jitter-Value";
+    private static final String TWAMP_TWO_WAY_JITTER_CHAR = "Two-Way-Jitter-Char";
+    private static final String TWAMP_SEND_JITTER_VALUE = "Send-Jitter-Value";
+    private static final String TWAMP_SEND_JITTER_CHAR = "Send-Jitter-Char";
+    private static final String TWAMP_REFLECT_JITTER_VALUE = "Reflect-Jitter-Value";
+    private static final String TWAMP_REFLECT_JITTER_CHAR = "Reflect-Jitter-Char";
+    private static final String TWAMP_SEND_HOPS_VALUE = "Send-Hops-Value";
+    private static final String TWAMP_SEND_HOPS_CHAR = "Send-Hops-Char";
+    private static final String TWAMP_REFLECT_HOPS_VALUE = "Reflect-Hops-Value";
+    private static final String TWAMP_REFLECT_HOPS_CHAR = "Reflect-Hops-Char";
 
     private static Logger logger = Logger.getLogger(AggregatorResource.class.getName());
     private static RestHighLevelClient restHighLevelClient;
@@ -393,6 +427,65 @@ public class AggregatorResource {
 	    logger.info(e.toString());
             response = null;
         }
+        return response;
+    }
+
+    @POST
+    @Path("/twamp")
+    public Response correlate(final TwampMeasurement measurement, @Context HttpServletRequest request) {
+        Response response = null;
+	try {
+	    String timestampCurrent = String.valueOf(System.currentTimeMillis());
+	    String timestampJson = dataValidator(timestampCurrent, TWAMP_TIMESTAMP, true, false, false);
+	    String probeNumberJson = dataValidator(measurement.getProbeNumber(), TWAMP_PROBE_NUMBER, true, false, true);
+	    String twampServerJson = dataValidator(measurement.getTwampServer(), TWAMP_SERVER, false, false, true);
+	    String sentJson = dataValidator(measurement.getSent(), TWAMP_SENT, true, false, true);
+	    String lostJson = dataValidator(measurement.getLost(), TWAMP_LOST, true, false, true);
+	    String sendDupsJson = dataValidator(measurement.getSendDups(), TWAMP_SEND_DUPS, true, false, true);
+	    String reflectDupsJson = dataValidator(measurement.getReflectDups(), TWAMP_REFLECT_DUPS, true, false, true);
+	    String minRttJson = dataValidator(measurement.getMinRtt(), TWAMP_MIN_RTT, true, false, true);
+	    String medianRttJson = dataValidator(measurement.getMedianRtt(), TWAMP_MEDIAN_RTT, true, false, true);
+	    String maxRttJson = dataValidator(measurement.getMaxRtt(), TWAMP_MAX_RTT, true, false, true);
+	    String errRttJson = dataValidator(measurement.getErrRtt(), TWAMP_ERR_RTT, true, false, true);
+	    String minSendJson = dataValidator(measurement.getMinSend(), TWAMP_MIN_SEND, true, false, true);
+	    String medianSendJson = dataValidator(measurement.getMedianSend(), TWAMP_MEDIAN_SEND, true, false, true);
+	    String maxSendJson = dataValidator(measurement.getMaxSend(), TWAMP_MAX_SEND, true, false, true);
+	    String errSendJson = dataValidator(measurement.getErrSend(), TWAMP_ERR_SEND, true, false, true);
+	    String minReflectJson = dataValidator(measurement.getMinReflect(), TWAMP_MIN_REFLECT, true, false, true);
+	    String medianReflectJson = dataValidator(measurement.getMedianReflect(), TWAMP_MEDIAN_REFLECT, true, false, true);
+	    String maxReflectJson = dataValidator(measurement.getMaxReflect(), TWAMP_MAX_REFLECT, true, false, true);
+	    String errReflectJson = dataValidator(measurement.getErrReflect(), TWAMP_ERR_REFLECT, true, false, true);
+	    String minReflectorProcessingTimeJson = dataValidator(measurement.getMinReflectorProcessingTime(), TWAMP_MIN_REFLECTOR_PROCESSING_TIME, true, false, true);
+	    String maxReflectorProcessingTimeJson = dataValidator(measurement.getMaxReflectorProcessingTime(), TWAMP_MAX_REFLECTOR_PROCESSING_TIME, true, false, true);
+	    String twoWayJitterValueJson = dataValidator(measurement.getTwoWayJitterValue(), TWAMP_TWO_WAY_JITTER_VALUE, true, false, true);
+	    String twoWayJitterCharJson = dataValidator(measurement.getTwoWayJitterChar(), TWAMP_TWO_WAY_JITTER_CHAR, false, false, true);
+	    String sendJitterValueJson = dataValidator(measurement.getSendJitterValue(), TWAMP_SEND_JITTER_VALUE, true, false, true);
+	    String sendJitterCharJson = dataValidator(measurement.getSendJitterChar(), TWAMP_SEND_JITTER_CHAR, false, false, true);
+	    String reflectJitterValueJson = dataValidator(measurement.getReflectJitterValue(), TWAMP_REFLECT_JITTER_VALUE, true, false, true);
+	    String reflectJitterCharJson = dataValidator(measurement.getReflectJitterChar(), TWAMP_REFLECT_JITTER_CHAR, false, false, true);
+	    String sendHopsValueJson = dataValidator(measurement.getSendHopsValue(), TWAMP_SEND_HOPS_VALUE, true, false, true);
+	    String sendHopsCharJson = dataValidator(measurement.getSendHopsChar(), TWAMP_SEND_HOPS_CHAR, false, false, true);
+	    String reflectHopsValueJson = dataValidator(measurement.getReflectHopsValue(), TWAMP_REFLECT_HOPS_VALUE, true, false, true);
+	    String reflectHopsCharJson = dataValidator(measurement.getReflectHopsChar(), TWAMP_REFLECT_HOPS_CHAR, false, true, true);
+
+	    String jsonStringDraft = "{" +
+		    timestampJson + probeNumberJson + twampServerJson + 
+		    sentJson + lostJson + sendDupsJson + reflectDupsJson + minRttJson + 
+		    medianRttJson + maxRttJson + errRttJson + minSendJson + medianSendJson +
+		    maxSendJson + errSendJson + minReflectJson + medianReflectJson +
+		    maxReflectJson + errReflectJson + minReflectorProcessingTimeJson +
+		    maxReflectorProcessingTimeJson + twoWayJitterValueJson +
+		    twoWayJitterCharJson + sendJitterValueJson + sendJitterCharJson + 
+		    reflectJitterValueJson + reflectJitterCharJson + sendHopsValueJson + 
+		    sendHopsCharJson + reflectHopsValueJson + reflectHopsCharJson + "}";
+
+            String jsonString = jsonStringDraft.replace("\", }", "\"}");
+	    indexMeasurementTwamp(jsonString);
+	    return Response.ok().build();
+	} catch (Exception e) {
+	    logger.info(e.toString());
+	    response = null;
+	}
         return response;
     }
 
@@ -772,6 +865,17 @@ public class AggregatorResource {
         try {
         IndexRequest indexRequest = new IndexRequest(
                 environment.getProperty(ES_INDEXNAME_PROBES));
+        indexRequest.source(jsonString, XContentType.JSON);
+            AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
+        } catch (Exception e) {
+            logger.info(e.toString());
+        }
+    }
+
+    private void indexMeasurementTwamp(String jsonString) {
+        try {
+        IndexRequest indexRequest = new IndexRequest(
+                environment.getProperty(ES_INDEXNAME_TWAMP));
         indexRequest.source(jsonString, XContentType.JSON);
             AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
         } catch (Exception e) {
