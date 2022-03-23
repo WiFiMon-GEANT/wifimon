@@ -49,6 +49,11 @@
 	    <outputDirectory></outputDirectory>
 	    <filtered>true</filtered>
 	</file>
+	<file>
+	    <source>twping_parser.py</source>
+	    <outputDirectory></outputDirectory>
+	    <filtered>true</filtered>
+        </file>
         <file>
             <source>README.txt</source>
             <outputDirectory></outputDirectory>
