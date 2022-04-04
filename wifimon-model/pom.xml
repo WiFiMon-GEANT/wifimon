@@ -5,7 +5,7 @@
     <parent>
         <artifactId>agent</artifactId>
         <groupId>net.geant.wifimon</groupId>
-        <version>1.5.0</version>
+        <version>1.5.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,7 +14,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>5.6.3.Final</version>
+            <version>6.0.0.Final</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
