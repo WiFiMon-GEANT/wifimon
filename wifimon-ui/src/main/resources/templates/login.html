@@ -3,13 +3,14 @@
 <head>
     <title>Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.css"/>
+    <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.css"/>
     <!--<link href="../static/css/styling.css" rel="stylesheet" />-->
-    <link href="../static/css/loginCss.css" rel="stylesheet" />
+    <link href="../static/css/loginCss.css" rel="stylesheet"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 </head>
 <body>
+
 
 <div class="bar">
     <div class="header">
@@ -20,19 +21,19 @@
 
 <div class="card">
     <div class="logo-card">
-        <a class="image"><img style="top: 4em; height: 70px; position: relative; left: 4em;"
-                              src="../static/images/login-logo.png"></a></div>
+        <img class="login-logo" src="../static/images/wifimon-logo.png">
+    </div>
     <form class="form-inline" th:action="@{/login}" method="POST">
         <input class="form-control" type='email' placeholder="Email" name='username' value='' required="true"
                autofocus="true">
         <input class="form-control" type='password' placeholder="Password" name='password' required="true">
-        <button class="btn" name="submit" type="submit" value="Login">Login</button>
+        <button class="btn" name="submit" type="submit" style="height: 3em" value="Login">Login</button>
     </form>
     <a class="navbar-brand">G&Eacute;ANT WiFi Monitoring Agent</a>
 </div>
 
 <footer class="page-footer" th:fragment="footer">
-    <div class="footer-copyright" style="text-align: center; color: #999999">
+    <div class="footer-copyright">
         &copy; 2016 <a href="http://www.geant.net" target="_blank" style="color: #999999">G&Eacute;ANT</a>
         <a href="mailto:wifimon-users@lists.geant.org?Subject=WiFiMon question" target="_top" style="color: #999999">Contact</a>
     </div>
@@ -40,4 +41,3 @@
 </body>
 
 </html>
-

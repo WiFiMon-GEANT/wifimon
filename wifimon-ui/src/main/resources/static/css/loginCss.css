@@ -41,6 +41,7 @@ input.form-control {
     margin-bottom: 15px;
     width: 85% !important;
     border-color: #d7d0d0;
+    height: 3em;
 }
 
 input.form-control::placeholder {
@@ -68,6 +69,13 @@ input.form-control::placeholder {
     text-align: center;
 }
 
+.login-logo {
+    top: 4em;
+    height: 70px;
+    position: relative;
+    left: 4em;
+}
+
 .logo-card {
     margin-bottom: 80px;
 }
@@ -87,4 +95,44 @@ footer {
     background-color: #ffffff;
     height: 60px;
     font-size: 90%;
+    text-align: center;
+}
+
+@media only screen and (max-width: 750px) {
+
+    div.bar {
+        width: 95%;
+        left: 10px;
+    }
+
+    .header {
+        left: 0;
+    }
+
+    .header-1 {
+        font-size: 2em;
+        position: relative;
+    }
+
+    .parg-1 {
+        width: 19em;
+    }
+
+    .card {
+        width: 20em;
+        left: 7%;
+    }
+
+    .login-logo {
+        left: 0.2em;
+    }
+
+    a.navbar-brand {
+        left: 8%;
+    }
+
+    .footer-copyright {
+        text-align: center;
+        color: #999999;
+    }
 }
