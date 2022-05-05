@@ -40,7 +40,8 @@ curl -XPUT 'http://localhost:9200/wifimon?pretty' -H 'Content-Type: application/
 			"Ap-Location" : { "type" : "geo_point" },
 			"Ap-Notes" : { "type" : "keyword" },
 			"Requester-Subnet" : { "type" : "keyword" },
-			"Encrypted-IP" : { "type" : "keyword" }
+			"Encrypted-IP" : { "type" : "keyword" },
+			"IP-Type" : { "type" : "keyword" }
 		}
 	}
 }'
