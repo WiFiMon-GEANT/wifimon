@@ -63,10 +63,52 @@ curl -XPUT 'http://localhost:9200/probes?pretty' -H 'Content-Type: application/j
 	}
 }'
 
+# Create twamp index
+curl -XPUT 'http://localhost:9200/twamp?pretty' -H 'Content-Type: application/json' -d'
+{ 
+	"mappings" : {
+		"properties" : {
+			"Timestamp" : { "type" : "date" },
+			"Probe-Number" : { "type" : "keyword" },
+			"Twamp-Server" : { "type" : "keyword" },
+			"Sent" : { "type" : "float" },
+			"Lost" : { "type" : "float" },
+			"Send-Dups" : { "type" : "float" },
+			"Reflect-Dups" : { "type" : "float" },
+			"Min-Rtt" : { "type" : "float" },
+			"Median-Rtt" : { "type" : "float" },
+			"Max-Rtt" : { "type" : "float" },
+			"Err-Rtt" : { "type" : "float" },
+			"Min-Send" : { "type" : "float" },
+			"Median-Send" : { "type" : "float" },
+			"Max-Send" : { "type" : "float" },
+			"Err-Send" : { "type" : "float" },
+			"Min-Reflect" : { "type" : "float" },
+			"Median-Reflect" : { "type" : "float" },
+			"Max-Reflect" : { "type" : "float" },
+			"Err-Reflect" : { "type" : "float" },
+			"Min-Reflector-Processing-Time" : { "type" : "float" },
+			"Max-Reflector-Processing-Time" : { "type" : "float" },
+			"Two-Way-Jitter-Value" : { "type" : "float" },
+			"Two-Way-Jitter-Char" : { "type" : "keyword" },
+			"Send-Jitter-Value" : { "type" : "float" },
+			"Send-Jitter-Char" : { "type" : "keyword" },
+			"Reflect-Jitter-Value" : { "type" : "float" },
+			"Reflect-Jitter-Char" : { "type" : "keyword" },
+			"Send-Hops-Value" : { "type" : "float" },
+			"Send-Hops-Char" : { "type" : "keyword" },
+			"Reflect-Hops-Value" : { "type" : "float" },
+			"Reflect-Hops-Char" : { "type" : "keyword" }
+		}
+	}
+}'
+
 # Default Data
 curl -XPOST 'http://localhost:9200/wifimon/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
 
 curl -XPOST 'http://localhost:9200/probes/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
+
+curl -XPOST 'http://localhost:9200/twamp/_doc/?pretty' -H 'Content-Type: application/json' -d' { "test" : "test" }'
 
 curl -X PUT 'http://localhost:9200/_ilm/policy/wifimon_policy?pretty' -H 'Content-Type: application/json' -d'
 {

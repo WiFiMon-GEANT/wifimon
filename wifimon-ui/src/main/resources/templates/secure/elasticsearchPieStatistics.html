@@ -13,13 +13,11 @@
 <div th:replace="fragments/header :: header">
 </div>
 <br/>
-<div th:unless="${error != null}" class="container-fluid" style="padding-top: 6ex;">
-    <iframe th:src="${elasticsearchURL}" style="width: 100%; height: 100%; position: absolute;" frameborder="0"></iframe>
+<div th:unless="${error != null}" class="container-fluid">
+    <iframe class="frames" th:src="${elasticsearchURL}" frameborder="0"></iframe>
 </div>
 
 <br/><br/>
 
-<!--div th:replace="fragments/footer :: footer">
-</div-->
 </body>
 </html>
