@@ -1,5 +1,6 @@
 package net.geant.wifimon.secureprocessor.resource;
 
+import com.google.json.JsonSanitizer;
 import net.geant.wifimon.model.dto.AggregatedMeasurement;
 import net.geant.wifimon.model.dto.NetTestMeasurement;
 import net.geant.wifimon.model.dto.ProbesMeasurement;
@@ -11,14 +12,15 @@ import net.geant.wifimon.model.entity.Subnet;
 import net.geant.wifimon.secureprocessor.repository.AccesspointsRepository;
 import net.geant.wifimon.secureprocessor.repository.SubnetRepository;
 import net.geant.wifimon.secureprocessor.repository.VisualOptionsRepository;
-import org.apache.commons.net.util.SubnetUtils;
+import net.geant.wifimon.subnet.SubnetUtils;
+import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.ssl.SSLContexts;
 import org.elasticsearch.ElasticsearchException;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -51,6 +53,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.ArrayList;
 import java.nio.charset.StandardCharsets;
 import javax.annotation.PostConstruct;
 import com.google.json.JsonSanitizer;
@@ -102,6 +105,7 @@ public class AggregatorResource {
     private static final String PROBE_NUMBER = "Probe-No";
     private static final String REQUESTER_SUBNET = "Requester-Subnet";
     private static final String ENCRYPTED_IP = "Encrypted-IP";
+    private static final String IP_TYPE = "IP-Type";
     private static final String TEST_SERVER_LOCATION = "TestServerLocation";
     // JSON headers for correlation with RADIUS logs (correlation of radiuslogs index with wifimon index)
     private static final String AP_BUILDING = "Ap-Building";
@@ -219,13 +223,11 @@ public class AggregatorResource {
     @Path("/subnet")
     public Response correlate(@Context HttpServletRequest request) {
         String ip = request.getRemoteAddr();
-
+        List<Subnet> v4Subnets = new ArrayList<>();
+        List<Subnet> v6Subnets = new ArrayList<>();
         List<Subnet> subnets = subnetRepository.findAll();
         if (subnets.isEmpty()) return Response.ok(false).build();
-
-        List<SubnetUtils.SubnetInfo> s = subnets.stream().
-                map(it -> it.fromSubnetString()).collect(Collectors.toList());
-
+        List<SubnetUtils.SubnetInfo> s = getSubnetInfos(ip, v4Subnets, v6Subnets, subnets);
         for (SubnetUtils.SubnetInfo si : s) {
             if (si.isInRange(ip)) return Response.ok(true).build();
         }
@@ -499,10 +501,11 @@ public class AggregatorResource {
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
 
         // In the following, we find the registered subnet corresponding to the requester IP
+        List<Subnet> v4Subnets = new ArrayList<>();
+        List<Subnet> v6Subnets = new ArrayList<>();
         List<Subnet> subnets = subnetRepository.findAll();
         if (subnets == null || subnets.isEmpty()) return Response.ok(false).build();
-        List<SubnetUtils.SubnetInfo> s = subnets.stream().
-                map(it -> it.fromSubnetString()).collect(Collectors.toList());
+        List<SubnetUtils.SubnetInfo> s = getSubnetInfos(ip, v4Subnets, v6Subnets, subnets);
 
         String foundSubnet = "";
         for (SubnetUtils.SubnetInfo si : s) {
@@ -523,8 +526,11 @@ public class AggregatorResource {
 
         // Encrypt Requester IP using HMAC SHA512 Algorithm
         EncryptClass encryptClass = new EncryptClass();
+        InetAddressValidator inetAddressValidator = new InetAddressValidator();
         String encryptedIP = "";
+        String ipType = "";
         try {
+            ipType = inetAddressValidator.isValidInet4Address(ip) ? "IPv4" : "IPv6";
             encryptedIP = encryptClass.encrypt(ip, environment.getProperty(HMAC_SHA512_KEY));
             encryptedIP = encryptedIP.toLowerCase();
         } catch (Exception e) {
@@ -556,10 +562,10 @@ public class AggregatorResource {
                 //String calledStationIdTemp = r.getCalledStationId().substring(0, 30).toUpperCase().replace("-", ":");
                 String calledStationIdTemp = r.getCalledStationId();
                 ap = accesspointsRepository.find(calledStationIdTemp);
-                response = addElasticMeasurement(joinMeasurement(measurement, r, ap, agent), requesterSubnet, encryptedIP);
+                response = addElasticMeasurement(joinMeasurement(measurement, r, ap, agent), requesterSubnet, encryptedIP, ipType);
             } else {
                 // There are not RADIUS Logs corresponding to the received measurement
-                response = addElasticMeasurement(joinMeasurement(measurement, r, null, agent), requesterSubnet, encryptedIP);
+                response = addElasticMeasurement(joinMeasurement(measurement, r, null, agent), requesterSubnet, encryptedIP, ipType);
             }
         } catch (Exception e) {
 	    logger.info(e.toString());
@@ -567,6 +573,30 @@ public class AggregatorResource {
         }
 
         return response;
+    }
+
+    private List<SubnetUtils.SubnetInfo> getSubnetInfos(String ip, List<Subnet> v4Subnets, List<Subnet> v6Subnets, List<Subnet> subnets) {
+        List<SubnetUtils.SubnetInfo> s = new ArrayList<>();
+        InetAddressValidator inetAddressValidator = new InetAddressValidator();
+        for (Subnet si : subnets) {
+            String subnet = si.getSubnet();
+            if(subnet.contains(".")) {
+                v4Subnets.add(si);
+            }
+            else if(subnet.contains(":")) {
+                v6Subnets.add(si);
+            }
+        }
+
+        if(inetAddressValidator.isValidInet4Address(ip)) {
+            s = v4Subnets.stream().
+                    map(it -> it.fromSubnetString()).collect(Collectors.toList());
+        }
+        else if(inetAddressValidator.isValidInet6Address(ip)) {
+            s = v6Subnets.stream().
+                    map(it -> it.fromSubnetString()).collect(Collectors.toList());
+        }
+        return s;
     }
 
     private AggregatedMeasurement joinMeasurement(NetTestMeasurement measurement, RadiusStripped radius, Accesspoint accesspoint, String agent) {
@@ -605,7 +635,7 @@ public class AggregatorResource {
         return m;
     }
 
-    private Response addElasticMeasurement(AggregatedMeasurement measurement, String requesterSubnet, String encryptedIP) {
+    private Response addElasticMeasurement(AggregatedMeasurement measurement, String requesterSubnet, String encryptedIP, String ipType) {
         String userAgent = measurement.getUserAgent();
 
         // Section for User Operating System
@@ -681,6 +711,7 @@ public class AggregatorResource {
         String probeNumberJson = dataValidator(probeNumber, PROBE_NUMBER, false, false, false);
         String requesterSubnetJson = dataValidator(requesterSubnet, REQUESTER_SUBNET, false, false, false);
         String encryptedIPJson = dataValidator(encryptedIP, ENCRYPTED_IP, false, false, false);
+        String ipTypeJson = dataValidator(ipType, IP_TYPE, false, false, false);
         String apBuildingJson = dataValidator(measurement.getApBuilding(), AP_BUILDING, false, false, true);
         String apFloorJson = dataValidator(measurement.getApFloor(), AP_FLOOR, false, false, true);
         String apLocationJson = "";
@@ -703,11 +734,10 @@ public class AggregatorResource {
 		acctDelayTimeJson + nasIpAddressJson + framedIpAddressJson +
 		acctUniqueSessionIdJson + realmJson + clientIpJson +
                 measurementOriginJson + probeNumberJson + requesterSubnetJson + 
-		encryptedIPJson + apBuildingJson + apFloorJson + apLocationJson +
+		encryptedIPJson + apBuildingJson + apFloorJson + apLocationJson + ipTypeJson +
                 apNotesJson + "}";
 
         String jsonString = jsonStringDraft.replace("\", }", "\"}");
-
         // Store measurements in elasticsearch
         indexMeasurement(jsonString);
 
