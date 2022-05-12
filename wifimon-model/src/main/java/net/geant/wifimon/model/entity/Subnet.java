@@ -1,6 +1,6 @@
 package net.geant.wifimon.model.entity;
 
-import org.apache.commons.net.util.SubnetUtils;
+import net.geant.wifimon.subnet.SubnetUtils;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

@@ -1,6 +1,6 @@
 package net.geant.wifimon.model.dto;
 
-import org.apache.commons.net.util.SubnetUtils;
+import net.geant.wifimon.subnet.SubnetUtils;
 
 import java.io.Serializable;
 import java.util.Objects;

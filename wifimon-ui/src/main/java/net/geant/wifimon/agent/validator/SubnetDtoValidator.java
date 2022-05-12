@@ -2,7 +2,7 @@ package net.geant.wifimon.agent.validator;
 
 import net.geant.wifimon.agent.repository.SubnetRepository;
 import net.geant.wifimon.model.dto.SubnetDto;
-import org.apache.commons.net.util.SubnetUtils;
+import net.geant.wifimon.subnet.SubnetUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;

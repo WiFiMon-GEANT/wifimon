@@ -12,6 +12,11 @@
     <artifactId>model</artifactId>
     <dependencies>
         <dependency>
+            <groupId>net.geant.wifimon</groupId>
+            <artifactId>subnet</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>6.0.0.Final</version>

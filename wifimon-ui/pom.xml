@@ -135,11 +135,16 @@
         <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
-	    <version>3.8.0</version> 
+	    <version>3.8.0</version>
         </dependency>
         <dependency>
             <groupId>net.geant.wifimon</groupId>
             <artifactId>model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.geant.wifimon</groupId>
+            <artifactId>subnet</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -17,10 +17,11 @@
     </parent>
 
     <modules>
-      <module>wifimon-ui</module>
-      <module>wifimon-assembly</module>
-      <module>wifimon-model</module>
-      <module>wifimon-secure-processor</module>
+        <module>wifimon-ui</module>
+        <module>wifimon-assembly</module>
+        <module>wifimon-model</module>
+        <module>wifimon-secure-processor</module>
+        <module>wifimon-subnet</module>
     </modules>
 
     <build>
