@@ -44,35 +44,5 @@
             <outputDirectory>config</outputDirectory>
             <filtered>true</filtered>
         </file>
-	<file>
-	    <source>wireless.py</source>
-	    <outputDirectory></outputDirectory>
-	    <filtered>true</filtered>
-	</file>
-	<file>
-	    <source>twping_parser.py</source>
-	    <outputDirectory></outputDirectory>
-	    <filtered>true</filtered>
-        </file>
-        <file>
-            <source>README.txt</source>
-            <outputDirectory></outputDirectory>
-            <filtered>true</filtered>
-        </file>
-        <file>
-            <source>README_config.txt</source>
-            <outputDirectory>config</outputDirectory>
-            <filtered>true</filtered>
-        </file>
-        <file>
-            <source>README_keystore.txt</source>
-            <outputDirectory>keystore</outputDirectory>
-            <filtered>true</filtered>
-        </file>
-        <file>
-            <source>README_logs.txt</source>
-            <outputDirectory>logs</outputDirectory>
-            <filtered>true</filtered>
-        </file>
     </files>
 </assembly>
