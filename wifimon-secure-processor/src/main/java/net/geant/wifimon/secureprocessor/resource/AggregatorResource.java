@@ -1,8 +1,10 @@
 package net.geant.wifimon.secureprocessor.resource;
 
+import com.google.json.JsonSanitizer;
 import net.geant.wifimon.model.dto.AggregatedMeasurement;
 import net.geant.wifimon.model.dto.NetTestMeasurement;
 import net.geant.wifimon.model.dto.ProbesMeasurement;
+import net.geant.wifimon.model.dto.TwampMeasurement;
 import net.geant.wifimon.model.entity.Accesspoint;
 import net.geant.wifimon.model.entity.CorrelationMethod;
 import net.geant.wifimon.model.entity.RadiusStripped;
@@ -10,14 +12,15 @@ import net.geant.wifimon.model.entity.Subnet;
 import net.geant.wifimon.secureprocessor.repository.AccesspointsRepository;
 import net.geant.wifimon.secureprocessor.repository.SubnetRepository;
 import net.geant.wifimon.secureprocessor.repository.VisualOptionsRepository;
-import org.apache.commons.net.util.SubnetUtils;
+import net.geant.wifimon.subnet.SubnetUtils;
+import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.ssl.SSLContexts;
 import org.elasticsearch.ElasticsearchException;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -50,6 +53,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.ArrayList;
 import java.nio.charset.StandardCharsets;
 import javax.annotation.PostConstruct;
 import com.google.json.JsonSanitizer;
@@ -79,6 +83,7 @@ public class AggregatorResource {
     private static final String ES_INDEXNAME_MEASUREMENT = "elasticsearch.indexnamemeasurement";
     private static final String ES_INDEXNAME_RADIUS = "elasticsearch.indexnameradius";
     private static final String ES_INDEXNAME_PROBES = "elasticsearch.indexnameprobes";
+    private static final String ES_INDEXNAME_TWAMP = "elasticsearch.indexnametwamp";
     private static final String ES_INDEXNAME_DHCP = "elasticsearch.indexnamedhcp";
     private static final String SSL_ENABLED = "xpack.security.enabled";
     private static final String SSL_USER_USERNAME = "ssl.http.user.username";
@@ -100,6 +105,7 @@ public class AggregatorResource {
     private static final String PROBE_NUMBER = "Probe-No";
     private static final String REQUESTER_SUBNET = "Requester-Subnet";
     private static final String ENCRYPTED_IP = "Encrypted-IP";
+    private static final String IP_TYPE = "IP-Type";
     private static final String TEST_SERVER_LOCATION = "TestServerLocation";
     // JSON headers for correlation with RADIUS logs (correlation of radiuslogs index with wifimon index)
     private static final String AP_BUILDING = "Ap-Building";
@@ -138,6 +144,7 @@ public class AggregatorResource {
     private static final String PROBE_LINK_QUALITY = "Link-Quality";
     private static final String PROBE_SIGNAL_LEVEL = "Signal-Level";
     private static final String PROBE_MONITOR = "Monitor";
+    private static final String PROBE_SYSTEM = "System";
     private static final String PROBE_LOCATION_NAME = "Location-Name";
     private static final String PROBE_TEST_DEVICE_LOCATION_DESCRIPTION = "Test-Device-Location-Description";
     private static final String PROBE_NAT_NETWORK = "NAT-Network";
@@ -167,6 +174,38 @@ public class AggregatorResource {
     private static final String EXPORTER_LOCATION_NAME = "locationName";
     private static final String EXPORTER_TEST_DEVICE_LOCATION_DESCRIPTION = "testDeviceLocationDescription";
     private static final String EXPORTER_NAT_NETWORK = "NAT";
+    // JSON headers for TWAMP measurements from WiFiMon Hardware Probes
+    private static final String TWAMP_TIMESTAMP = "Timestamp";
+    private static final String TWAMP_PROBE_NUMBER = "Probe-Number";
+    private static final String TWAMP_SERVER = "Twamp-Server";
+    private static final String TWAMP_SENT = "Sent";
+    private static final String TWAMP_LOST = "Lost";
+    private static final String TWAMP_SEND_DUPS = "Send-Dups";
+    private static final String TWAMP_REFLECT_DUPS = "Reflect-Dups";
+    private static final String TWAMP_MIN_RTT = "Min-Rtt";
+    private static final String TWAMP_MEDIAN_RTT = "Median-Rtt";
+    private static final String TWAMP_MAX_RTT = "Max-Rtt";
+    private static final String TWAMP_ERR_RTT = "Err-Rtt";
+    private static final String TWAMP_MIN_SEND = "Min-Send";
+    private static final String TWAMP_MEDIAN_SEND = "Median-Send";
+    private static final String TWAMP_MAX_SEND = "Max-Send";
+    private static final String TWAMP_ERR_SEND = "Err-Send";
+    private static final String TWAMP_MIN_REFLECT = "Min-Reflect";
+    private static final String TWAMP_MEDIAN_REFLECT = "Median-Reflect";
+    private static final String TWAMP_MAX_REFLECT = "Max-Reflect";
+    private static final String TWAMP_ERR_REFLECT = "Err-Reflect";
+    private static final String TWAMP_MIN_REFLECTOR_PROCESSING_TIME = "Min-Reflector-Processing-Time";
+    private static final String TWAMP_MAX_REFLECTOR_PROCESSING_TIME = "Max-Reflector-Processing-Time";
+    private static final String TWAMP_TWO_WAY_JITTER_VALUE = "Two-Way-Jitter-Value";
+    private static final String TWAMP_TWO_WAY_JITTER_CHAR = "Two-Way-Jitter-Char";
+    private static final String TWAMP_SEND_JITTER_VALUE = "Send-Jitter-Value";
+    private static final String TWAMP_SEND_JITTER_CHAR = "Send-Jitter-Char";
+    private static final String TWAMP_REFLECT_JITTER_VALUE = "Reflect-Jitter-Value";
+    private static final String TWAMP_REFLECT_JITTER_CHAR = "Reflect-Jitter-Char";
+    private static final String TWAMP_SEND_HOPS_VALUE = "Send-Hops-Value";
+    private static final String TWAMP_SEND_HOPS_CHAR = "Send-Hops-Char";
+    private static final String TWAMP_REFLECT_HOPS_VALUE = "Reflect-Hops-Value";
+    private static final String TWAMP_REFLECT_HOPS_CHAR = "Reflect-Hops-Char";
 
     private static Logger logger = Logger.getLogger(AggregatorResource.class.getName());
     private static RestHighLevelClient restHighLevelClient;
@@ -184,13 +223,11 @@ public class AggregatorResource {
     @Path("/subnet")
     public Response correlate(@Context HttpServletRequest request) {
         String ip = request.getRemoteAddr();
-
+        List<Subnet> v4Subnets = new ArrayList<>();
+        List<Subnet> v6Subnets = new ArrayList<>();
         List<Subnet> subnets = subnetRepository.findAll();
         if (subnets.isEmpty()) return Response.ok(false).build();
-
-        List<SubnetUtils.SubnetInfo> s = subnets.stream().
-                map(it -> it.fromSubnetString()).collect(Collectors.toList());
-
+        List<SubnetUtils.SubnetInfo> s = getSubnetInfos(ip, v4Subnets, v6Subnets, subnets);
         for (SubnetUtils.SubnetInfo si : s) {
             if (si.isInRange(ip)) return Response.ok(true).build();
         }
@@ -242,14 +279,15 @@ public class AggregatorResource {
 	    String locationNameJson = dataValidator(measurement.getLocationName(), PROBE_LOCATION_NAME, false, false, true);
 	    String testDeviceLocationDescriptionJson = dataValidator(measurement.getTestDeviceLocationDescription(), PROBE_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
 	    String natNetworkJson = dataValidator(measurement.getNat(), PROBE_NAT_NETWORK, false, false, true);
-	    String monitorJson = dataValidator(measurement.getMonitor(), PROBE_MONITOR, false, true, true);
+	    String monitorJson = dataValidator(measurement.getMonitor(), PROBE_MONITOR, false, false, true);
+	    String systemJson = dataValidator(measurement.getSystem(), PROBE_SYSTEM, false, true, true);
 
             // Construct JSON object that will be stored in Elasticsearch
             String jsonStringDraft = "{" +
-                    timestampJson + macAddressJson + accesspointJson +essidJson + bitRateJson + 
+                    timestampJson + macAddressJson + accesspointJson + essidJson + bitRateJson + 
 		    txPowerJson + linkQualityJson + signalLevelJson + probeNoJson + originJson +
 		    locationNameJson + testDeviceLocationDescriptionJson + natNetworkJson + 
-		    monitorJson + "}";
+		    monitorJson + systemJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
@@ -395,6 +433,65 @@ public class AggregatorResource {
     }
 
     @POST
+    @Path("/twamp")
+    public Response correlate(final TwampMeasurement measurement, @Context HttpServletRequest request) {
+        Response response = null;
+	try {
+	    String timestampCurrent = String.valueOf(System.currentTimeMillis());
+	    String timestampJson = dataValidator(timestampCurrent, TWAMP_TIMESTAMP, true, false, false);
+	    String probeNumberJson = dataValidator(measurement.getProbeNumber(), TWAMP_PROBE_NUMBER, true, false, true);
+	    String twampServerJson = dataValidator(measurement.getTwampServer(), TWAMP_SERVER, false, false, true);
+	    String sentJson = dataValidator(measurement.getSent(), TWAMP_SENT, true, false, true);
+	    String lostJson = dataValidator(measurement.getLost(), TWAMP_LOST, true, false, true);
+	    String sendDupsJson = dataValidator(measurement.getSendDups(), TWAMP_SEND_DUPS, true, false, true);
+	    String reflectDupsJson = dataValidator(measurement.getReflectDups(), TWAMP_REFLECT_DUPS, true, false, true);
+	    String minRttJson = dataValidator(measurement.getMinRtt(), TWAMP_MIN_RTT, true, false, true);
+	    String medianRttJson = dataValidator(measurement.getMedianRtt(), TWAMP_MEDIAN_RTT, true, false, true);
+	    String maxRttJson = dataValidator(measurement.getMaxRtt(), TWAMP_MAX_RTT, true, false, true);
+	    String errRttJson = dataValidator(measurement.getErrRtt(), TWAMP_ERR_RTT, true, false, true);
+	    String minSendJson = dataValidator(measurement.getMinSend(), TWAMP_MIN_SEND, true, false, true);
+	    String medianSendJson = dataValidator(measurement.getMedianSend(), TWAMP_MEDIAN_SEND, true, false, true);
+	    String maxSendJson = dataValidator(measurement.getMaxSend(), TWAMP_MAX_SEND, true, false, true);
+	    String errSendJson = dataValidator(measurement.getErrSend(), TWAMP_ERR_SEND, true, false, true);
+	    String minReflectJson = dataValidator(measurement.getMinReflect(), TWAMP_MIN_REFLECT, true, false, true);
+	    String medianReflectJson = dataValidator(measurement.getMedianReflect(), TWAMP_MEDIAN_REFLECT, true, false, true);
+	    String maxReflectJson = dataValidator(measurement.getMaxReflect(), TWAMP_MAX_REFLECT, true, false, true);
+	    String errReflectJson = dataValidator(measurement.getErrReflect(), TWAMP_ERR_REFLECT, true, false, true);
+	    String minReflectorProcessingTimeJson = dataValidator(measurement.getMinReflectorProcessingTime(), TWAMP_MIN_REFLECTOR_PROCESSING_TIME, true, false, true);
+	    String maxReflectorProcessingTimeJson = dataValidator(measurement.getMaxReflectorProcessingTime(), TWAMP_MAX_REFLECTOR_PROCESSING_TIME, true, false, true);
+	    String twoWayJitterValueJson = dataValidator(measurement.getTwoWayJitterValue(), TWAMP_TWO_WAY_JITTER_VALUE, true, false, true);
+	    String twoWayJitterCharJson = dataValidator(measurement.getTwoWayJitterChar(), TWAMP_TWO_WAY_JITTER_CHAR, false, false, true);
+	    String sendJitterValueJson = dataValidator(measurement.getSendJitterValue(), TWAMP_SEND_JITTER_VALUE, true, false, true);
+	    String sendJitterCharJson = dataValidator(measurement.getSendJitterChar(), TWAMP_SEND_JITTER_CHAR, false, false, true);
+	    String reflectJitterValueJson = dataValidator(measurement.getReflectJitterValue(), TWAMP_REFLECT_JITTER_VALUE, true, false, true);
+	    String reflectJitterCharJson = dataValidator(measurement.getReflectJitterChar(), TWAMP_REFLECT_JITTER_CHAR, false, false, true);
+	    String sendHopsValueJson = dataValidator(measurement.getSendHopsValue(), TWAMP_SEND_HOPS_VALUE, true, false, true);
+	    String sendHopsCharJson = dataValidator(measurement.getSendHopsChar(), TWAMP_SEND_HOPS_CHAR, false, false, true);
+	    String reflectHopsValueJson = dataValidator(measurement.getReflectHopsValue(), TWAMP_REFLECT_HOPS_VALUE, true, false, true);
+	    String reflectHopsCharJson = dataValidator(measurement.getReflectHopsChar(), TWAMP_REFLECT_HOPS_CHAR, false, true, true);
+
+	    String jsonStringDraft = "{" +
+		    timestampJson + probeNumberJson + twampServerJson + 
+		    sentJson + lostJson + sendDupsJson + reflectDupsJson + minRttJson + 
+		    medianRttJson + maxRttJson + errRttJson + minSendJson + medianSendJson +
+		    maxSendJson + errSendJson + minReflectJson + medianReflectJson +
+		    maxReflectJson + errReflectJson + minReflectorProcessingTimeJson +
+		    maxReflectorProcessingTimeJson + twoWayJitterValueJson +
+		    twoWayJitterCharJson + sendJitterValueJson + sendJitterCharJson + 
+		    reflectJitterValueJson + reflectJitterCharJson + sendHopsValueJson + 
+		    sendHopsCharJson + reflectHopsValueJson + reflectHopsCharJson + "}";
+
+            String jsonString = jsonStringDraft.replace("\", }", "\"}");
+	    indexMeasurementTwamp(jsonString);
+	    return Response.ok().build();
+	} catch (Exception e) {
+	    logger.info(e.toString());
+	    response = null;
+	}
+        return response;
+    }
+
+    @POST
     @Path("/add")
     public Response correlate(final NetTestMeasurement measurement, @Context HttpServletRequest request) {
         Response response;
@@ -404,10 +501,11 @@ public class AggregatorResource {
         if (ip == null || ip.isEmpty()) return Response.serverError().build();
 
         // In the following, we find the registered subnet corresponding to the requester IP
+        List<Subnet> v4Subnets = new ArrayList<>();
+        List<Subnet> v6Subnets = new ArrayList<>();
         List<Subnet> subnets = subnetRepository.findAll();
         if (subnets == null || subnets.isEmpty()) return Response.ok(false).build();
-        List<SubnetUtils.SubnetInfo> s = subnets.stream().
-                map(it -> it.fromSubnetString()).collect(Collectors.toList());
+        List<SubnetUtils.SubnetInfo> s = getSubnetInfos(ip, v4Subnets, v6Subnets, subnets);
 
         String foundSubnet = "";
         for (SubnetUtils.SubnetInfo si : s) {
@@ -428,8 +526,11 @@ public class AggregatorResource {
 
         // Encrypt Requester IP using HMAC SHA512 Algorithm
         EncryptClass encryptClass = new EncryptClass();
+        InetAddressValidator inetAddressValidator = new InetAddressValidator();
         String encryptedIP = "";
+        String ipType = "";
         try {
+            ipType = inetAddressValidator.isValidInet4Address(ip) ? "IPv4" : "IPv6";
             encryptedIP = encryptClass.encrypt(ip, environment.getProperty(HMAC_SHA512_KEY));
             encryptedIP = encryptedIP.toLowerCase();
         } catch (Exception e) {
@@ -461,10 +562,10 @@ public class AggregatorResource {
                 //String calledStationIdTemp = r.getCalledStationId().substring(0, 30).toUpperCase().replace("-", ":");
                 String calledStationIdTemp = r.getCalledStationId();
                 ap = accesspointsRepository.find(calledStationIdTemp);
-                response = addElasticMeasurement(joinMeasurement(measurement, r, ap, agent), requesterSubnet, encryptedIP);
+                response = addElasticMeasurement(joinMeasurement(measurement, r, ap, agent), requesterSubnet, encryptedIP, ipType);
             } else {
                 // There are not RADIUS Logs corresponding to the received measurement
-                response = addElasticMeasurement(joinMeasurement(measurement, r, null, agent), requesterSubnet, encryptedIP);
+                response = addElasticMeasurement(joinMeasurement(measurement, r, null, agent), requesterSubnet, encryptedIP, ipType);
             }
         } catch (Exception e) {
 	    logger.info(e.toString());
@@ -472,6 +573,30 @@ public class AggregatorResource {
         }
 
         return response;
+    }
+
+    private List<SubnetUtils.SubnetInfo> getSubnetInfos(String ip, List<Subnet> v4Subnets, List<Subnet> v6Subnets, List<Subnet> subnets) {
+        List<SubnetUtils.SubnetInfo> s = new ArrayList<>();
+        InetAddressValidator inetAddressValidator = new InetAddressValidator();
+        for (Subnet si : subnets) {
+            String subnet = si.getSubnet();
+            if(subnet.contains(".")) {
+                v4Subnets.add(si);
+            }
+            else if(subnet.contains(":")) {
+                v6Subnets.add(si);
+            }
+        }
+
+        if(inetAddressValidator.isValidInet4Address(ip)) {
+            s = v4Subnets.stream().
+                    map(it -> it.fromSubnetString()).collect(Collectors.toList());
+        }
+        else if(inetAddressValidator.isValidInet6Address(ip)) {
+            s = v6Subnets.stream().
+                    map(it -> it.fromSubnetString()).collect(Collectors.toList());
+        }
+        return s;
     }
 
     private AggregatedMeasurement joinMeasurement(NetTestMeasurement measurement, RadiusStripped radius, Accesspoint accesspoint, String agent) {
@@ -510,7 +635,7 @@ public class AggregatorResource {
         return m;
     }
 
-    private Response addElasticMeasurement(AggregatedMeasurement measurement, String requesterSubnet, String encryptedIP) {
+    private Response addElasticMeasurement(AggregatedMeasurement measurement, String requesterSubnet, String encryptedIP, String ipType) {
         String userAgent = measurement.getUserAgent();
 
         // Section for User Operating System
@@ -586,6 +711,7 @@ public class AggregatorResource {
         String probeNumberJson = dataValidator(probeNumber, PROBE_NUMBER, false, false, false);
         String requesterSubnetJson = dataValidator(requesterSubnet, REQUESTER_SUBNET, false, false, false);
         String encryptedIPJson = dataValidator(encryptedIP, ENCRYPTED_IP, false, false, false);
+        String ipTypeJson = dataValidator(ipType, IP_TYPE, false, false, false);
         String apBuildingJson = dataValidator(measurement.getApBuilding(), AP_BUILDING, false, false, true);
         String apFloorJson = dataValidator(measurement.getApFloor(), AP_FLOOR, false, false, true);
         String apLocationJson = "";
@@ -608,11 +734,10 @@ public class AggregatorResource {
 		acctDelayTimeJson + nasIpAddressJson + framedIpAddressJson +
 		acctUniqueSessionIdJson + realmJson + clientIpJson +
                 measurementOriginJson + probeNumberJson + requesterSubnetJson + 
-		encryptedIPJson + apBuildingJson + apFloorJson + apLocationJson +
+		encryptedIPJson + apBuildingJson + apFloorJson + apLocationJson + ipTypeJson +
                 apNotesJson + "}";
 
         String jsonString = jsonStringDraft.replace("\", }", "\"}");
-
         // Store measurements in elasticsearch
         indexMeasurement(jsonString);
 
@@ -770,6 +895,17 @@ public class AggregatorResource {
         try {
         IndexRequest indexRequest = new IndexRequest(
                 environment.getProperty(ES_INDEXNAME_PROBES));
+        indexRequest.source(jsonString, XContentType.JSON);
+            AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
+        } catch (Exception e) {
+            logger.info(e.toString());
+        }
+    }
+
+    private void indexMeasurementTwamp(String jsonString) {
+        try {
+        IndexRequest indexRequest = new IndexRequest(
+                environment.getProperty(ES_INDEXNAME_TWAMP));
         indexRequest.source(jsonString, XContentType.JSON);
             AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
         } catch (Exception e) {

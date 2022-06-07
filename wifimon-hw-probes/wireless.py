@@ -38,7 +38,7 @@ def parse_iwconfig(iface):
 
 def parse_iwlist(iface, accesspoint):
     information = {}
-    command = "sudo iwlist " + iface + " scan | grep -E \"Cell|Quality|ESSID\""
+    command = "sudo iwlist " + iface + " scan | grep -E \"Cell|Frequency|Quality|ESSID\""
     aps = return_command_output(command).decode("utf8")
     aps = aps.split("\n")
 
@@ -55,15 +55,18 @@ def parse_iwlist(iface, accesspoint):
         ap_mac = ap_mac.replace(":", "-")
         information[ap_mac] = {}
         line1 = ' '.join(aps[index + 1].split())
-        parts = line1.split()
-        information[ap_mac]["drillTest"] = float(parts[2].split("=")[1])
+        frequency = line1.split()[0].split(":")[1]
+        information[ap_mac]["frequency"] = str(frequency)
         line2 = ' '.join(aps[index + 2].split())
-        parts = line2.split(":")
+        parts = line2.split()
+        information[ap_mac]["drillTest"] = float(parts[2].split("=")[1])
+        line3 = ' '.join(aps[index + 3].split())
+        parts = line3.split(":")
         information[ap_mac][str(parts[1].replace('"', ''))] = information[ap_mac]["drillTest"]
 
     return information
 
-def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network):
+def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary):
     overall_dictionary = {}
     overall_dictionary["macAddress"] = "\"" + str(mac) + "\""
     overall_dictionary["accesspoint"] = "\"" + str(accesspoint) + "\""
@@ -82,15 +85,47 @@ def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quali
     overall_dictionary["locationName"] = "\"" + str(location_name) + "\""
     overall_dictionary["testDeviceLocationDescription"] = "\"" + str(test_device_location_description) + "\""
     overall_dictionary["nat"] = "\"" + str(nat_network) + "\""
+    system_dictionary = json.dumps(system_dictionary)
+    overall_dictionary["system"] = system_dictionary
     json_data = json.dumps(overall_dictionary)
     return json_data
+
+def processing_info():
+    command = '''echo "$(iostat | head -1 | awk '{print $1}')"'''
+    operating_system = return_command_output(command).decode('utf8')
+    command = '''echo "$(iostat | head -1 | awk '{print $2}')"'''
+    driver_version = return_command_output(command).decode('utf8')
+    command = '''echo "$(iostat | head -1 | awk '{print $6}' | cut -c 2-)"'''
+    total_cores = return_command_output(command).decode('utf8')
+    command = '''echo "$(vmstat 1 2|tail -1|awk '{print $15}')"'''
+    cpu_utilization = 100 - int(return_command_output(command).decode('utf8'))
+    command = '''echo "$(vmstat --stats | grep 'total memory' | tail -1 | awk '{print $1}')"'''
+    total_memory = return_command_output(command).decode('utf8')
+    command = '''echo "$(vmstat --stats | grep 'used memory' | tail -1 | awk '{print $1}')"'''
+    used_memory = return_command_output(command).decode('utf8')
+    command = '''echo "$(df -h / | tail -1 | awk '{print $2}')"'''
+    total_disk_size = return_command_output(command).decode('utf8')
+    command = '''echo "$(df -h / | tail -1 | awk '{print $3}')"'''
+    used_disk_size = return_command_output(command).decode('utf8')
+
+    system_dictionary = {}
+    system_dictionary["operatingSystem"] = str(operating_system)
+    system_dictionary["driverVersion"] = str(driver_version)
+    system_dictionary["totalCores"] = str(total_cores) 
+    system_dictionary["cpuUtilization"] = str(cpu_utilization)
+    system_dictionary["totalMemory"] = str(total_memory) 
+    system_dictionary["usedMemory"] = str(used_memory)
+    system_dictionary["totalDiskSize"] = str(total_disk_size) 
+    system_dictionary["usedDiskSize"] = str(used_disk_size)
+
+    return system_dictionary
 
 def stream_data(data):
     headers = {'content-type':"application/json"}
     try:
         session = requests.Session()
         session.verify = False
-        session.post(url='https://WAS_FQDN:8443/wifimon/probes/', data=data, headers=headers, timeout=30)
+        session.post(url='https://WAS_FQDN:443/wifimon/probes/', data=data, headers=headers, timeout=30)
     except:
         pass
 
@@ -101,13 +136,14 @@ def set_location_information():
     return location_name, test_device_location_description, nat_network
 
 def wireless_info():
+    system_dictionary = processing_info()
     location_name, test_device_location_description, nat_network = set_location_information()
     iface_name = find_wlan_iface_name()
     mac = get_mac(iface_name)
     bit_rate, tx_power, link_quality, signal_level, accesspoint, essid = parse_iwconfig(iface_name)
     information = parse_iwlist(iface_name, accesspoint)
     probe_no = ""
-    json_data = convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network)
+    json_data = convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary)
     stream_data(json_data)
 
 if __name__ == "__main__":
