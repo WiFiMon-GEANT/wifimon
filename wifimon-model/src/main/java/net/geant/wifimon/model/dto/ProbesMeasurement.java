@@ -18,6 +18,7 @@ public class ProbesMeasurement implements Serializable {
     private Long probeNo;
     private String monitor;
     private String system;
+    private String numberOfUsers;
     private String locationName;
     private String testDeviceLocationDescription;
     private String nat;
@@ -117,6 +118,14 @@ public class ProbesMeasurement implements Serializable {
     public void setTestDeviceLocationDescription(String testDeviceLocationDescription) {
 	    this.testDeviceLocationDescription = testDeviceLocationDescription;
     }
+
+    public String getNumberOfUsers() {
+	    return numberOfUsers;
+    }
+
+    public void setNumberOfUsers(String numberOfUsers) {
+	    this.numberOfUsers = numberOfUsers;
+    }
     
     public String getNat() {
 	    return nat;
@@ -159,6 +168,8 @@ public class ProbesMeasurement implements Serializable {
 	    return false;
         if (testDeviceLocationDescription != null ? !testDeviceLocationDescription.equals(that.testDeviceLocationDescription) : that.testDeviceLocationDescription != null)
 	    return false;
+	if (numberOfUsers != null ? !numberOfUsers.equals(that.numberOfUsers) : that.numberOfUsers != null)
+	    return false;
         return nat != null ? nat.equals(that.nat) : that.nat == null;
     }
 
@@ -176,6 +187,7 @@ public class ProbesMeasurement implements Serializable {
 	result = 31 * result + (system != null ? system.hashCode() : 0);
 	result = 31 * result + (locationName != null ? locationName.hashCode() : 0);
 	result = 31 * result + (testDeviceLocationDescription != null ? testDeviceLocationDescription.hashCode() : 0);
+	result = 31 * result + (numberOfUsers != null ? numberOfUsers.hashCode() : 0);
 	result = 31 * result + (nat != null ? nat.hashCode() : 0);
         return result;
     }

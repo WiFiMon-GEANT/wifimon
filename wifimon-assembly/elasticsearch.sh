@@ -58,7 +58,8 @@ curl -XPUT 'http://localhost:9200/probes?pretty' -H 'Content-Type: application/j
 			"Signal-Level" : { "type" : "float" },
 			"Accesspoint" : { "type" : "keyword" },
 			"Origin" : { "type" : "keyword"},
-			"Probe-No" : { "type" : "keyword" }
+			"Probe-No" : { "type" : "keyword" },
+			"Number-Of-Users" : { "type" : "float" }
 		}
 	}
 }'

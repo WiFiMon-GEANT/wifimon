@@ -66,7 +66,7 @@ def parse_iwlist(iface, accesspoint):
 
     return information
 
-def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary):
+def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary, number_of_users):
     overall_dictionary = {}
     overall_dictionary["macAddress"] = "\"" + str(mac) + "\""
     overall_dictionary["accesspoint"] = "\"" + str(accesspoint) + "\""
@@ -85,6 +85,7 @@ def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quali
     overall_dictionary["locationName"] = "\"" + str(location_name) + "\""
     overall_dictionary["testDeviceLocationDescription"] = "\"" + str(test_device_location_description) + "\""
     overall_dictionary["nat"] = "\"" + str(nat_network) + "\""
+    overall_dictionary["numberOfUsers"] = "\"" + str(number_of_users) + "\""
     system_dictionary = json.dumps(system_dictionary)
     overall_dictionary["system"] = system_dictionary
     json_data = json.dumps(overall_dictionary)
@@ -125,26 +126,40 @@ def stream_data(data):
     try:
         session = requests.Session()
         session.verify = False
-        session.post(url='https://WAS_FQDN:443/wifimon/probes/', data=data, headers=headers, timeout=30)
+        session.post(url='https://INSERT_WAS_FQDN_OR_IP:443/wifimon/probes/', data=data, headers=headers, timeout=30)
     except:
         pass
 
+def parse_arpscan(result):
+    lines = result.split("\n")
+    lines.pop(0)
+    lines.pop(0)
+    space_line = lines.index('')
+    return space_line
+
+def arpscanner():
+    command = "sudo arp-scan --localnet"
+    arpscan_result = return_command_output(command).decode('utf8')
+    number_of_users = parse_arpscan(arpscan_result)
+    return number_of_users
+
 def set_location_information():
-    location_name = ""
-    test_device_location_description = ""
-    nat_network = ""
+    location_name = "INSERT_LOCATION_NAME"
+    test_device_location_description = "INSERT_TEST_DEVICE_LOCATION_DESCRIPTION"
+    nat_network = "INSERT_True_OR_False"
     return location_name, test_device_location_description, nat_network
 
-def wireless_info():
+def general_info():
     system_dictionary = processing_info()
     location_name, test_device_location_description, nat_network = set_location_information()
     iface_name = find_wlan_iface_name()
     mac = get_mac(iface_name)
     bit_rate, tx_power, link_quality, signal_level, accesspoint, essid = parse_iwconfig(iface_name)
     information = parse_iwlist(iface_name, accesspoint)
-    probe_no = ""
-    json_data = convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary)
+    probe_no = "INSERT_PROBE_NUMBER"
+    number_of_users = arpscanner()
+    json_data = convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary, number_of_users)
     stream_data(json_data)
 
 if __name__ == "__main__":
-    wireless_info()
+    general_info()
