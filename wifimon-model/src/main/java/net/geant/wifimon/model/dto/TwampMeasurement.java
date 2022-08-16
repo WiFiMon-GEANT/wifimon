@@ -37,6 +37,13 @@ public class TwampMeasurement implements Serializable {
    private String sendHopsChar;
    private String reflectHopsValue;
    private String reflectHopsChar;
+   private String ntpServerNtpstat;
+   private String stratum;
+   private String timeCorrect;
+   private String ntpServerNtpq;
+   private String delayNtpq;
+   private String offsetNtpq;
+   private String jitterNtpq;
 
    public String getProbeNumber() {
        return probeNumber;
@@ -278,6 +285,62 @@ public class TwampMeasurement implements Serializable {
        this.reflectHopsChar = reflectHopsChar;
    }
 
+   public String getNtpServerNtpstat() {
+       return ntpServerNtpstat;
+   }
+
+   public void setNtpServerNtpstat(String ntpServerNtpstat) {
+       this.ntpServerNtpstat = ntpServerNtpstat;
+   }
+
+   public String getStratum() {
+       return stratum;
+   }
+
+   public void setStratum(String stratum) {
+       this.stratum = stratum;
+   }
+
+   public String getTimeCorrect() {
+       return timeCorrect;
+   }
+
+   public void setTimeCorrect(String timeCorrect) {
+       this.timeCorrect = timeCorrect;
+   }
+
+   public String getNtpServerNtpq() {
+       return ntpServerNtpq;
+   }
+
+   public void setNtpServerNtpq(String ntpServerNtpq) {
+       this.ntpServerNtpq = ntpServerNtpq;
+   }
+
+   public String getDelayNtpq() {
+       return delayNtpq;
+   }
+
+   public void setDelayNtpq(String delayNtpq) {
+       this.delayNtpq = delayNtpq;
+   }
+
+   public String getOffsetNtpq() {
+       return offsetNtpq;
+   }
+
+   public void setOffsetNtpq(String offsetNtpq) {
+       this.offsetNtpq = offsetNtpq;
+   }
+
+   public String getJitterNtpq() {
+       return jitterNtpq;
+   }
+
+   public void setJitterNtpq(String jitterNtpq) {
+       this.jitterNtpq = jitterNtpq;
+   }
+
    @Override
    public boolean equals(Object o) {
        if (this == o)
@@ -345,7 +408,21 @@ public class TwampMeasurement implements Serializable {
            return false;
        if (reflectHopsValue != null ? !reflectHopsValue.equals(that.reflectHopsValue) : that.reflectHopsValue != null)
            return false;
-       return reflectHopsChar != null ? reflectHopsChar.equals(that.reflectHopsChar) : that.reflectHopsChar == null;
+       if (reflectHopsChar != null ? reflectHopsChar.equals(that.reflectHopsChar) : that.reflectHopsChar != null)
+	   return false;
+       if (ntpServerNtpstat != null ? ntpServerNtpstat.equals(that.ntpServerNtpstat) : that.ntpServerNtpstat != null)
+	   return false;
+       if (stratum != null ? stratum.equals(that.stratum) : that.stratum != null)
+	   return false;
+       if (timeCorrect != null ? timeCorrect.equals(that.timeCorrect) : that.timeCorrect != null)
+	   return false;
+       if (ntpServerNtpq != null ? ntpServerNtpq.equals(that.ntpServerNtpq) : that.ntpServerNtpq != null)
+	   return false;
+       if (delayNtpq != null ? delayNtpq.equals(that.delayNtpq) : that.delayNtpq != null)
+	   return false;
+       if (offsetNtpq != null ? offsetNtpq.equals(that.offsetNtpq) : that.offsetNtpq != null)
+	   return false;
+       return jitterNtpq != null ? jitterNtpq.equals(that.jitterNtpq) : that.jitterNtpq == null;
    }
 
    @Override
@@ -380,6 +457,13 @@ public class TwampMeasurement implements Serializable {
        result = 31 * result + (sendHopsChar != null ? sendHopsChar.hashCode() : 0);
        result = 31 * result + (reflectHopsValue != null ? reflectHopsValue.hashCode() : 0);
        result = 31 * result + (reflectHopsChar != null ? reflectHopsChar.hashCode() : 0);
+       result = 31 * result + (ntpServerNtpstat != null ? ntpServerNtpstat.hashCode() : 0);
+       result = 31 * result + (stratum != null ? stratum.hashCode() : 0);
+       result = 31 * result + (timeCorrect != null ? timeCorrect.hashCode() : 0);
+       result = 31 * result + (ntpServerNtpq != null ? ntpServerNtpq.hashCode() : 0);
+       result = 31 * result + (delayNtpq != null ? delayNtpq.hashCode() : 0);
+       result = 31 * result + (offsetNtpq != null ? offsetNtpq.hashCode() : 0);
+       result = 31 * result + (jitterNtpq != null ? jitterNtpq.hashCode() : 0);
        return result;
    }
 }

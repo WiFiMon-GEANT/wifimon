@@ -99,7 +99,14 @@ curl -XPUT 'http://localhost:9200/twamp?pretty' -H 'Content-Type: application/js
 			"Send-Hops-Value" : { "type" : "float" },
 			"Send-Hops-Char" : { "type" : "keyword" },
 			"Reflect-Hops-Value" : { "type" : "float" },
-			"Reflect-Hops-Char" : { "type" : "keyword" }
+			"Reflect-Hops-Char" : { "type" : "keyword" },
+			"Ntp-Server-Ntpstat" : { "type" : "keyword" },
+			"Stratum" : { "type" : "keyword" },
+			"Time-Correct" : { "type" : "keyword" },
+			"Ntp-Server-Ntpq" : { "type" : "keyword" },
+			"Delay-Ntpq" : { "type" : "keyword" },
+			"Offset-Ntpq" : { "type" : "keyword" },
+			"Jitter-Ntpq" : { "type" : "keyword" }
 		}
 	}
 }'

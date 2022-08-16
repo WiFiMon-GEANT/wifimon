@@ -207,6 +207,14 @@ public class AggregatorResource {
     private static final String TWAMP_SEND_HOPS_CHAR = "Send-Hops-Char";
     private static final String TWAMP_REFLECT_HOPS_VALUE = "Reflect-Hops-Value";
     private static final String TWAMP_REFLECT_HOPS_CHAR = "Reflect-Hops-Char";
+    // JSON headers for NTP data from WiFiMon Hardware Probes
+    private static final String NTP_SERVER_NTPSTAT = "Ntp-Server-Ntpstat";
+    private static final String STRATUM = "Stratum";
+    private static final String TIME_CORRECT = "Time-Correct";
+    private static final String NTP_SERVER_NTPQ = "Ntp-Server-Ntpq";
+    private static final String DELAY_NTPQ = "Delay-Ntpq";
+    private static final String OFFSET_NTPQ = "Offset-Ntpq";
+    private static final String JITTER_NTPQ = "Jitter-Ntpq";
 
     private static Logger logger = Logger.getLogger(AggregatorResource.class.getName());
     private static RestHighLevelClient restHighLevelClient;
@@ -470,7 +478,14 @@ public class AggregatorResource {
 	    String sendHopsValueJson = dataValidator(measurement.getSendHopsValue(), TWAMP_SEND_HOPS_VALUE, true, false, true);
 	    String sendHopsCharJson = dataValidator(measurement.getSendHopsChar(), TWAMP_SEND_HOPS_CHAR, false, false, true);
 	    String reflectHopsValueJson = dataValidator(measurement.getReflectHopsValue(), TWAMP_REFLECT_HOPS_VALUE, true, false, true);
-	    String reflectHopsCharJson = dataValidator(measurement.getReflectHopsChar(), TWAMP_REFLECT_HOPS_CHAR, false, true, true);
+	    String reflectHopsCharJson = dataValidator(measurement.getReflectHopsChar(), TWAMP_REFLECT_HOPS_CHAR, false, false, true);
+	    String ntpServerNtpstatJson = dataValidator(measurement.getNtpServerNtpstat(), NTP_SERVER_NTPSTAT, false, false, true);
+	    String stratumJson = dataValidator(measurement.getStratum(), STRATUM, false, false, true);
+	    String timeCorrectJson = dataValidator(measurement.getTimeCorrect(), TIME_CORRECT, false, false, true);
+	    String ntpServerNtpqJson = dataValidator(measurement.getNtpServerNtpq(), NTP_SERVER_NTPQ, false, false, true);
+	    String delayNtpqJson = dataValidator(measurement.getDelayNtpq(), DELAY_NTPQ, false, false, true);
+	    String offsetNtpqJson = dataValidator(measurement.getOffsetNtpq(), OFFSET_NTPQ, false, false, true);
+	    String jitterNtpqJson = dataValidator(measurement.getJitterNtpq(), JITTER_NTPQ, false, true, true);
 
 	    String jsonStringDraft = "{" +
 		    timestampJson + probeNumberJson + twampServerJson + 
@@ -481,7 +496,10 @@ public class AggregatorResource {
 		    maxReflectorProcessingTimeJson + twoWayJitterValueJson +
 		    twoWayJitterCharJson + sendJitterValueJson + sendJitterCharJson + 
 		    reflectJitterValueJson + reflectJitterCharJson + sendHopsValueJson + 
-		    sendHopsCharJson + reflectHopsValueJson + reflectHopsCharJson + "}";
+		    sendHopsCharJson + reflectHopsValueJson + reflectHopsCharJson +
+		    ntpServerNtpstatJson + stratumJson + timeCorrectJson +
+		    ntpServerNtpqJson + delayNtpqJson + offsetNtpqJson +
+		    jitterNtpqJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 	    indexMeasurementTwamp(jsonString);
