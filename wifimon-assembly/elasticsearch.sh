@@ -52,6 +52,17 @@ curl -XPUT 'http://localhost:9200/probes?pretty' -H 'Content-Type: application/j
 	"mappings" : {
 		"properties" : {
 			"Timestamp" : { "type" : "date" },
+			"Wts" : { "type" : "keyword" },
+			"Ping-Packet-Transmit" : { "type" : "float" },
+			"Ping-Packet-Receive" : { "type" : "float" },
+			"Ping-Packet-Loss-Rate" : { "type" : "float" },
+			"Ping-Packet-Loss-Count" : { "type" : "float" },
+			"Ping-Rtt-Min" : { "type" : "float" },
+			"Ping-Rtt-Avg" : { "type" : "float" },
+			"Ping-Rtt-Max" : { "type" : "float" },
+			"Ping-Rtt-Mdev" : { "type" : "float" },
+			"Ping-Packet-Duplicate-Rate" : { "type" : "float" },
+			"Ping-Packet-Duplicate-Count" : { "type" : "float" },
 			"Bit-Rate" : { "type" : "float" },
 			"Tx-Power" : { "type" : "float" },
 			"Link-Quality" : { "type" : "float" },

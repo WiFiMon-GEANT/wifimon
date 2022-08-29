@@ -136,6 +136,18 @@ public class AggregatorResource {
     private static final String IP_ADDRESS = "IP-Address";
     private static final String IP_ADDRESS_KEYWORD = "IP-Address.keyword";
     private static final String MAC_ADDRESS = "MAC-Address";
+    // JSON headers for WiFiMon Hardware Probes (ping metrics)
+    private static final String PROBE_WTS = "Wts";
+    private static final String PROBE_PING_PACKET_TRANSMIT = "Ping-Packet-Transmit";
+    private static final String PROBE_PING_PACKET_RECEIVE = "Ping-Packet-Receive";
+    private static final String PROBE_PING_PACKET_LOSS_RATE = "Ping-Packet-Loss-Rate";
+    private static final String PROBE_PING_PACKET_LOSS_COUNT = "Ping-Packet-Loss-Count";
+    private static final String PROBE_PING_RTT_MIN = "Ping-Rtt-Min";
+    private static final String PROBE_PING_RTT_AVG = "Ping-Rtt-Avg";
+    private static final String PROBE_PING_RTT_MAX = "Ping-Rtt-Max";
+    private static final String PROBE_PING_RTT_MDEV = "Ping-Rtt-Mdev";
+    private static final String PROBE_PING_PACKET_DUPLICATE_RATE = "Ping-Packet-Duplicate-Rate";
+    private static final String PROBE_PING_PACKET_DUPLICATE_COUNT = "Ping-Packet-Duplicate-Count";
     // JSON headers for WiFiMon Hardware Probes (WiFiMon Side, JSON that is stored in ELK cluster)
     private static final String PROBE_ACCESSPOINT = "Accesspoint";
     private static final String PROBE_ESSID = "Essid";
@@ -275,6 +287,17 @@ public class AggregatorResource {
             // Get Wireless Network Performance Metrics
 	    String timestampCurrent = String.valueOf(System.currentTimeMillis());
             String timestampJson = timestampCurrent != null ? "\"" + TIMESTAMP + "\" : " + timestampCurrent + ", " : "";
+	    String wtsJson = dataValidator(measurement.getWts(), PROBE_WTS, false, false, true);
+	    String pingPacketTransmitJson = dataValidator(measurement.getPingPacketTransmit().toString(), PROBE_PING_PACKET_TRANSMIT, true, false, true);
+	    String pingPacketReceiveJson = dataValidator(measurement.getPingPacketReceive().toString(), PROBE_PING_PACKET_RECEIVE, true, false, true);
+	    String pingPacketLossRateJson = dataValidator(measurement.getPingPacketLossRate().toString(), PROBE_PING_PACKET_LOSS_RATE, true, false, true);
+	    String pingPacketLossCountJson = dataValidator(measurement.getPingPacketLossCount().toString(), PROBE_PING_PACKET_LOSS_COUNT, true, false, true);
+	    String pingRttMinJson = dataValidator(measurement.getPingRttMin().toString(), PROBE_PING_RTT_MIN, true, false, true);
+	    String pingRttAvgJson = dataValidator(measurement.getPingRttAvg().toString(), PROBE_PING_RTT_AVG, true, false, true);
+	    String pingRttMaxJson = dataValidator(measurement.getPingRttMax().toString(), PROBE_PING_RTT_MAX, true, false, true);
+	    String pingRttMdevJson = dataValidator(measurement.getPingRttMdev().toString(), PROBE_PING_RTT_MDEV, true, false, true);
+	    String pingPacketDuplicateRateJson = dataValidator(measurement.getPingPacketDuplicateRate().toString(), PROBE_PING_PACKET_DUPLICATE_RATE, true, false, true);
+	    String pingPacketDuplicateCountJson = dataValidator(measurement.getPingPacketDuplicateCount().toString(), PROBE_PING_PACKET_DUPLICATE_COUNT, true, false, true);
 	    String macAddressJson = dataValidator(measurement.getMacAddress(), MAC_ADDRESS, false, false, true);
 	    String accesspointJson = dataValidator(measurement.getAccesspoint(), PROBE_ACCESSPOINT, false, false, true);
 	    String essidJson = dataValidator(measurement.getEssid(), PROBE_ESSID, false, false, true);
@@ -294,10 +317,13 @@ public class AggregatorResource {
 
             // Construct JSON object that will be stored in Elasticsearch
             String jsonStringDraft = "{" +
-                    timestampJson + macAddressJson + accesspointJson + essidJson + bitRateJson + 
-		    txPowerJson + linkQualityJson + signalLevelJson + probeNoJson + originJson +
-		    locationNameJson + testDeviceLocationDescriptionJson + numberOfUsers + 
-		    natNetworkJson + monitorJson + systemJson + "}";
+                    timestampJson + wtsJson + pingPacketTransmitJson + pingPacketReceiveJson +
+		    pingPacketLossRateJson + pingPacketLossCountJson + pingRttMinJson +
+		    pingRttAvgJson + pingRttMaxJson + pingRttMdevJson + pingPacketDuplicateRateJson +
+		    pingPacketDuplicateCountJson + macAddressJson + accesspointJson + essidJson + 
+		    bitRateJson + txPowerJson + linkQualityJson + signalLevelJson + probeNoJson + 
+		    originJson + locationNameJson + testDeviceLocationDescriptionJson +
+		    numberOfUsers + natNetworkJson + monitorJson + systemJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 

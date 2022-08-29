@@ -7,7 +7,17 @@ import java.io.Serializable;
  */
 
 public class ProbesMeasurement implements Serializable {
-
+    private String wts;
+    private Long pingPacketTransmit;
+    private Long pingPacketReceive;
+    private Long pingPacketLossRate;
+    private Long pingPacketLossCount;
+    private Long pingRttMin;
+    private Long pingRttAvg;
+    private Long pingRttMax;
+    private Long pingRttMdev;
+    private Long pingPacketDuplicateRate;
+    private Long pingPacketDuplicateCount;
     private String macAddress;
     private String accesspoint;
     private String essid;
@@ -22,6 +32,94 @@ public class ProbesMeasurement implements Serializable {
     private String locationName;
     private String testDeviceLocationDescription;
     private String nat;
+
+    public String getWts() {
+	    return wts;
+    }
+
+    public void setWts(String wts) {
+	    this.wts = wts;
+    }
+
+    public Long getPingPacketTransmit() {
+	    return pingPacketTransmit;
+    }
+
+    public void setPingPacketTransmit(Long pingPacketTransmit) {
+	    this.pingPacketTransmit = pingPacketTransmit;
+    }
+
+    public Long getPingPacketReceive() {
+	    return pingPacketReceive;
+    }
+
+    public void setPingPacketReceive(Long pingPacketReceive) {
+	    this.pingPacketReceive = pingPacketReceive;
+    }
+
+    public Long getPingPacketLossRate() {
+	    return pingPacketLossRate;
+    }
+
+    public void setPingPacketLossRate(Long pingPacketLossRate) {
+	    this.pingPacketLossRate = pingPacketLossRate;
+    }
+
+    public Long getPingPacketLossCount() {
+	    return pingPacketLossCount;
+    }
+
+    public void setPingPacketLossCount(Long pingPacketLossCount) {
+	    this.pingPacketLossCount = pingPacketLossCount;
+    }
+
+    public Long getPingRttMin() {
+	    return pingRttMin;
+    }
+
+    public void setPingRttMin(Long pingRttMin) {
+	    this.pingRttMin = pingRttMin;
+    }
+
+    public Long getPingRttAvg() {
+	    return pingRttAvg;
+    }
+
+    public void setPingRttAvg(Long pingRttAvg) {
+	    this.pingRttAvg = pingRttAvg;
+    }
+
+    public Long getPingRttMax() {
+	    return pingRttMax;
+    }
+
+    public void setPingRttMax(Long pingRttMax) {
+	    this.pingRttMax = pingRttMax;
+    }
+
+    public Long getPingRttMdev() {
+	    return pingRttMdev;
+    }
+
+    public void setPingRttMdev(Long pingRttMdev) {
+	    this.pingRttMdev = pingRttMdev;
+    }
+
+    public Long getPingPacketDuplicateRate() {
+	    return pingPacketDuplicateRate;
+    }
+
+    public void setPingPacketDuplicateRate(Long pingPacketDuplicateRate) {
+	    this.pingPacketDuplicateRate = pingPacketDuplicateRate;
+    }
+
+    public Long getPingPacketDuplicateCount() {
+	    return pingPacketDuplicateCount;
+    }
+
+    public void setPingPacketDuplicateCount(Long pingPacketDuplicateCount) {
+	    this.pingPacketDuplicateCount = pingPacketDuplicateCount;
+    }
 
     public String getMacAddress() {
 	    return macAddress;
@@ -143,7 +241,28 @@ public class ProbesMeasurement implements Serializable {
             return false;
 
         ProbesMeasurement that = (ProbesMeasurement) o;
-
+	if (wts != null ? !wts.equals(that.wts) : that.wts != null)
+	    return false;
+	if (pingPacketTransmit != null ? !pingPacketTransmit.equals(that.pingPacketTransmit) : that.pingPacketTransmit != null)
+	    return false;
+	if (pingPacketReceive != null ? !pingPacketReceive.equals(that.pingPacketReceive) : that.pingPacketReceive != null)
+	    return false;
+	if (pingPacketLossRate != null ? !pingPacketLossRate.equals(that.pingPacketLossRate) : that.pingPacketLossRate != null)
+	    return false;
+	if (pingPacketLossCount != null ? !pingPacketLossCount.equals(that.pingPacketLossCount) : that.pingPacketLossCount != null)
+            return false;
+	if (pingRttMin != null ? !pingRttMin.equals(that.pingRttMin) : that.pingRttMin != null)
+	    return false;
+	if (pingRttAvg != null ? !pingRttAvg.equals(that.pingRttAvg) : that.pingRttAvg != null)
+	    return false;
+	if (pingRttMax != null ? !pingRttMax.equals(that.pingRttMax) : that.pingRttMax != null)
+            return false;
+	if (pingRttMdev != null ? !pingRttMdev.equals(that.pingRttMdev) : that.pingRttMdev != null)
+	    return false;
+	if (pingPacketDuplicateRate != null ? !pingPacketDuplicateRate.equals(that.pingPacketDuplicateRate) : that.pingPacketDuplicateRate != null)
+	    return false;
+	if (pingPacketDuplicateCount != null ? !pingPacketDuplicateCount.equals(that.pingPacketDuplicateCount) : that.pingPacketDuplicateCount != null)
+	    return false;
 	if (macAddress != null ? !macAddress.equals(that.macAddress) : that.macAddress != null)
 	    return false;
 	if (accesspoint != null ? !accesspoint.equals(that.accesspoint) : that.accesspoint != null)
@@ -175,7 +294,18 @@ public class ProbesMeasurement implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = macAddress != null ? macAddress.hashCode() : 0;
+        int result = wts != null ? wts.hashCode() : 0;
+	result = 31 * result + (pingPacketTransmit != null ? pingPacketTransmit.hashCode() : 0);
+	result = 31 * result + (pingPacketReceive != null ? pingPacketReceive.hashCode() : 0);
+	result = 31 * result + (pingPacketLossRate != null ? pingPacketLossRate.hashCode() : 0);
+	result = 31 * result + (pingPacketLossCount != null ? pingPacketLossCount.hashCode() : 0);
+	result = 31 * result + (pingRttMin != null ? pingRttMin.hashCode() : 0);
+	result = 31 * result + (pingRttAvg != null ? pingRttAvg.hashCode() : 0);
+	result = 31 * result + (pingRttMax != null ? pingRttMax.hashCode() : 0);
+	result = 31 * result + (pingRttMdev != null ? pingRttMdev.hashCode() : 0);
+	result = 31 * result + (pingPacketDuplicateRate != null ? pingPacketDuplicateRate.hashCode() : 0);
+	result = 31 * result + (pingPacketDuplicateCount != null ? pingPacketDuplicateCount.hashCode() : 0);
+	result = 31 * result + (macAddress != null ? macAddress.hashCode() : 0);
         result = 31 * result + (accesspoint != null ? accesspoint.hashCode() : 0);
 	result = 31 * result + (essid != null ? essid.hashCode() : 0);
         result = 31 * result + (bitRate != null ? bitRate.hashCode() : 0);
