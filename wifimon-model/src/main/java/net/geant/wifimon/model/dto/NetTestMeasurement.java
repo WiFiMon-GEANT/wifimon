@@ -11,6 +11,7 @@ public class NetTestMeasurement implements Serializable {
     private Double downloadThroughput;
     private Double uploadThroughput;
     private Double localPing;
+    private Double jitterMsec;
     private String latitude;
     private String longitude;
     private String testServerLocation;
@@ -47,6 +48,14 @@ public class NetTestMeasurement implements Serializable {
 
     public void setLocalPing(Double localPing) {
         this.localPing = localPing;
+    }
+
+    public Double getJitterMsec() {
+	return jitterMsec;
+    }
+
+    public void setJitterMsec(Double jitterMsec) {
+	this.jitterMsec = jitterMsec;
     }
 
     public String getLatitude() {

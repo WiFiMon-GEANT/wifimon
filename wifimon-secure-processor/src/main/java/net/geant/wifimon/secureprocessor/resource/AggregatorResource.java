@@ -94,6 +94,7 @@ public class AggregatorResource {
     private static final String DOWNLOAD_THROUGHPUT = "Download-Throughput";
     private static final String UPLOAD_THROUGHPUT = "Upload-Throughput";
     private static final String LOCAL_PING = "Local-Ping";
+    private static final String JITTER_MSEC = "Jitter-Msec";
     private static final String LOCATION = "Location";
     private static final String LOCATION_METHOD = "Location-Method";
     private static final String CLIENT_IP = "Client-Ip";
@@ -651,6 +652,7 @@ public class AggregatorResource {
         m.setDownloadThroughput(measurement.getDownloadThroughput());
         m.setUploadThroughput(measurement.getUploadThroughput());
         m.setLocalPing(measurement.getLocalPing());
+	m.setJitterMsec(measurement.getJitterMsec());
         m.setLatitude(measurement.getLatitude() != null ? Double.valueOf(measurement.getLatitude()) : null);
         m.setLongitude(measurement.getLongitude() != null ? Double.valueOf(measurement.getLongitude()) : null);
         m.setLocationMethod(measurement.getLocationMethod());
@@ -729,6 +731,7 @@ public class AggregatorResource {
 	String downloadThroughputJson = dataValidator(measurement.getDownloadThroughput().toString(), DOWNLOAD_THROUGHPUT, true, false, true);
 	String uploadThroughputJson = dataValidator(measurement.getUploadThroughput().toString(), UPLOAD_THROUGHPUT, true, false, true);
 	String localPingJson = dataValidator(measurement.getLocalPing().toString(), LOCAL_PING, true, false, true);
+	String jitterMsecJson = dataValidator(measurement.getJitterMsec().toString(), JITTER_MSEC, true, false, true);
 	String locationJson = JsonSanitizer.sanitize(measurement.getLatitude().toString()) != null ? "\"" + LOCATION + "\" : \"" + JsonSanitizer.sanitize(measurement.getLatitude().toString()) + "," + JsonSanitizer.sanitize(measurement.getLongitude().toString()) + "\", " : "";
 	String locationMethodJson = dataValidator(measurement.getLocationMethod(), LOCATION_METHOD, false, false, true);
 	String testServerLocationJson = dataValidator("\"" + measurement.getTestServerLocation() + "\"", TEST_SERVER_LOCATION, false, false, true);
@@ -771,9 +774,9 @@ public class AggregatorResource {
         // Build the Json String to store in the elasticsearch cluster
         String jsonStringDraft = "{" +
                 "\"" + TIMESTAMP + "\" : " + measurement.getTimestamp() + ", " +
-                downloadThroughputJson + uploadThroughputJson + localPingJson +
-                locationJson + locationMethodJson + testServerLocationJson + userAgentJson + userBrowserJson + 
-		userOsJson + testToolJson + radiusTimestampJson + serviceTypeJson +
+                downloadThroughputJson + uploadThroughputJson + localPingJson + jitterMsecJson +
+                locationJson + locationMethodJson + testServerLocationJson + userAgentJson + 
+		userBrowserJson + userOsJson + testToolJson + radiusTimestampJson + serviceTypeJson +
  		nasPortIdJson + nasPortTypeJson + acctSessionIdJson +
 		acctMultiSessionIdJson + callingStationIdJson + calledStationIdJson +
 		acctAuthenticJson + acctStatusTypeJson + nasIdentifierJson +

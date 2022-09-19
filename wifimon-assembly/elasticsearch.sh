@@ -9,6 +9,7 @@ curl -XPUT 'http://localhost:9200/wifimon?pretty' -H 'Content-Type: application/
 			"Download-Throughput" : { "type" : "float" },
 			"Upload-Throughput" : { "type" : "float" },
 			"Local-Ping" : { "type" : "float" },
+			"Jitter-Msec" : { "type" : "float" },
 			"Location" : { "type" : "geo_point" },
 			"Location-Method" : { "type" : "keyword" },
 			"Client-Ip" : { "type" : "keyword" },
