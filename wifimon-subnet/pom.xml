@@ -7,7 +7,7 @@
     <parent>
         <groupId>net.geant.wifimon</groupId>
         <artifactId>agent</artifactId>
-        <version>1.6.1</version>
+        <version>1.7.0</version>
     </parent>
 
     <artifactId>subnet</artifactId>
@@ -18,5 +18,4 @@
             <version>3.8.0</version>
         </dependency>
     </dependencies>
-    
 </project>
