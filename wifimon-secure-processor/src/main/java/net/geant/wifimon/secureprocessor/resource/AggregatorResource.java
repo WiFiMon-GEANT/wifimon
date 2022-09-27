@@ -1,5 +1,9 @@
 package net.geant.wifimon.secureprocessor.resource;
 
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
+import co.elastic.clients.elasticsearch.core.*;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.JsonData;
 import com.google.json.JsonSanitizer;
 import net.geant.wifimon.model.dto.AggregatedMeasurement;
 import net.geant.wifimon.model.dto.NetTestMeasurement;
@@ -18,28 +22,13 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.ssl.SSLContexts;
-import org.elasticsearch.ElasticsearchException;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.xcontent.XContentType;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import javax.net.ssl.SSLContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -49,17 +38,20 @@ import java.io.*;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.nio.charset.StandardCharsets;
 import javax.annotation.PostConstruct;
-import com.google.json.JsonSanitizer;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.UUID;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import co.elastic.clients.elasticsearch._types.SortOrder;
 
 @Component
 @Path("/wifimon")
@@ -208,15 +200,19 @@ public class AggregatorResource {
     private static final String TWAMP_REFLECT_HOPS_CHAR = "Reflect-Hops-Char";
 
     private static Logger logger = Logger.getLogger(AggregatorResource.class.getName());
-    private static RestHighLevelClient restHighLevelClient;
+    private static RestClient restClient;
+    private static ElasticsearchTransport transport;
+    private static ElasticsearchClient elasticsearchClient;
 
     @PostConstruct
     public void init() {
 	    if (environment.getProperty(SSL_ENABLED).equals("true")) {
-		    AggregatorResource.restHighLevelClient = initKeystoreClient();
+            AggregatorResource.restClient = initKeystoreClient();
             } else {
-		    AggregatorResource.restHighLevelClient = initHttpClient();
+            AggregatorResource.restClient = initHttpClient();
             }
+	    AggregatorResource.transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+	    AggregatorResource.elasticsearchClient = new ElasticsearchClient(transport);
     }
 
     @POST
@@ -275,7 +271,7 @@ public class AggregatorResource {
 	    String signalLevelJson = dataValidator(measurement.getSignalLevel().toString(), PROBE_SIGNAL_LEVEL, true, false, true);
 	    probeNumber = measurement.getProbeNo().toString();
 	    String probeNoJson = dataValidator(measurement.getProbeNo().toString(), PROBE_NUMBER, true, false, true);
-	    String originJson = "\"" + ORIGIN + "\": \"Probe\", "; 
+	    String originJson = "\"" + ORIGIN + "\": \"Probe\", ";
 	    String locationNameJson = dataValidator(measurement.getLocationName(), PROBE_LOCATION_NAME, false, false, true);
 	    String testDeviceLocationDescriptionJson = dataValidator(measurement.getTestDeviceLocationDescription(), PROBE_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
 	    String natNetworkJson = dataValidator(measurement.getNat(), PROBE_NAT_NETWORK, false, false, true);
@@ -284,29 +280,33 @@ public class AggregatorResource {
 
             // Construct JSON object that will be stored in Elasticsearch
             String jsonStringDraft = "{" +
-                    timestampJson + macAddressJson + accesspointJson + essidJson + bitRateJson + 
+                    timestampJson + macAddressJson + accesspointJson + essidJson + bitRateJson +
 		    txPowerJson + linkQualityJson + signalLevelJson + probeNoJson + originJson +
-		    locationNameJson + testDeviceLocationDescriptionJson + natNetworkJson + 
+		    locationNameJson + testDeviceLocationDescriptionJson + natNetworkJson +
 		    monitorJson + systemJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
-            final SearchSourceBuilder builderForTimestamp = new SearchSourceBuilder()
-                    .query(QueryBuilders.matchAllQuery())
-                    .sort(new FieldSortBuilder(TIMESTAMP).order(SortOrder.DESC))
-                    .from(0)
-                    .fetchSource(new String[]{TIMESTAMP}, null)
-                    .postFilter(QueryBuilders.termQuery(PROBE_NUMBER, probeNumber))
-                    .size(1)
-                    .explain(true);
-
-            final SearchRequest requestForTimestamp = new SearchRequest(environment.getProperty(ES_INDEXNAME_PROBES)).source(builderForTimestamp);
-            final SearchResponse responseForTimestamp = AggregatorResource.restHighLevelClient.search(requestForTimestamp, RequestOptions.DEFAULT);
-            final SearchHits hitsForTimestamp = responseForTimestamp.getHits();
-            if (responseForTimestamp.getHits().getTotalHits().value > 0) {
-                    SearchHit hitForTimestamp = hitsForTimestamp.getAt(0);
-                    Map mapForTimestamp = hitForTimestamp.getSourceAsMap();
-                    timestamp = (mapForTimestamp.get(TIMESTAMP) != null) ? mapForTimestamp.get(TIMESTAMP).toString() : "N/A";
+            String finalProbeNumber = probeNumber;
+            SearchResponse<Map> responseForTimestamp = AggregatorResource.elasticsearchClient.search(s -> s
+                            .index(environment.getProperty(ES_INDEXNAME_PROBES))
+                            .sort(so -> so.field(f -> f.field(TIMESTAMP).order(SortOrder.Desc)))
+                            .from(0)
+                            .postFilter(new Query.Builder()
+                                    .term(t -> t
+                                            .field(PROBE_NUMBER)
+                                            .value(finalProbeNumber)
+                                    ).build()
+                            )
+                            .size(1)
+                            .explain(true),
+                    Map.class
+            );
+            final List<Hit<Map>> hitsForTimestamp = responseForTimestamp.hits().hits();
+            if (responseForTimestamp.hits().total().value() > 0) {
+                Hit<Map> hitForTimestamp = hitsForTimestamp.get(0);
+                Map mapForTimestamp = hitForTimestamp.source();
+                timestamp = (mapForTimestamp.get(TIMESTAMP) != null) ? mapForTimestamp.get(TIMESTAMP).toString() : "N/A";
             }
 
             // Store measurements in elasticsearch
@@ -316,18 +316,26 @@ public class AggregatorResource {
 		SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC+0"));
 
-                SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-                sourceBuilder.query(QueryBuilders.rangeQuery("Timestamp").from(timestamp).to("now"));
-                sourceBuilder.postFilter(QueryBuilders.termQuery(PROBE_NUMBER,probeNumber));
-                SearchRequest searchRequest = new SearchRequest(environment.getProperty(ES_INDEXNAME_MEASUREMENT));
-                searchRequest.source(sourceBuilder);
-
-                SearchResponse searchResponse = AggregatorResource.restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
-                final SearchHits hits = searchResponse.getHits();
-
+		String finalTimestamp = timestamp;
+		SearchResponse<Map> searchResponse = AggregatorResource.elasticsearchClient.search(s -> s
+                        .index(environment.getProperty(ES_INDEXNAME_MEASUREMENT))
+                        .query(new Query.Builder()
+                                .range(r -> r
+                                        .field("Timestamp")
+                                        .from(finalTimestamp)
+                                        .to("now")
+                                )
+                                .build())
+                        .postFilter(new Query.Builder()
+                                .term(t -> t
+                                        .field(PROBE_NUMBER)
+                                        .value(finalProbeNumber)
+                                ).build()),
+                Map.class);
+		final List<Hit<Map>> hits = searchResponse.hits().hits();
                 int sequence = 1;
-                Iterator<SearchHit> iterator = hits.iterator();
-                Map<String, SearchHit> distinctObjects = new HashMap<String,SearchHit>();
+                Iterator<Hit<Map>> iterator = hits.iterator();
+                Map<String, Hit<Map>> distinctObjects = new HashMap<String,Hit<Map>>();
 
                 String probeDownloadThroughput = "", probeUploadThroughput = "", probeIpv4Ping = "", probeIpv6Ping = "", probeTestTool = "", probeTimestamp = "";
 
@@ -340,8 +348,8 @@ public class AggregatorResource {
                                 probeTestTool += ", ";
                                 probeTimestamp += ", ";
                         }
-                        SearchHit searchHit = (SearchHit) iterator.next();
-                        Map<String, Object> source = searchHit.getSourceAsMap();
+                        Hit<Map> searchHit = iterator.next();
+                        Map source = searchHit.source();
                         if (source.get(DOWNLOAD_THROUGHPUT) != null) {
                                 probeDownloadThroughput += source.get(DOWNLOAD_THROUGHPUT).toString();
                         }
@@ -471,14 +479,14 @@ public class AggregatorResource {
 	    String reflectHopsCharJson = dataValidator(measurement.getReflectHopsChar(), TWAMP_REFLECT_HOPS_CHAR, false, true, true);
 
 	    String jsonStringDraft = "{" +
-		    timestampJson + probeNumberJson + twampServerJson + 
-		    sentJson + lostJson + sendDupsJson + reflectDupsJson + minRttJson + 
+		    timestampJson + probeNumberJson + twampServerJson +
+		    sentJson + lostJson + sendDupsJson + reflectDupsJson + minRttJson +
 		    medianRttJson + maxRttJson + errRttJson + minSendJson + medianSendJson +
 		    maxSendJson + errSendJson + minReflectJson + medianReflectJson +
 		    maxReflectJson + errReflectJson + minReflectorProcessingTimeJson +
 		    maxReflectorProcessingTimeJson + twoWayJitterValueJson +
-		    twoWayJitterCharJson + sendJitterValueJson + sendJitterCharJson + 
-		    reflectJitterValueJson + reflectJitterCharJson + sendHopsValueJson + 
+		    twoWayJitterCharJson + sendJitterValueJson + sendJitterCharJson +
+		    reflectJitterValueJson + reflectJitterCharJson + sendHopsValueJson +
 		    sendHopsCharJson + reflectHopsValueJson + reflectHopsCharJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
@@ -747,23 +755,23 @@ public class AggregatorResource {
     private String retrieveLastMacEntryByIp(String ip) {
         String macAddress = "";
         try {
-            final SearchSourceBuilder builder = new SearchSourceBuilder()
-            .query(QueryBuilders.matchAllQuery())
-            .sort(new FieldSortBuilder(DHCP_TIMESTAMP).order(SortOrder.DESC))
-            .from(0)
-            .fetchSource(new String[]{DHCP_TIMESTAMP, IP_ADDRESS, MAC_ADDRESS}, null)
-            .postFilter(QueryBuilders.termQuery(IP_ADDRESS_KEYWORD, ip))
-            .size(1)
-            .explain(true);
-
-            final SearchRequest request = new SearchRequest(environment.getProperty(ES_INDEXNAME_DHCP))
-                    .source(builder);
-            final SearchResponse response = AggregatorResource.restHighLevelClient.search(request, RequestOptions.DEFAULT);
-
-            final SearchHits hits = response.getHits();
-            if (response.getHits().getTotalHits().value > 0) {
-                    SearchHit hit = hits.getAt(0);
-                    Map map = hit.getSourceAsMap();
+            SearchResponse<Map> response = AggregatorResource.elasticsearchClient.search(s -> s
+                    .index(environment.getProperty(ES_INDEXNAME_DHCP))
+                    .sort(so -> so.field(f -> f.field(DHCP_TIMESTAMP).order(SortOrder.Desc)))
+                    .from(0)
+                    .postFilter(new Query.Builder()
+                            .term(t -> t
+                                    .field(IP_ADDRESS_KEYWORD)
+                                    .value(ip)
+                            ).build())
+                    .size(1)
+                    .explain(true),
+                    Map.class
+            );
+            final List<Hit<Map>> hits = response.hits().hits();
+            if (response.hits().total().value() > 0) {
+                    Hit<Map> hit = hits.get(0);
+                    Map map = hit.source();
                     macAddress = (map.get(MAC_ADDRESS) != null) ? map.get(MAC_ADDRESS).toString() : "N/A";
             }
         } catch (Exception e) {
@@ -778,43 +786,45 @@ public class AggregatorResource {
         RadiusStripped r = new RadiusStripped();
 
         try {
-            final SearchSourceBuilder builder = new SearchSourceBuilder()
-                    .query(QueryBuilders.matchAllQuery())
-                    .sort(new FieldSortBuilder(RADIUS_TIMESTAMP).order(SortOrder.DESC))
-                    .from(0)
-                    .fetchSource(new String[]{RADIUS_TIMESTAMP, SERVICE_TYPE, NAS_PORT_ID,
-                            NAS_PORT_TYPE, ACCT_SESSION_ID, ACCT_MULTI_SESSION_ID,
-			    CALLING_STATION_ID, CALLED_STATION_ID, ACCT_AUTHENTIC,
-                            ACCT_STATUS_TYPE, NAS_IDENTIFIER, ACCT_DELAY_TIME,
-		            NAS_IP_ADDRESS, FRAMED_IP_ADDRESS, ACCT_UNIQUE_SESSION_ID, REALM}, null)
-                    .postFilter(QueryBuilders.termQuery(FRAMED_IP_ADDRESS_KEYWORD, ip))
-                    .query(QueryBuilders.termQuery(ACCT_STATUS_TYPE_KEYWORD, "Start"))
-                    .size(1)
-                    .explain(true);
-
-            final SearchRequest request = new SearchRequest(environment.getProperty(ES_INDEXNAME_RADIUS))
-                    .source(builder);
-            final SearchResponse response = AggregatorResource.restHighLevelClient.search(request, RequestOptions.DEFAULT);
-            final SearchHits hits = response.getHits();
-            if (response.getHits().getTotalHits().value > 0) {
-                    SearchHit hit = hits.getAt(0);
-                    Map map = hit.getSourceAsMap();
-                    r.setRadiusTimestamp(((map.get(RADIUS_TIMESTAMP) != null) ? map.get(RADIUS_TIMESTAMP).toString() : "N/A"));
-                    r.setServiceType(((map.get(SERVICE_TYPE) != null) ? map.get(SERVICE_TYPE).toString() : "N/A"));
-                    r.setNasPortId(((map.get(NAS_PORT_ID) != null) ? map.get(NAS_PORT_ID).toString() : "N/A"));
-                    r.setNasPortType(((map.get(NAS_PORT_TYPE) != null) ? map.get(NAS_PORT_TYPE).toString() : "N/A"));
-                    r.setAcctSessionId(((map.get(ACCT_SESSION_ID) != null) ? map.get(ACCT_SESSION_ID).toString() : "N/A"));
-                    r.setAcctMultiSessionId(((map.get(ACCT_MULTI_SESSION_ID) != null) ? map.get(ACCT_MULTI_SESSION_ID).toString() : "N/A"));
-                    r.setCallingStationId(((map.get(CALLING_STATION_ID) != null) ? map.get(CALLING_STATION_ID).toString() : "N/A"));
-                    r.setCalledStationId(((map.get(CALLED_STATION_ID) != null) ? map.get(CALLED_STATION_ID).toString() : "N/A"));
-                    r.setAcctAuthentic(((map.get(ACCT_AUTHENTIC) != null) ? map.get(ACCT_AUTHENTIC).toString() : "N/A"));
-                    r.setAcctStatusType(((map.get(ACCT_STATUS_TYPE) != null) ? map.get(ACCT_STATUS_TYPE).toString() : "N/A"));
-                    r.setNasIdentifier(((map.get(NAS_IDENTIFIER) != null) ? map.get(NAS_IDENTIFIER).toString() : "N/A"));
-                    r.setAcctDelayTime(((map.get(ACCT_DELAY_TIME) != null) ? map.get(ACCT_DELAY_TIME).toString() : "N/A"));
-                    r.setNasIpAddress(((map.get(NAS_IP_ADDRESS) != null) ? map.get(NAS_IP_ADDRESS).toString() : "N/A"));
-                    r.setFramedIpAddress(((map.get(FRAMED_IP_ADDRESS) != null) ? map.get(FRAMED_IP_ADDRESS).toString() : "N/A"));
-                    r.setAcctUniqueSessionId(((map.get(ACCT_UNIQUE_SESSION_ID) != null) ? map.get(ACCT_UNIQUE_SESSION_ID).toString() : "N/A"));
-                    r.setRealm(((map.get(REALM) != null) ? map.get(REALM).toString() : "N/A"));
+            SearchResponse<Map> response = AggregatorResource.elasticsearchClient.search(s -> s
+                            .index(environment.getProperty(ES_INDEXNAME_RADIUS))
+                            .sort(so -> so.field(f -> f.field(RADIUS_TIMESTAMP).order(SortOrder.Desc)))
+                            .from(0)
+                            .postFilter(new Query.Builder()
+                                    .term(t -> t
+                                            .field(FRAMED_IP_ADDRESS_KEYWORD)
+                                            .value(ip)
+                                    ).build())
+                            .query(new Query.Builder()
+                                    .term(t -> t
+                                            .field(ACCT_STATUS_TYPE_KEYWORD)
+                                            .value("Start")
+                                    )
+                                    .build())
+                            .size(1)
+                            .explain(true),
+                    Map.class
+            );
+            final List<Hit<Map>> hits = response.hits().hits();
+            if (response.hits().total().value() > 0) {
+                Hit<Map> hit = hits.get(0);
+                Map map = hit.source();
+                r.setRadiusTimestamp(((map.get(RADIUS_TIMESTAMP) != null) ? map.get(RADIUS_TIMESTAMP).toString() : "N/A"));
+                r.setServiceType(((map.get(SERVICE_TYPE) != null) ? map.get(SERVICE_TYPE).toString() : "N/A"));
+                r.setNasPortId(((map.get(NAS_PORT_ID) != null) ? map.get(NAS_PORT_ID).toString() : "N/A"));
+                r.setNasPortType(((map.get(NAS_PORT_TYPE) != null) ? map.get(NAS_PORT_TYPE).toString() : "N/A"));
+                r.setAcctSessionId(((map.get(ACCT_SESSION_ID) != null) ? map.get(ACCT_SESSION_ID).toString() : "N/A"));
+                r.setAcctMultiSessionId(((map.get(ACCT_MULTI_SESSION_ID) != null) ? map.get(ACCT_MULTI_SESSION_ID).toString() : "N/A"));
+                r.setCallingStationId(((map.get(CALLING_STATION_ID) != null) ? map.get(CALLING_STATION_ID).toString() : "N/A"));
+                r.setCalledStationId(((map.get(CALLED_STATION_ID) != null) ? map.get(CALLED_STATION_ID).toString() : "N/A"));
+                r.setAcctAuthentic(((map.get(ACCT_AUTHENTIC) != null) ? map.get(ACCT_AUTHENTIC).toString() : "N/A"));
+                r.setAcctStatusType(((map.get(ACCT_STATUS_TYPE) != null) ? map.get(ACCT_STATUS_TYPE).toString() : "N/A"));
+                r.setNasIdentifier(((map.get(NAS_IDENTIFIER) != null) ? map.get(NAS_IDENTIFIER).toString() : "N/A"));
+                r.setAcctDelayTime(((map.get(ACCT_DELAY_TIME) != null) ? map.get(ACCT_DELAY_TIME).toString() : "N/A"));
+                r.setNasIpAddress(((map.get(NAS_IP_ADDRESS) != null) ? map.get(NAS_IP_ADDRESS).toString() : "N/A"));
+                r.setFramedIpAddress(((map.get(FRAMED_IP_ADDRESS) != null) ? map.get(FRAMED_IP_ADDRESS).toString() : "N/A"));
+                r.setAcctUniqueSessionId(((map.get(ACCT_UNIQUE_SESSION_ID) != null) ? map.get(ACCT_UNIQUE_SESSION_ID).toString() : "N/A"));
+                r.setRealm(((map.get(REALM) != null) ? map.get(REALM).toString() : "N/A"));
             } else {
                 r = null;
             }
@@ -831,28 +841,24 @@ public class AggregatorResource {
         RadiusStripped r = new RadiusStripped();
 
         try {
-            final SearchSourceBuilder builder = new SearchSourceBuilder()
-                    .query(QueryBuilders.matchAllQuery())
-                    .sort(new FieldSortBuilder(RADIUS_TIMESTAMP).order(SortOrder.DESC))
-                    .from(0)
-                    .fetchSource(new String[]{RADIUS_TIMESTAMP, SERVICE_TYPE, NAS_PORT_ID,
-			    NAS_PORT_TYPE, ACCT_SESSION_ID, ACCT_MULTI_SESSION_ID,
-			    CALLING_STATION_ID, CALLED_STATION_ID, ACCT_AUTHENTIC, 
-			    ACCT_STATUS_TYPE, NAS_IDENTIFIER, ACCT_DELAY_TIME, NAS_IP_ADDRESS,
-			    FRAMED_IP_ADDRESS, ACCT_UNIQUE_SESSION_ID, REALM}, null)
-                    .postFilter(QueryBuilders.termQuery(CALLING_STATION_ID_KEYWORD, mac))
-                    .size(1)
-                    .explain(true);
+            SearchResponse<Map> response = AggregatorResource.elasticsearchClient.search(s -> s
+                            .index(environment.getProperty(ES_INDEXNAME_RADIUS))
+                            .sort(so -> so.field(f -> f.field(RADIUS_TIMESTAMP).order(SortOrder.Desc)))
+                            .from(0)
+                            .postFilter(new Query.Builder()
+                                    .term(t -> t
+                                            .field(CALLING_STATION_ID_KEYWORD)
+                                            .value(mac)
+                                    ).build())
+                            .size(1)
+                            .explain(true),
+                    Map.class
+            );
 
-            final SearchRequest request = new SearchRequest(environment.getProperty(ES_INDEXNAME_RADIUS))
-                    .source(builder);
-
-            final SearchResponse response = AggregatorResource.restHighLevelClient.search(request, RequestOptions.DEFAULT);
-            final SearchHits hits = response.getHits();
-
-            if (response.getHits().getTotalHits().value > 0) {
-		    SearchHit hit = hits.getAt(0); 
-                    Map map = hit.getSourceAsMap();
+            final List<Hit<Map>> hits = response.hits().hits();
+            if (response.hits().total().value() > 0) {
+		    Hit<Map> hit = hits.get(0);
+                    Map map = hit.source();
                     r.setRadiusTimestamp(((map.get(RADIUS_TIMESTAMP) != null) ? map.get(RADIUS_TIMESTAMP).toString() : "N/A"));
                     r.setServiceType(((map.get(SERVICE_TYPE) != null) ? map.get(SERVICE_TYPE).toString() : "N/A"));
                     r.setNasPortId(((map.get(NAS_PORT_ID) != null) ? map.get(NAS_PORT_ID).toString() : "N/A"));
@@ -882,9 +888,12 @@ public class AggregatorResource {
     private void indexMeasurement(String jsonString) {
         // Store received measurements in Elasticsearch
         try {
-            IndexRequest indexRequest = new IndexRequest(environment.getProperty(ES_INDEXNAME_MEASUREMENT));
-            indexRequest.source(jsonString, XContentType.JSON);
-            AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
+            Reader json = new StringReader(jsonString);
+            IndexRequest<JsonData> request = IndexRequest.of(i -> i
+                    .index(environment.getProperty(ES_INDEXNAME_MEASUREMENT))
+                    .withJson(json)
+            );
+            AggregatorResource.elasticsearchClient.index(request);
         } catch (Exception e) {
             logger.info(e.toString());
         }
@@ -893,10 +902,13 @@ public class AggregatorResource {
     private void indexMeasurementProbes(String jsonString) {
         // Store received Wireless Network Performance Metrics (from WiFiMon Hardware Probes) in Elasticsearch
         try {
-        IndexRequest indexRequest = new IndexRequest(
-                environment.getProperty(ES_INDEXNAME_PROBES));
-        indexRequest.source(jsonString, XContentType.JSON);
-            AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
+            Reader json = new StringReader(jsonString);
+            IndexRequest<JsonData> request = IndexRequest.of(i -> i
+                    .index(environment.getProperty(ES_INDEXNAME_PROBES))
+                    .withJson(json)
+            );
+
+            AggregatorResource.elasticsearchClient.index(request);
         } catch (Exception e) {
             logger.info(e.toString());
         }
@@ -904,26 +916,28 @@ public class AggregatorResource {
 
     private void indexMeasurementTwamp(String jsonString) {
         try {
-        IndexRequest indexRequest = new IndexRequest(
-                environment.getProperty(ES_INDEXNAME_TWAMP));
-        indexRequest.source(jsonString, XContentType.JSON);
-            AggregatorResource.restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
+            Reader json = new StringReader(jsonString);
+            IndexRequest<JsonData> request = IndexRequest.of(i -> i
+                    .index(environment.getProperty(ES_INDEXNAME_TWAMP))
+                    .withJson(json)
+            );
+
+            AggregatorResource.elasticsearchClient.index(request);
         } catch (Exception e) {
             logger.info(e.toString());
         }
     }
 
     // Initialize High Level REST Client for HTTP
-    private RestHighLevelClient initHttpClient() {
+    private RestClient initHttpClient() {
 
-	RestHighLevelClient restClient = null;
+        RestClient restClient = null;
         try {
-            restClient = new RestHighLevelClient(
-                    RestClient.builder(
+            restClient = RestClient.builder(
                             new HttpHost(
                                     environment.getProperty(ES_HOST),
                                     Integer.parseInt(environment.getProperty(ES_PORT)),
-                                    "http")));
+                                    "http")).build();
         } catch (Exception e) {
 	    logger.info(e.toString());
         }
@@ -933,8 +947,8 @@ public class AggregatorResource {
 
     // A big part of the code that follows was taken from the Search Guard GitHub repository about Elasticsearch Java High Level REST Client
     // This method initializes a High Level REST Client using Keystore Certificates
-    private RestHighLevelClient initKeystoreClient() {
-	    RestHighLevelClient restClient = null;
+    private RestClient initKeystoreClient() {
+        RestClient restClient = null;
 
         try {
             final CredentialsProvider credentialsProvider =
@@ -944,14 +958,13 @@ public class AggregatorResource {
                             environment.getProperty(SSL_USER_USERNAME),
                             environment.getProperty(SSL_USER_PHRASE)));
 
-            restClient = new RestHighLevelClient(
-                    RestClient.builder(new HttpHost(
+            restClient = RestClient.builder(new HttpHost(
                             environment.getProperty(ES_HOST),
                             Integer.parseInt(environment.getProperty(ES_PORT)),
                             "https"))
                             .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
                                     .setDefaultCredentialsProvider(credentialsProvider)
-                            ));
+                            ).build();
         } catch (Exception e) {
 	    logger.info(e.toString());
         }
