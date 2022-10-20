@@ -3,6 +3,7 @@ var w=new Worker("speedtest_worker.js"); //create new worker
 var local_ping;
 var download_throughput;
 var upload_throughput;
+var jitter_msec;
 
 var download_throughputMb;
 var upload_throughputMb;
@@ -85,6 +86,7 @@ function checkCookie() {
         download_throughputMb = data["dlStatus"];
         upload_throughputMb = data["ulStatus"];
         local_ping = data["pingStatus"];
+	jitter_msec = data["jitterStatus"]; // estimated in milliseconds
 
 //Values are converted to KB/s
 	download_throughput = (Math.round((download_throughputMb*125) * 10) / 10).toFixed(0)
@@ -148,11 +150,11 @@ else {
 detectDevice(); //call detectDevice
 geoTest();
 //------------------------------------------------------
-postToAgent(local_ping,download_throughput,upload_throughput,latitude,longitude,location_method,device,application); //call postToAgent
+postToAgent(local_ping,download_throughput,upload_throughput,jitter_msec,latitude,longitude,location_method,device,application); //call postToAgent
 //------------------------------------------------------
 // Post measurement to agent
 
-function postToAgent(local_ping,download_throughput,upload_throughput,latitude,longitude,location_method,device,application) {
+function postToAgent(local_ping,download_throughput,upload_throughput,jitter_msec,latitude,longitude,location_method,device,application) {
  if (typeof download_throughput === 'undefined' || isNaN(download_throughput) || !download_throughput) {
   download_throughput = 0;
  }
@@ -161,6 +163,9 @@ function postToAgent(local_ping,download_throughput,upload_throughput,latitude,l
  }
  if (typeof local_ping === 'undefined' || isNaN(local_ping) || !local_ping) {
   local_ping = 0;
+ }
+ if (typeof jitter_msec === 'undefined' || isNaN(jitter_msec) || !jitter_msec) {
+  jitter_msec = 0;
  }
  if (typeof latitude === 'undefined' && typeof longitude === 'undefined') {
     latitude = 0;
@@ -173,6 +178,7 @@ function postToAgent(local_ping,download_throughput,upload_throughput,latitude,l
 var measurement = {downloadThroughput: download_throughput,
                    uploadThroughput: upload_throughput,
                    localPing: local_ping,
+		   jitterMsec: jitter_msec,
                    latitude: latitude,
                    longitude: longitude,
                    locationMethod: location_method,

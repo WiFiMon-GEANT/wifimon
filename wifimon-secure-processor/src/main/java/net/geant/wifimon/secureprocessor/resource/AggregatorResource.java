@@ -86,6 +86,7 @@ public class AggregatorResource {
     private static final String DOWNLOAD_THROUGHPUT = "Download-Throughput";
     private static final String UPLOAD_THROUGHPUT = "Upload-Throughput";
     private static final String LOCAL_PING = "Local-Ping";
+    private static final String JITTER_MSEC = "Jitter-Msec";
     private static final String LOCATION = "Location";
     private static final String LOCATION_METHOD = "Location-Method";
     private static final String CLIENT_IP = "Client-Ip";
@@ -128,6 +129,18 @@ public class AggregatorResource {
     private static final String IP_ADDRESS = "IP-Address";
     private static final String IP_ADDRESS_KEYWORD = "IP-Address.keyword";
     private static final String MAC_ADDRESS = "MAC-Address";
+    // JSON headers for WiFiMon Hardware Probes (ping metrics)
+    private static final String PROBE_WTS = "Wts";
+    private static final String PROBE_PING_PACKET_TRANSMIT = "Ping-Packet-Transmit";
+    private static final String PROBE_PING_PACKET_RECEIVE = "Ping-Packet-Receive";
+    private static final String PROBE_PING_PACKET_LOSS_RATE = "Ping-Packet-Loss-Rate";
+    private static final String PROBE_PING_PACKET_LOSS_COUNT = "Ping-Packet-Loss-Count";
+    private static final String PROBE_PING_RTT_MIN = "Ping-Rtt-Min";
+    private static final String PROBE_PING_RTT_AVG = "Ping-Rtt-Avg";
+    private static final String PROBE_PING_RTT_MAX = "Ping-Rtt-Max";
+    private static final String PROBE_PING_RTT_MDEV = "Ping-Rtt-Mdev";
+    private static final String PROBE_PING_PACKET_DUPLICATE_RATE = "Ping-Packet-Duplicate-Rate";
+    private static final String PROBE_PING_PACKET_DUPLICATE_COUNT = "Ping-Packet-Duplicate-Count";
     // JSON headers for WiFiMon Hardware Probes (WiFiMon Side, JSON that is stored in ELK cluster)
     private static final String PROBE_ACCESSPOINT = "Accesspoint";
     private static final String PROBE_ESSID = "Essid";
@@ -139,6 +152,7 @@ public class AggregatorResource {
     private static final String PROBE_SYSTEM = "System";
     private static final String PROBE_LOCATION_NAME = "Location-Name";
     private static final String PROBE_TEST_DEVICE_LOCATION_DESCRIPTION = "Test-Device-Location-Description";
+    private static final String NUMBER_OF_USERS = "Number-Of-Users";
     private static final String PROBE_NAT_NETWORK = "NAT-Network";
     // JSON headers for WiFiMon Hardware Probes (Streaming to JSON Listener)
     private static final String JSON_COLLECT = "json.collect";
@@ -198,6 +212,14 @@ public class AggregatorResource {
     private static final String TWAMP_SEND_HOPS_CHAR = "Send-Hops-Char";
     private static final String TWAMP_REFLECT_HOPS_VALUE = "Reflect-Hops-Value";
     private static final String TWAMP_REFLECT_HOPS_CHAR = "Reflect-Hops-Char";
+    // JSON headers for NTP data from WiFiMon Hardware Probes
+    private static final String NTP_SERVER_NTPSTAT = "Ntp-Server-Ntpstat";
+    private static final String STRATUM = "Stratum";
+    private static final String TIME_CORRECT = "Time-Correct";
+    private static final String NTP_SERVER_NTPQ = "Ntp-Server-Ntpq";
+    private static final String DELAY_NTPQ = "Delay-Ntpq";
+    private static final String OFFSET_NTPQ = "Offset-Ntpq";
+    private static final String JITTER_NTPQ = "Jitter-Ntpq";
 
     private static Logger logger = Logger.getLogger(AggregatorResource.class.getName());
     private static RestClient restClient;
@@ -262,6 +284,17 @@ public class AggregatorResource {
             // Get Wireless Network Performance Metrics
 	    String timestampCurrent = String.valueOf(System.currentTimeMillis());
             String timestampJson = timestampCurrent != null ? "\"" + TIMESTAMP + "\" : " + timestampCurrent + ", " : "";
+	    String wtsJson = dataValidator(measurement.getWts(), PROBE_WTS, false, false, true);
+	    String pingPacketTransmitJson = dataValidator(measurement.getPingPacketTransmit().toString(), PROBE_PING_PACKET_TRANSMIT, true, false, true);
+	    String pingPacketReceiveJson = dataValidator(measurement.getPingPacketReceive().toString(), PROBE_PING_PACKET_RECEIVE, true, false, true);
+	    String pingPacketLossRateJson = dataValidator(measurement.getPingPacketLossRate().toString(), PROBE_PING_PACKET_LOSS_RATE, true, false, true);
+	    String pingPacketLossCountJson = dataValidator(measurement.getPingPacketLossCount().toString(), PROBE_PING_PACKET_LOSS_COUNT, true, false, true);
+	    String pingRttMinJson = dataValidator(measurement.getPingRttMin().toString(), PROBE_PING_RTT_MIN, true, false, true);
+	    String pingRttAvgJson = dataValidator(measurement.getPingRttAvg().toString(), PROBE_PING_RTT_AVG, true, false, true);
+	    String pingRttMaxJson = dataValidator(measurement.getPingRttMax().toString(), PROBE_PING_RTT_MAX, true, false, true);
+	    String pingRttMdevJson = dataValidator(measurement.getPingRttMdev().toString(), PROBE_PING_RTT_MDEV, true, false, true);
+	    String pingPacketDuplicateRateJson = dataValidator(measurement.getPingPacketDuplicateRate().toString(), PROBE_PING_PACKET_DUPLICATE_RATE, true, false, true);
+	    String pingPacketDuplicateCountJson = dataValidator(measurement.getPingPacketDuplicateCount().toString(), PROBE_PING_PACKET_DUPLICATE_COUNT, true, false, true);
 	    String macAddressJson = dataValidator(measurement.getMacAddress(), MAC_ADDRESS, false, false, true);
 	    String accesspointJson = dataValidator(measurement.getAccesspoint(), PROBE_ACCESSPOINT, false, false, true);
 	    String essidJson = dataValidator(measurement.getEssid(), PROBE_ESSID, false, false, true);
@@ -274,16 +307,20 @@ public class AggregatorResource {
 	    String originJson = "\"" + ORIGIN + "\": \"Probe\", ";
 	    String locationNameJson = dataValidator(measurement.getLocationName(), PROBE_LOCATION_NAME, false, false, true);
 	    String testDeviceLocationDescriptionJson = dataValidator(measurement.getTestDeviceLocationDescription(), PROBE_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
+	    String numberOfUsers = dataValidator(measurement.getNumberOfUsers(), NUMBER_OF_USERS, true, false, true);
 	    String natNetworkJson = dataValidator(measurement.getNat(), PROBE_NAT_NETWORK, false, false, true);
 	    String monitorJson = dataValidator(measurement.getMonitor(), PROBE_MONITOR, false, false, true);
 	    String systemJson = dataValidator(measurement.getSystem(), PROBE_SYSTEM, false, true, true);
 
             // Construct JSON object that will be stored in Elasticsearch
             String jsonStringDraft = "{" +
-                    timestampJson + macAddressJson + accesspointJson + essidJson + bitRateJson +
-		    txPowerJson + linkQualityJson + signalLevelJson + probeNoJson + originJson +
-		    locationNameJson + testDeviceLocationDescriptionJson + natNetworkJson +
-		    monitorJson + systemJson + "}";
+                    timestampJson + wtsJson + pingPacketTransmitJson + pingPacketReceiveJson +
+		    pingPacketLossRateJson + pingPacketLossCountJson + pingRttMinJson +
+		    pingRttAvgJson + pingRttMaxJson + pingRttMdevJson + pingPacketDuplicateRateJson +
+		    pingPacketDuplicateCountJson + macAddressJson + accesspointJson + essidJson + 
+		    bitRateJson + txPowerJson + linkQualityJson + signalLevelJson + probeNoJson + 
+		    originJson + locationNameJson + testDeviceLocationDescriptionJson +
+		    numberOfUsers + natNetworkJson + monitorJson + systemJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 
@@ -476,7 +513,14 @@ public class AggregatorResource {
 	    String sendHopsValueJson = dataValidator(measurement.getSendHopsValue(), TWAMP_SEND_HOPS_VALUE, true, false, true);
 	    String sendHopsCharJson = dataValidator(measurement.getSendHopsChar(), TWAMP_SEND_HOPS_CHAR, false, false, true);
 	    String reflectHopsValueJson = dataValidator(measurement.getReflectHopsValue(), TWAMP_REFLECT_HOPS_VALUE, true, false, true);
-	    String reflectHopsCharJson = dataValidator(measurement.getReflectHopsChar(), TWAMP_REFLECT_HOPS_CHAR, false, true, true);
+	    String reflectHopsCharJson = dataValidator(measurement.getReflectHopsChar(), TWAMP_REFLECT_HOPS_CHAR, false, false, true);
+	    String ntpServerNtpstatJson = dataValidator(measurement.getNtpServerNtpstat(), NTP_SERVER_NTPSTAT, false, false, true);
+	    String stratumJson = dataValidator(measurement.getStratum(), STRATUM, false, false, true);
+	    String timeCorrectJson = dataValidator(measurement.getTimeCorrect(), TIME_CORRECT, false, false, true);
+	    String ntpServerNtpqJson = dataValidator(measurement.getNtpServerNtpq(), NTP_SERVER_NTPQ, false, false, true);
+	    String delayNtpqJson = dataValidator(measurement.getDelayNtpq(), DELAY_NTPQ, false, false, true);
+	    String offsetNtpqJson = dataValidator(measurement.getOffsetNtpq(), OFFSET_NTPQ, false, false, true);
+	    String jitterNtpqJson = dataValidator(measurement.getJitterNtpq(), JITTER_NTPQ, false, true, true);
 
 	    String jsonStringDraft = "{" +
 		    timestampJson + probeNumberJson + twampServerJson +
@@ -485,9 +529,12 @@ public class AggregatorResource {
 		    maxSendJson + errSendJson + minReflectJson + medianReflectJson +
 		    maxReflectJson + errReflectJson + minReflectorProcessingTimeJson +
 		    maxReflectorProcessingTimeJson + twoWayJitterValueJson +
-		    twoWayJitterCharJson + sendJitterValueJson + sendJitterCharJson +
-		    reflectJitterValueJson + reflectJitterCharJson + sendHopsValueJson +
-		    sendHopsCharJson + reflectHopsValueJson + reflectHopsCharJson + "}";
+		    twoWayJitterCharJson + sendJitterValueJson + sendJitterCharJson + 
+		    reflectJitterValueJson + reflectJitterCharJson + sendHopsValueJson + 
+		    sendHopsCharJson + reflectHopsValueJson + reflectHopsCharJson +
+		    ntpServerNtpstatJson + stratumJson + timeCorrectJson +
+		    ntpServerNtpqJson + delayNtpqJson + offsetNtpqJson +
+		    jitterNtpqJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 	    indexMeasurementTwamp(jsonString);
@@ -613,6 +660,7 @@ public class AggregatorResource {
         m.setDownloadThroughput(measurement.getDownloadThroughput());
         m.setUploadThroughput(measurement.getUploadThroughput());
         m.setLocalPing(measurement.getLocalPing());
+	m.setJitterMsec(measurement.getJitterMsec());
         m.setLatitude(measurement.getLatitude() != null ? Double.valueOf(measurement.getLatitude()) : null);
         m.setLongitude(measurement.getLongitude() != null ? Double.valueOf(measurement.getLongitude()) : null);
         m.setLocationMethod(measurement.getLocationMethod());
@@ -691,6 +739,7 @@ public class AggregatorResource {
 	String downloadThroughputJson = dataValidator(measurement.getDownloadThroughput().toString(), DOWNLOAD_THROUGHPUT, true, false, true);
 	String uploadThroughputJson = dataValidator(measurement.getUploadThroughput().toString(), UPLOAD_THROUGHPUT, true, false, true);
 	String localPingJson = dataValidator(measurement.getLocalPing().toString(), LOCAL_PING, true, false, true);
+	String jitterMsecJson = dataValidator(measurement.getJitterMsec().toString(), JITTER_MSEC, true, false, true);
 	String locationJson = JsonSanitizer.sanitize(measurement.getLatitude().toString()) != null ? "\"" + LOCATION + "\" : \"" + JsonSanitizer.sanitize(measurement.getLatitude().toString()) + "," + JsonSanitizer.sanitize(measurement.getLongitude().toString()) + "\", " : "";
 	String locationMethodJson = dataValidator(measurement.getLocationMethod(), LOCATION_METHOD, false, false, true);
 	String testServerLocationJson = dataValidator("\"" + measurement.getTestServerLocation() + "\"", TEST_SERVER_LOCATION, false, false, true);
@@ -733,9 +782,9 @@ public class AggregatorResource {
         // Build the Json String to store in the elasticsearch cluster
         String jsonStringDraft = "{" +
                 "\"" + TIMESTAMP + "\" : " + measurement.getTimestamp() + ", " +
-                downloadThroughputJson + uploadThroughputJson + localPingJson +
-                locationJson + locationMethodJson + testServerLocationJson + userAgentJson + userBrowserJson + 
-		userOsJson + testToolJson + radiusTimestampJson + serviceTypeJson +
+                downloadThroughputJson + uploadThroughputJson + localPingJson + jitterMsecJson +
+                locationJson + locationMethodJson + testServerLocationJson + userAgentJson + 
+		userBrowserJson + userOsJson + testToolJson + radiusTimestampJson + serviceTypeJson +
  		nasPortIdJson + nasPortTypeJson + acctSessionIdJson +
 		acctMultiSessionIdJson + callingStationIdJson + calledStationIdJson +
 		acctAuthenticJson + acctStatusTypeJson + nasIdentifierJson +

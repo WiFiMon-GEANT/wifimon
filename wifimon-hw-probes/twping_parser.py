@@ -54,6 +54,11 @@ def locate_twping_data(twping_output):
     return line_to_start
 
 # Parse lines one by one. Look at the top for the numbering of the lines
+def parse_line1(line1):
+    parts = line1.split("\t")
+    sid = parts[1]
+    return sid
+
 def parse_line4(line4):
     parts = line4.split(" ")
     sent, lost, send_dups, reflect_dups = parts[0], parts[2], parts[5], parts[8]
@@ -85,19 +90,66 @@ def parse_hops(line):
     characterization = parts[4][1:-1]
     return value, characterization
 
-def form_json(probe_number, twamp_server, sent, lost, send_dups, reflect_dups, 
+def parse_ntpstat_line_0(line):
+    line_parts = line.split(" ")
+    ntp_server = line_parts[4]
+    ntp_server = ntp_server[1:-1]
+    stratum = line_parts = line_parts[7]
+    return ntp_server, stratum
+
+def parse_ntpstat_line_1(line):
+    line_parts = line.split(" ")
+    while line_parts[0] == "":
+        line_parts = line_parts[1:]
+    value = line_parts[4]
+    unit = line_parts[5]
+    time_correct = str(value) + " " + str(unit)
+    return time_correct
+
+def parse_ntpstat():
+    command = "ntpstat"
+    ntpstat_output = return_command_output(command).decode('utf8')
+    ntpstat_output_lines = ntpstat_output.split('\n')
+    line_0 = ntpstat_output_lines[0]
+    ntp_server, stratum = parse_ntpstat_line_0(line_0)
+    line_1 = ntpstat_output_lines[1]
+    time_correct = parse_ntpstat_line_1(line_1)
+    return (ntp_server, stratum, time_correct)
+
+def parse_ntpq_starred_line(line):
+    line_parts = line.split(" ")
+    try:
+        while True:
+            line_parts.remove('')
+    except ValueError:
+        pass
+    return line_parts
+
+def parse_ntpq():
+    command = "ntpq -pn"
+    ntpq_output = return_command_output(command).decode('utf8')
+    ntpq_output_lines = ntpq_output.split('\n')
+    for line in ntpq_output_lines:
+        if line[0] == "*":
+            ntpq_result = parse_ntpq_starred_line(line[1:])
+    return ntpq_result
+
+def form_json(probe_number, twamp_server, sid, sent, lost, send_dups, reflect_dups, 
         min_rtt, median_rtt, max_rtt, err_rtt, min_send, median_send, max_send, 
         err_send, min_reflect, median_reflect, max_reflect, err_reflect, 
         min_reflector_processing_time, max_reflector_processing_time,
         two_way_jitter_value, two_way_jitter_char, send_jitter_value, send_jitter_char,
         reflect_jitter_value, reflect_jitter_char, send_hops_value, send_hops_char,
-        reflect_hops_value, reflect_hops_char):
+        reflect_hops_value, reflect_hops_char, ntp_server_ntpstat, stratum, time_correct,
+        ntp_server_ntpq, delay_ntpq, offset_ntpq, jitter_ntpq):
     '''
         Create a json object with the parsed values. Values are first stored in a dictionary.
     '''
     overall_dictionary = {}
+    # TWAMP-related data
     overall_dictionary["probeNumber"] = probe_number
     overall_dictionary["twampServer"] = twamp_server
+    overall_dictionary["sid"] = sid
     overall_dictionary["sent"] = sent
     overall_dictionary["lost"] = lost
     overall_dictionary["sendDups"] = send_dups
@@ -126,14 +178,23 @@ def form_json(probe_number, twamp_server, sent, lost, send_dups, reflect_dups,
     overall_dictionary["sendHopsChar"] = send_hops_char
     overall_dictionary["reflectHopsValue"] = reflect_hops_value
     overall_dictionary["reflectHopsChar"] = reflect_hops_char
+    # NTP-related data
+    overall_dictionary["ntpServerNtpstat"] = "\"" + str(ntp_server_ntpstat) + "\""
+    overall_dictionary["stratum"] = stratum
+    overall_dictionary["timeCorrect"] = time_correct
+    overall_dictionary["ntpServerNtpq"] = "\"" + str(ntp_server_ntpq) + "\""
+    overall_dictionary["delayNtpq"] = delay_ntpq
+    overall_dictionary["offsetNtpq"] = offset_ntpq
+    overall_dictionary["jitterNtpq"] = jitter_ntpq
     json_data = json.dumps(overall_dictionary)
     return json_data
 
-def parse_twping(twping_output, line_to_start, probe_number):
+def parse_twping_and_ntp(twping_output, line_to_start, probe_number):
     '''
         Parse twping output line by line
     '''
     twping_output_parts = twping_output.split('\n')
+    sid = parse_line1(twping_output_parts[line_to_start + 1])
     sent, lost, send_dups, reflect_dups = parse_line4(twping_output_parts[line_to_start + 4])
     min_rtt, median_rtt, max_rtt, err_rtt = parse_times(twping_output_parts[line_to_start + 5])
     min_send, median_send, max_send, err_send = parse_times(twping_output_parts[line_to_start + 6])
@@ -144,12 +205,22 @@ def parse_twping(twping_output, line_to_start, probe_number):
     reflect_jitter_value, reflect_jitter_char = parse_jitter(twping_output_parts[line_to_start + 11])
     send_hops_value, send_hops_char = parse_hops(twping_output_parts[line_to_start + 12])
     reflect_hops_value, reflect_hops_char = parse_hops(twping_output_parts[line_to_start + 13])
-    json_data = form_json(probe_number, twamp_server, sent, lost, send_dups, reflect_dups, 
+    # parse ntpq and ntpstat commands
+    ntp_server_ntpstat, stratum, time_correct = parse_ntpstat()
+    ntpq_result = parse_ntpq()
+    ntp_server_ntpq = ntpq_result[0]
+    delay_ntpq = ntpq_result[7]
+    offset_ntpq = ntpq_result[8]
+    jitter_ntpq = ntpq_result[9]
+    # form json data
+    json_data = form_json(probe_number, twamp_server, sid, sent, lost, send_dups, reflect_dups, 
             min_rtt, median_rtt, max_rtt, err_rtt, min_send, median_send, max_send, err_send, 
             min_reflect, median_reflect, max_reflect, err_reflect, min_reflector_processing_time,
             max_reflector_processing_time, two_way_jitter_value, two_way_jitter_char, 
             send_jitter_value, send_jitter_char, reflect_jitter_value, reflect_jitter_char, 
-            send_hops_value, send_hops_char, reflect_hops_value, reflect_hops_char)
+            send_hops_value, send_hops_char, reflect_hops_value, reflect_hops_char,
+            ntp_server_ntpstat, stratum, time_correct, ntp_server_ntpq, delay_ntpq,
+            offset_ntpq, jitter_ntpq)
     return json_data
 
 def stream_data(json_data):
@@ -161,20 +232,17 @@ def stream_data(json_data):
     try:
         session = requests.Session()
         session.verify = False
-        session.post(url = 'https://WAS_FQDN:443/wifimon/twamp/', data = json_data, headers = headers, timeout = 30)
+        session.post(url = 'https://INSERT_WAS_FQDN_OR_IP:443/wifimon/twamp/', data = json_data, headers = headers, timeout = 30)
     except:
         pass
     return None
 
 if __name__ == "__main__":
     # Define the number of the WiFiMon Hardware Probe
-    PROBE_NO = "1"
-    # Define the FQDN of the TWAMP Server
-    twamp_server = "TWAMP_SERVER_FQDN"
-    # Perform twping against the TWAMP Server
+    PROBE_NO = "INSERT_PROBE_NUMBER"
+    # Define the IP address of the TWAMP Server
+    twamp_server = "INSERT_TWAMP_SERVER_FQDN_OR_IP"
     twping_results = perform_twping(twamp_server)
-    # Parse twping results
     line_to_start = locate_twping_data(twping_results)
-    json_data = parse_twping(twping_results, line_to_start, PROBE_NO)
-    # Stream data to the WiFiMon Analysis Server
+    json_data = parse_twping_and_ntp(twping_results, line_to_start, PROBE_NO)
     stream_data(json_data)

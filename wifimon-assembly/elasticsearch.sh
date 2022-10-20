@@ -9,6 +9,7 @@ curl -XPUT 'http://localhost:9200/wifimon?pretty' -H 'Content-Type: application/
 			"Download-Throughput" : { "type" : "float" },
 			"Upload-Throughput" : { "type" : "float" },
 			"Local-Ping" : { "type" : "float" },
+			"Jitter-Msec" : { "type" : "float" },
 			"Location" : { "type" : "geo_point" },
 			"Location-Method" : { "type" : "keyword" },
 			"Client-Ip" : { "type" : "keyword" },
@@ -52,13 +53,25 @@ curl -XPUT 'http://localhost:9200/probes?pretty' -H 'Content-Type: application/j
 	"mappings" : {
 		"properties" : {
 			"Timestamp" : { "type" : "date" },
+			"Wts" : { "type" : "keyword" },
+			"Ping-Packet-Transmit" : { "type" : "float" },
+			"Ping-Packet-Receive" : { "type" : "float" },
+			"Ping-Packet-Loss-Rate" : { "type" : "float" },
+			"Ping-Packet-Loss-Count" : { "type" : "float" },
+			"Ping-Rtt-Min" : { "type" : "float" },
+			"Ping-Rtt-Avg" : { "type" : "float" },
+			"Ping-Rtt-Max" : { "type" : "float" },
+			"Ping-Rtt-Mdev" : { "type" : "float" },
+			"Ping-Packet-Duplicate-Rate" : { "type" : "float" },
+			"Ping-Packet-Duplicate-Count" : { "type" : "float" },
 			"Bit-Rate" : { "type" : "float" },
 			"Tx-Power" : { "type" : "float" },
 			"Link-Quality" : { "type" : "float" },
 			"Signal-Level" : { "type" : "float" },
 			"Accesspoint" : { "type" : "keyword" },
 			"Origin" : { "type" : "keyword"},
-			"Probe-No" : { "type" : "keyword" }
+			"Probe-No" : { "type" : "keyword" },
+			"Number-Of-Users" : { "type" : "float" }
 		}
 	}
 }'
@@ -98,7 +111,14 @@ curl -XPUT 'http://localhost:9200/twamp?pretty' -H 'Content-Type: application/js
 			"Send-Hops-Value" : { "type" : "float" },
 			"Send-Hops-Char" : { "type" : "keyword" },
 			"Reflect-Hops-Value" : { "type" : "float" },
-			"Reflect-Hops-Char" : { "type" : "keyword" }
+			"Reflect-Hops-Char" : { "type" : "keyword" },
+			"Ntp-Server-Ntpstat" : { "type" : "keyword" },
+			"Stratum" : { "type" : "keyword" },
+			"Time-Correct" : { "type" : "keyword" },
+			"Ntp-Server-Ntpq" : { "type" : "keyword" },
+			"Delay-Ntpq" : { "type" : "keyword" },
+			"Offset-Ntpq" : { "type" : "keyword" },
+			"Jitter-Ntpq" : { "type" : "keyword" }
 		}
 	}
 }'

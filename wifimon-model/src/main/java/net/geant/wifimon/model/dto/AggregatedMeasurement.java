@@ -12,6 +12,7 @@ public class AggregatedMeasurement implements Serializable {
     private Double downloadThroughput;
     private Double uploadThroughput;
     private Double localPing;
+    private Double jitterMsec;
     private Double latitude;
     private Double longitude;
     private String locationMethod;
@@ -87,6 +88,14 @@ public class AggregatedMeasurement implements Serializable {
 
     public void setLocalPing(Double localPing) {
         this.localPing = localPing;
+    }
+
+    public Double getJitterMsec() {
+	return jitterMsec;
+    }
+
+    public void setJitterMsec(Double jitterMsec) {
+	this.jitterMsec = jitterMsec;
     }
 
     public String getLocationMethod() {

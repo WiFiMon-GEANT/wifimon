@@ -1,11 +1,13 @@
 #!/usr/bin/python3
 
+import sys
 import subprocess
 import datetime
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 import json
+import pingparsing
 
 def return_command_output(command):
     proc = subprocess.Popen(command, stdout = subprocess.PIPE, shell = True)
@@ -66,8 +68,40 @@ def parse_iwlist(iface, accesspoint):
 
     return information
 
-def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary):
+def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary, number_of_users, pingparser_result):
     overall_dictionary = {}
+    # values from ping received through pingparser github tool
+    overall_dictionary["wts"] = str(pingparser_result["destination"])
+    packet_transmit = int(float(pingparser_result["packet_transmit"]))
+    overall_dictionary["pingPacketTransmit"] = str(packet_transmit)
+    packet_receive = int(float(pingparser_result["packet_receive"]))
+    overall_dictionary["pingPacketReceive"] = str(packet_receive)
+    packet_loss_rate = int(float(pingparser_result["packet_loss_rate"]))
+    overall_dictionary["pingPacketLossRate"] = str(packet_loss_rate)
+    packet_loss_count = int(float(pingparser_result["packet_loss_count"]))
+    overall_dictionary["pingPacketLossCount"] = str(packet_loss_count)
+    try:
+        rtt_min = int(float(pingparser_result["rtt_min"]))
+        rtt_avg = int(float(pingparser_result["rtt_avg"]))
+        rtt_max = int(float(pingparser_result["rtt_max"]))
+        rtt_mdev = int(float(pingparser_result["rtt_mdev"]))
+        packet_duplicate_rate = int(float(pingparser_result["packet_duplicate_rate"]))
+        packet_duplicate_count = int(float(pingparser_result["packet_duplicate_count"]))
+    except:
+        # -1 indicates failure to reach the wts and calculate the above values
+        rtt_min = -1
+        rtt_avg = -1
+        rtt_max = -1
+        rtt_mdev = -1
+        packet_duplicate_rate = -1
+        packet_duplicate_count = -1
+    overall_dictionary["pingRttMin"] = str(rtt_min)
+    overall_dictionary["pingRttAvg"] = str(rtt_avg)
+    overall_dictionary["pingRttMax"] = str(rtt_max)
+    overall_dictionary["pingRttMdev"] = str(rtt_mdev)
+    overall_dictionary["pingPacketDuplicateRate"] = str(packet_duplicate_rate)
+    overall_dictionary["pingPacketDuplicateCount"] = str(packet_duplicate_count)
+    # values from iw* commands
     overall_dictionary["macAddress"] = "\"" + str(mac) + "\""
     overall_dictionary["accesspoint"] = "\"" + str(accesspoint) + "\""
     overall_dictionary["essid"] = "\"" + str(essid) + "\""
@@ -82,10 +116,14 @@ def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quali
     overall_dictionary["probeNo"] = str(probe_no)
     information = json.dumps(information)
     overall_dictionary["monitor"] = information
+    # values defined by administrator
     overall_dictionary["locationName"] = "\"" + str(location_name) + "\""
     overall_dictionary["testDeviceLocationDescription"] = "\"" + str(test_device_location_description) + "\""
     overall_dictionary["nat"] = "\"" + str(nat_network) + "\""
+    # values received through arp-scan command
+    overall_dictionary["numberOfUsers"] = "\"" + str(number_of_users) + "\""
     system_dictionary = json.dumps(system_dictionary)
+    # values received from system commands (memory, cpu, disk)
     overall_dictionary["system"] = system_dictionary
     json_data = json.dumps(overall_dictionary)
     return json_data
@@ -125,26 +163,53 @@ def stream_data(data):
     try:
         session = requests.Session()
         session.verify = False
-        session.post(url='https://WAS_FQDN:443/wifimon/probes/', data=data, headers=headers, timeout=30)
+        session.post(url='https://INSERT_WAS_FQDN:443/wifimon/probes/', data=data, headers=headers, timeout=30)
     except:
         pass
 
+def parse_arpscan(result):
+    lines = result.split("\n")
+    lines.pop(0)
+    lines.pop(0)
+    space_line = lines.index('')
+    return space_line
+
+def arpscanner():
+    command = "sudo arp-scan --localnet"
+    arpscan_result = return_command_output(command).decode('utf8')
+    number_of_users = parse_arpscan(arpscan_result)
+    return number_of_users
+
+def pingparser(wts):
+    # See: https://github.com/thombashi/pingparsing
+    ping_parser = pingparsing.PingParsing()
+    transmitter = pingparsing.PingTransmitter()
+    transmitter.destination = str(wts)
+    transmitter.count = 3
+    result = transmitter.ping()
+    result_json = json.dumps(ping_parser.parse(result).as_dict(), indent=4)
+    result_dict = json.loads(result_json)
+    return result_dict
+
 def set_location_information():
-    location_name = ""
-    test_device_location_description = ""
-    nat_network = ""
+    location_name = "INSERT_LOCATION_NAME"
+    test_device_location_description = "INSERT_TEST_DEVICE_LOCATION_DESCRIPTION"
+    nat_network = "INSERT_True_OR_False"
     return location_name, test_device_location_description, nat_network
 
-def wireless_info():
+def general_info():
     system_dictionary = processing_info()
     location_name, test_device_location_description, nat_network = set_location_information()
     iface_name = find_wlan_iface_name()
     mac = get_mac(iface_name)
     bit_rate, tx_power, link_quality, signal_level, accesspoint, essid = parse_iwconfig(iface_name)
     information = parse_iwlist(iface_name, accesspoint)
-    probe_no = ""
-    json_data = convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary)
+    probe_no = "INSERT_PROBE_NUMBER"
+    wts = "INSERT_WTS_FQDN"
+    number_of_users = arpscanner()
+    pingparser_result = pingparser(wts)
+    json_data = convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary, number_of_users, pingparser_result)
     stream_data(json_data)
 
 if __name__ == "__main__":
-    wireless_info()
+    general_info()
