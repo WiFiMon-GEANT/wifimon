@@ -1,0 +1,6 @@
+00,10,20,30,40,50 * * * * Xvfb :100 &
+02,12,22,32,42,52 * * * * export DISPLAY=:100 && firefox-esr --new-tab {{ protocol }}://{{ wts }}/wifimon/measurements/nettest{{ probe_number }}.html >/dev/null 2>&1
+04,14,24,34,44,54 * * * * export DISPLAY=:100 && firefox-esr --new-tab {{ protocol }}://{{ wts }}/wifimon/measurements/boomerang{{ probe_number }}.html >/dev/null 2>&1
+06,16,26,36,46,56 * * * * export DISPLAY=:100 && firefox-esr --new-tab {{ protocol }}://{{ wts }}/wifimon/measurements/speedworker{{ probe_number }}.html >/dev/null 2>&1
+59 * * * * sudo killall firefox-esr
+
