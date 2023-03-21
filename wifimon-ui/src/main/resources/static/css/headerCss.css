@@ -893,3 +893,8 @@ a:link {
     top: 0;
 }
 
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1140px;
+    }
+}
