@@ -302,8 +302,8 @@ public class AggregatorResource {
 	    String txPowerJson = dataValidator(measurement.getTxPower().toString(), PROBE_TX_POWER, true, false, true);
 	    String linkQualityJson = dataValidator(measurement.getLinkQuality().toString(), PROBE_LINK_QUALITY, true, false, true);
 	    String signalLevelJson = dataValidator(measurement.getSignalLevel().toString(), PROBE_SIGNAL_LEVEL, true, false, true);
-	    probeNumber = measurement.getProbeNo().toString();
-	    String probeNoJson = dataValidator(measurement.getProbeNo().toString(), PROBE_NUMBER, true, false, true);
+	    probeNumber = measurement.getProbeNo();
+	    String probeNoJson = dataValidator(probeNumber, PROBE_NUMBER, false, false, true);
 	    String originJson = "\"" + ORIGIN + "\": \"Probe\", ";
 	    String locationNameJson = dataValidator(measurement.getLocationName(), PROBE_LOCATION_NAME, false, false, true);
 	    String testDeviceLocationDescriptionJson = dataValidator(measurement.getTestDeviceLocationDescription(), PROBE_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
@@ -484,7 +484,7 @@ public class AggregatorResource {
 	try {
 	    String timestampCurrent = String.valueOf(System.currentTimeMillis());
 	    String timestampJson = dataValidator(timestampCurrent, TWAMP_TIMESTAMP, true, false, false);
-	    String probeNumberJson = dataValidator(measurement.getProbeNumber(), TWAMP_PROBE_NUMBER, true, false, true);
+	    String probeNumberJson = dataValidator(measurement.getProbeNumber(), TWAMP_PROBE_NUMBER, false, false, true);
 	    String twampServerJson = dataValidator(measurement.getTwampServer(), TWAMP_SERVER, false, false, true);
 	    String sentJson = dataValidator(measurement.getSent(), TWAMP_SENT, true, false, true);
 	    String lostJson = dataValidator(measurement.getLost(), TWAMP_LOST, true, false, true);
@@ -619,7 +619,7 @@ public class AggregatorResource {
                 ap = accesspointsRepository.find(calledStationIdTemp);
                 response = addElasticMeasurement(joinMeasurement(measurement, r, ap, agent), requesterSubnet, encryptedIP, ipType);
             } else {
-                // There are not RADIUS Logs corresponding to the received measurement
+                // There are no RADIUS Logs corresponding to the received measurement
                 response = addElasticMeasurement(joinMeasurement(measurement, r, null, agent), requesterSubnet, encryptedIP, ipType);
             }
         } catch (Exception e) {
@@ -732,7 +732,7 @@ public class AggregatorResource {
 		measurementOrigin = "User";
 	} else {
 		measurementOrigin = "Probe";
-		probeNumber = testtoolUsed.split("-")[1];
+		probeNumber = testtoolUsed.split("-", 2)[1];
 	}
 
         // Define Strings for the different measurement fields and results from correlation with RADIUS Logs

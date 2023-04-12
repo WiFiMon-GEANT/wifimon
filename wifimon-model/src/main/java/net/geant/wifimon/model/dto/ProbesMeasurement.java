@@ -25,7 +25,7 @@ public class ProbesMeasurement implements Serializable {
     private Long txPower;
     private Long linkQuality;
     private Long signalLevel;
-    private Long probeNo;
+    private String probeNo;
     private String monitor;
     private String system;
     private String numberOfUsers;
@@ -177,11 +177,11 @@ public class ProbesMeasurement implements Serializable {
         this.signalLevel = signalLevel;
     }
 
-    public Long getProbeNo() {
+    public String getProbeNo() {
         return probeNo;
     }
 
-    public void setProbeNo(Long probeNo) {
+    public void setProbeNo(String probeNo) {
         this.probeNo = probeNo;
     }
 
