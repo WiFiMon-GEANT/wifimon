@@ -154,6 +154,7 @@ public class AggregatorResource {
     private static final String PROBE_TEST_DEVICE_LOCATION_DESCRIPTION = "Test-Device-Location-Description";
     private static final String NUMBER_OF_USERS = "Number-Of-Users";
     private static final String PROBE_NAT_NETWORK = "NAT-Network";
+    private static final String PROBE_ENCRYPTION = "Encryption-Type";
     // JSON headers for WiFiMon Hardware Probes (Streaming to JSON Listener)
     private static final String JSON_COLLECT = "json.collect";
     private static final String JSON_COLLECTOR = "json.collector";
@@ -309,6 +310,7 @@ public class AggregatorResource {
 	    String testDeviceLocationDescriptionJson = dataValidator(measurement.getTestDeviceLocationDescription(), PROBE_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
 	    String numberOfUsers = dataValidator(measurement.getNumberOfUsers(), NUMBER_OF_USERS, true, false, true);
 	    String natNetworkJson = dataValidator(measurement.getNat(), PROBE_NAT_NETWORK, false, false, true);
+	    String encTypeJson = dataValidator(measurement.getEncType(), PROBE_ENCRYPTION, false, false, true);
 	    String monitorJson = dataValidator(measurement.getMonitor(), PROBE_MONITOR, false, false, true);
 	    String systemJson = dataValidator(measurement.getSystem(), PROBE_SYSTEM, false, true, true);
 
@@ -320,7 +322,7 @@ public class AggregatorResource {
 		    pingPacketDuplicateCountJson + macAddressJson + accesspointJson + essidJson + 
 		    bitRateJson + txPowerJson + linkQualityJson + signalLevelJson + probeNoJson + 
 		    originJson + locationNameJson + testDeviceLocationDescriptionJson +
-		    numberOfUsers + natNetworkJson + monitorJson + systemJson + "}";
+		    numberOfUsers + natNetworkJson + encTypeJson + monitorJson + systemJson + "}";
 
             String jsonString = jsonStringDraft.replace("\", }", "\"}");
 

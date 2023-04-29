@@ -71,6 +71,7 @@ curl -XPUT 'http://localhost:9200/probes?pretty' -H 'Content-Type: application/j
 			"Accesspoint" : { "type" : "keyword" },
 			"Origin" : { "type" : "keyword"},
 			"Probe-No" : { "type" : "keyword" },
+			"Encryption-Type" : { "type" : "keyword"},
 			"Number-Of-Users" : { "type" : "float" }
 		}
 	}

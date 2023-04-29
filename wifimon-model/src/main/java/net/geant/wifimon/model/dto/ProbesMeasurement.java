@@ -19,6 +19,7 @@ public class ProbesMeasurement implements Serializable {
     private Long pingPacketDuplicateRate;
     private Long pingPacketDuplicateCount;
     private String macAddress;
+    private String encType;
     private String accesspoint;
     private String essid;
     private Long bitRate;
@@ -127,6 +128,14 @@ public class ProbesMeasurement implements Serializable {
 
     public void setMacAddress(String macAddress) {
 	    this.macAddress = macAddress;
+    }
+
+    public String getEncType() {
+	    return encType;
+    }
+
+    public void setEncType(String encType) {
+	    this.encType = encType;
     }
 
     public String getAccesspoint() {
