@@ -58,13 +58,46 @@ def my_form_post():
     with open(destination_filename, mode = "w") as message:
         message.write(content)
 
-    template = environment.get_template("crontab_template.txt")
+    template = environment.get_template("nettest-template.txt")
 
-    destination_filename = "./render_results/crontab.txt"
+    destination_filename = "./render_results/nettest.sh"
     content = template.render(
         probe_number = probe_number,
         wts = wts,
         protocol = protocol
+    )
+
+    with open(destination_filename, mode = "w") as message:
+        message.write(content)
+
+    template = environment.get_template("boomerang-template.txt")
+
+    destination_filename = "./render_results/boomerang.sh"
+    content = template.render(
+        probe_number = probe_number,
+        wts = wts,
+        protocol = protocol
+    )
+
+    with open(destination_filename, mode = "w") as message:
+        message.write(content)
+
+    template = environment.get_template("speedtest-template.txt")
+
+    destination_filename = "./render_results/speedtest.sh"
+    content = template.render(
+        probe_number = probe_number,
+        wts = wts,
+        protocol = protocol
+    )
+
+    with open(destination_filename, mode = "w") as message:
+        message.write(content)
+
+    template = environment.get_template("crontab_template.txt")
+
+    destination_filename = "./render_results/crontab.txt"
+    content = template.render(
     )
 
     with open(destination_filename, mode = "w") as message:

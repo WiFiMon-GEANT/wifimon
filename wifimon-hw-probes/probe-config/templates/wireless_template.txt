@@ -26,6 +26,11 @@ def find_wlan_iface_name():
     wlan_iface_name = return_command_output(command)
     return wlan_iface_name.decode('utf8')
 
+def get_encryption():
+    command = "sudo wpa_cli status" + "|grep key_mgmt" + "|awk -F '\=' {'print $2'}"
+    enc = return_command_output(command).decode('utf8')
+    return enc
+
 def parse_iwconfig(iface):
     bit_rate = return_command_output("sudo iwconfig " + iface + " | grep Bit | awk '{print $2}' | sed 's/Rate=//'").decode('utf8')
     tx_power = return_command_output("sudo iwconfig " + iface + " | grep Bit | awk '{print $4}' | sed 's/Tx-Power=//'").decode('utf8')
@@ -68,7 +73,7 @@ def parse_iwlist(iface, accesspoint):
 
     return information
 
-def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary, number_of_users, pingparser_result):
+def convert_info_to_json(accesspoint, essid, mac, enc, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary, number_of_users, pingparser_result):
     overall_dictionary = {}
     # values from ping received through pingparser github tool
     overall_dictionary["wts"] = str(pingparser_result["destination"])
@@ -103,6 +108,7 @@ def convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quali
     overall_dictionary["pingPacketDuplicateCount"] = str(packet_duplicate_count)
     # values from iw* commands
     overall_dictionary["macAddress"] = "\"" + str(mac) + "\""
+    overall_dictionary["encType"] = "\"" + str(enc) + "\""
     overall_dictionary["accesspoint"] = "\"" + str(accesspoint) + "\""
     overall_dictionary["essid"] = "\"" + str(essid) + "\""
     bit_rate = int(float(bit_rate))
@@ -194,7 +200,7 @@ def pingparser(wts):
 def set_location_information():
     location_name = "{{ location_name }}"
     test_device_location_description = "{{ test_device_location_description }}"
-    nat_network = "{{ nat_network }}"
+    nat_network = "{{ nat_network}}"
     return location_name, test_device_location_description, nat_network
 
 def general_info():
@@ -202,13 +208,14 @@ def general_info():
     location_name, test_device_location_description, nat_network = set_location_information()
     iface_name = find_wlan_iface_name()
     mac = get_mac(iface_name)
+    enc = get_encryption()
     bit_rate, tx_power, link_quality, signal_level, accesspoint, essid = parse_iwconfig(iface_name)
     information = parse_iwlist(iface_name, accesspoint)
     probe_no = "{{ probe_number }}"
     wts = "{{ wts }}"
     number_of_users = arpscanner()
     pingparser_result = pingparser(wts)
-    json_data = convert_info_to_json(accesspoint, essid, mac, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary, number_of_users, pingparser_result)
+    json_data = convert_info_to_json(accesspoint, essid, mac, enc, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary, number_of_users, pingparser_result)
     stream_data(json_data)
 
 if __name__ == "__main__":
