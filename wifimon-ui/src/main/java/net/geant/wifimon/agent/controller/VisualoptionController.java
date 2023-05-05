@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 /**
  * Created by kokkinos on 27/6/2017.

@@ -4,7 +4,7 @@ import net.geant.wifimon.model.entity.CorrelationMethod;
 import net.geant.wifimon.model.entity.UserData;
 import net.geant.wifimon.model.entity.UserVisualOption;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
