@@ -1,0 +1,4 @@
+02,12,22,32,42,52 * * * * /usr/local/bin/nettest.sh > /dev/null
+04,14,24,34,44,54 * * * * /usr/local/bin/speedworker.sh > /dev/null
+06,16,26,36,46,56 * * * * /usr/local/bin/boomerang.sh > /dev/null
+
