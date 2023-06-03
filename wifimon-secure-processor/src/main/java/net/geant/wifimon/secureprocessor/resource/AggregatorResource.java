@@ -229,13 +229,13 @@ public class AggregatorResource {
 
     @PostConstruct
     public void init() {
-	    if (environment.getProperty(SSL_ENABLED).equals("true")) {
+	if (environment.getProperty(SSL_ENABLED).equals("true")) {
             AggregatorResource.restClient = initKeystoreClient();
-            } else {
+        } else {
             AggregatorResource.restClient = initHttpClient();
-            }
-	    AggregatorResource.transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
-	    AggregatorResource.elasticsearchClient = new ElasticsearchClient(transport);
+        }
+	AggregatorResource.transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+	AggregatorResource.elasticsearchClient = new ElasticsearchClient(transport);
     }
 
     @POST
@@ -575,10 +575,10 @@ public class AggregatorResource {
         String subnetInfoWithoutWhitespace = foundSubnet.replaceAll("\\s+", " ");
         // Split Subnet Utils information based on remaining spaces
         String[] splitSubnetInfo = subnetInfoWithoutWhitespace.split(" ");
-        // Get the third String from the list above
-        String subnet3 = splitSubnetInfo[2];
+        // Get the second String from the list above
+        String subnet2 = splitSubnetInfo[1];
         // This String is inside brackets. We will remove these brackets
-        String requesterSubnet = subnet3.replace("[", "");
+        String requesterSubnet = subnet2.replace("[", "");
         requesterSubnet = requesterSubnet.replace("]", "");
 
         // Encrypt Requester IP using HMAC SHA512 Algorithm
@@ -662,7 +662,7 @@ public class AggregatorResource {
         m.setDownloadThroughput(measurement.getDownloadThroughput());
         m.setUploadThroughput(measurement.getUploadThroughput());
         m.setLocalPing(measurement.getLocalPing());
-	m.setJitterMsec(measurement.getJitterMsec());
+	m.setJitterMsec(measurement.getJitterMsec() != null ? Double.valueOf(measurement.getJitterMsec()) : null);
         m.setLatitude(measurement.getLatitude() != null ? Double.valueOf(measurement.getLatitude()) : null);
         m.setLongitude(measurement.getLongitude() != null ? Double.valueOf(measurement.getLongitude()) : null);
         m.setLocationMethod(measurement.getLocationMethod());
@@ -737,12 +737,14 @@ public class AggregatorResource {
 		probeNumber = testtoolUsed.split("-", 2)[1];
 	}
 
+	testtoolUsed = testtoolUsed.split("-", 2)[0];
+
         // Define Strings for the different measurement fields and results from correlation with RADIUS Logs
 	String downloadThroughputJson = dataValidator(measurement.getDownloadThroughput().toString(), DOWNLOAD_THROUGHPUT, true, false, true);
 	String uploadThroughputJson = dataValidator(measurement.getUploadThroughput().toString(), UPLOAD_THROUGHPUT, true, false, true);
 	String localPingJson = dataValidator(measurement.getLocalPing().toString(), LOCAL_PING, true, false, true);
 	String jitterMsecJson = dataValidator(measurement.getJitterMsec().toString(), JITTER_MSEC, true, false, true);
-	String locationJson = JsonSanitizer.sanitize(measurement.getLatitude().toString()) != null ? "\"" + LOCATION + "\" : \"" + JsonSanitizer.sanitize(measurement.getLatitude().toString()) + "," + JsonSanitizer.sanitize(measurement.getLongitude().toString()) + "\", " : "";
+
 	String locationMethodJson = dataValidator(measurement.getLocationMethod(), LOCATION_METHOD, false, false, true);
 	String testServerLocationJson = dataValidator("\"" + measurement.getTestServerLocation() + "\"", TEST_SERVER_LOCATION, false, false, true);
 	String clientIpJson = dataValidator(measurement.getClientIp(), CLIENT_IP, false, false, true);
@@ -785,7 +787,7 @@ public class AggregatorResource {
         String jsonStringDraft = "{" +
                 "\"" + TIMESTAMP + "\" : " + measurement.getTimestamp() + ", " +
                 downloadThroughputJson + uploadThroughputJson + localPingJson + jitterMsecJson +
-                locationJson + locationMethodJson + testServerLocationJson + userAgentJson + 
+                locationMethodJson + testServerLocationJson + userAgentJson + 
 		userBrowserJson + userOsJson + testToolJson + radiusTimestampJson + serviceTypeJson +
  		nasPortIdJson + nasPortTypeJson + acctSessionIdJson +
 		acctMultiSessionIdJson + callingStationIdJson + calledStationIdJson +
