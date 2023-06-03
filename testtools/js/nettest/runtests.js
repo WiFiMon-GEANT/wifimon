@@ -7,9 +7,11 @@
 var download_throughput;
 var upload_throughput;
 var local_ping;
+var jitter_msec;
+
 var agent_ip = document.getElementById("settings").getAttribute("agentIp");
 if (typeof document.getElementById("settings").getAttribute("imagesLocation") === 'undefined' || document.getElementById("settings").getAttribute("imagesLocation") == '') {
-	var images_location = "https://WTS_FQDN/wifimon/images/";
+	var images_location = "https://penny-wts.netmode.ece.ntua.gr/wifimon/images/";
 }else{
 	var images_location = document.getElementById("settings").getAttribute("imagesLocation");
 }
@@ -93,11 +95,14 @@ function postToAgent() {
     latitude = 0;
     longitude = 0;
  }
+ console.log(latitude);
+ console.log(longitude);
  if (typeof location_method === 'undefined') {
   location_method = "N/A";
  }
+ jitter_msec = -1;
 
-var measurement = {downloadThroughput: download_throughput, uploadThroughput: upload_throughput, localPing: local_ping, latitude: latitude, longitude: longitude, locationMethod: location_method, testServerLocation: testServerLocation, testTool: test_tool};
+var measurement = {downloadThroughput: download_throughput, uploadThroughput: upload_throughput, localPing: local_ping, latitude: latitude, longitude: longitude, locationMethod: location_method, testServerLocation: testServerLocation, jitterMsec: jitter_msec, testTool: test_tool};
 $.ajax({
 	type: "POST",
 	data :JSON.stringify(measurement),
