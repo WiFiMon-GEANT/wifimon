@@ -188,9 +188,11 @@ def arpscanner():
 def pingparser(wts):
     command = 'ping -c 10 ' + str(wts)
     ping_results = return_command_output(command).decode('utf8')
-    print(ping_results)
     ping_parts = ping_results.split("\n")
-    start_parsing_from = 1 + ping_parts.index("---Ping statistics---")
+
+    for item in ping_parts:
+        if item[0:3] == "---":
+            start_parsing_from = 1 + ping_parts.index(item)
 
     packets_part = ping_parts[start_parsing_from].split(",")
     packet_transmit = int(packets_part[0].split(" ")[0], 10)
