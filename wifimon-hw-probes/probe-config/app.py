@@ -118,11 +118,11 @@ def my_form_post():
     command = "salt '" + str(probe_number) + "' cmd.run 'sudo chmod +x /usr/local/bin/boomerang.sh'"
     os.system(command)
 
-    command = "salt-cp '" + str(probe_number) + "' './render_results/speedtest.sh' '/usr/local/bin/speedworker.sh'"
+    command = "salt-cp '" + str(probe_number) + "' './render_results/speedtest.sh' '/usr/local/bin/speedtest.sh'"
     os.system(command)
-    command = "salt '" + str(probe_number) + "' cmd.run 'sudo chown pi:pi /usr/local/bin/speedworker.sh'"
+    command = "salt '" + str(probe_number) + "' cmd.run 'sudo chown pi:pi /usr/local/bin/speedtest.sh'"
     os.system(command)
-    command = "salt '" + str(probe_number) + "' cmd.run 'sudo chmod +x /usr/local/bin/speedworker.sh'"
+    command = "salt '" + str(probe_number) + "' cmd.run 'sudo chmod +x /usr/local/bin/speedtest.sh'"
     os.system(command)
 
     command = "salt-cp '" + str(probe_number) + "' './render_results/crontab_root.txt' '/root/crontab.txt'"
