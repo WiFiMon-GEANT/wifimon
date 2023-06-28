@@ -10,4 +10,4 @@ if pidof -x $(basename $0) > /dev/null; then
 fi
 ​
 export DISPLAY=:0
-timeout 60 firefox-esr --new-tab {{ protocol }}://{{ wts }}:{{ port }}/measurements/boomerang{{ probe_number }}.html
+timeout 60 firefox-esr --new-tab {{ protocol }}://{{ wts }}:{{ port }}/wifimon/measurements/boomerang{{ probe_number }}.html

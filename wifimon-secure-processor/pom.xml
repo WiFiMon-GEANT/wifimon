@@ -15,7 +15,7 @@
     <properties>
         <java.version>17</java.version>
         <docker.image.prefix>wifimon</docker.image.prefix>
-        <elasticsearch.version>8.7.0</elasticsearch.version>
+        <elasticsearch.version>8.7.1</elasticsearch.version>
     </properties>
 
     <build>

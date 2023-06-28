@@ -6,8 +6,10 @@ var upload_throughput;
 var latitude;
 var longitude;
 var location_method;
+var testServerLocation;
 var images_location;
 var application = "boomerang";
+var jitter_msec;
 var device = "";
 var agent_ip = document.getElementById("settings").getAttribute("agentIp");
 //--------------------------------------------
@@ -57,9 +59,9 @@ if (typeof document.getElementById("settings").getAttribute("testtool") === 'und
 //-----------------------------------------------------------------------------------------------------------------
 // Check for WiFiMon Test Server
 if (typeof document.getElementById("settings").getAttribute("testServerLocation") === 'undefined' || document.getElementById("settings").getAttribute("testServerLocation") == '') {
-    var test_tool = "N/A";
+    var testServerLocation = "N/A";
 } else {
-    var test_tool = document.getElementById("settings").getAttribute("testServerLocation");
+    var testServerLocation = document.getElementById("settings").getAttribute("testServerLocation");
 }
 //Set and check cookie
 function setCookie(cname, cvalue, exhours) {
@@ -89,7 +91,6 @@ function checkCookie() {
     if (checkTest != "") {
     } else {
         setCookie("Boomerang", "Test Already Performed", cookie_time / 60);
-        console.log("DO THE TEST");
         BOOMR.page_ready();  // twra ektelese to test
     }
 }
@@ -124,7 +125,6 @@ BOOMR.subscribe('before_beacon', function (o) {
 
     if (o.bw) {
         //html += "Your bandwidth to this server is " + parseInt(o.bw/1024) + "kbps (&#x00b1;" + parseInt(o.bw_err*100/o.bw) + "%)<br>";
-        console.log("Entering if o.bw");
         download_throughput = (Math.round((o.bw / 1000) * 10) / 10).toFixed(0);
 
 //------------------------------------------------------
@@ -167,11 +167,11 @@ BOOMR.subscribe('before_beacon', function (o) {
         detectDevice();
         geoTest();
 //------------------------------------------------------
-        postToAgent(local_ping, download_throughput, latitude, longitude, location_method, device, application);
+        postToAgent(local_ping, download_throughput, upload_throughput, latitude, longitude, location_method, testServerLocation, device, application);
 //------------------------------------------------------
 // Post measurement to agent
 
-        function postToAgent(local_ping, download_throughput, latitude, longitude, location_method, device, application) {
+        function postToAgent(local_ping, download_throughput, upload_throughput, latitude, longitude, location_method, testServerLocation, device, application) {
             console.log("Will post to agent: local_ping=" + local_ping + " download_throughput=" + download_throughput +
                 " latitude=" + latitude + " longitude=" + longitude + " location_method=" + location_method +
                 " device=" + device + " application=" + application);
@@ -192,6 +192,12 @@ BOOMR.subscribe('before_beacon', function (o) {
                 location_method = "N/A";
             }
 
+	    if (typeof testServerLocation === 'undefined') {
+		testServerLocation = "N/A";
+            }
+	
+	    jitter_msec = -1;
+
             var measurement = {
                 downloadThroughput: download_throughput,
                 uploadThroughput: upload_throughput,
@@ -200,8 +206,8 @@ BOOMR.subscribe('before_beacon', function (o) {
                 longitude: longitude,
                 locationMethod: location_method,
 		testServerLocation: testServerLocation,
-                testTool: test_tool
-            };
+                testTool: test_tool,
+		jitterMsec: jitter_msec};
 
             $.ajax({
                 type: "POST",

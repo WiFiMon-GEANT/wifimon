@@ -7,7 +7,6 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 import json
-import pingparsing
 
 def return_command_output(command):
     proc = subprocess.Popen(command, stdout = subprocess.PIPE, shell = True)
@@ -187,14 +186,47 @@ def arpscanner():
     return number_of_users
 
 def pingparser(wts):
-    # See: https://github.com/thombashi/pingparsing
-    ping_parser = pingparsing.PingParsing()
-    transmitter = pingparsing.PingTransmitter()
-    transmitter.destination = str(wts)
-    transmitter.count = 3
-    result = transmitter.ping()
-    result_json = json.dumps(ping_parser.parse(result).as_dict(), indent=4)
-    result_dict = json.loads(result_json)
+    command = 'ping -c 10 ' + str(wts)
+    ping_results = return_command_output(command).decode('utf8')
+    ping_parts = ping_results.split("\n")
+
+    for item in ping_parts:
+        if item[0:3] == "---":
+            start_parsing_from = 1 + ping_parts.index(item)
+
+    packets_part = ping_parts[start_parsing_from].split(",")
+    packet_transmit = int(packets_part[0].split(" ")[0], 10)
+    packet_receive = int(packets_part[1].split(" ")[1], 10)
+    packet_loss_count = packet_transmit - packet_receive
+    packet_loss_rate = packet_loss_count / packet_transmit
+
+    timing_part = ping_parts[start_parsing_from + 1].split("=")[1]
+    timing_part_no_whitespace = timing_part[1:]
+    timing_without_unit = timing_part_no_whitespace.split(" ")[0]
+    times = timing_without_unit.split("/")
+    rtt_max = times[0]
+    rtt_min = times[1]
+    rtt_avg = times[2]
+    rtt_mdev = times[3]
+
+    # unused values
+    packet_duplicate_count = -1
+    packet_duplicate_rate = -1
+
+    # construct a dict to hold the results
+    result_dict = {}
+    result_dict["destination"] = wts
+    result_dict["packet_transmit"] = packet_transmit
+    result_dict["packet_receive"] = packet_receive
+    result_dict["packet_loss_count"] = packet_loss_count
+    result_dict["packet_loss_rate"] = packet_loss_rate
+    result_dict["rtt_max"] = rtt_max
+    result_dict["rtt_min"] = rtt_min
+    result_dict["rtt_avg"] = rtt_avg
+    result_dict["rtt_mdev"] = rtt_mdev
+    result_dict["packet_duplicate_count"] = packet_duplicate_count
+    result_dict["packet_duplicate_rate"] = packet_duplicate_rate
+
     return result_dict
 
 def set_location_information():

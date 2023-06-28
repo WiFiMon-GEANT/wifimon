@@ -244,5 +244,5 @@ if __name__ == "__main__":
     twamp_server = "{{ twamp_server }}"
     twping_results = perform_twping(twamp_server)
     line_to_start = locate_twping_data(twping_results)
-    json_data = parse_twping_and_ntp(twping_results, line_to_start, {{ probe_number }})
+    json_data = parse_twping_and_ntp(twping_results, line_to_start, probe_number)
     stream_data(json_data)

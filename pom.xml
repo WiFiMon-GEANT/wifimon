@@ -19,7 +19,7 @@
     <properties>
         <spring-boot.version>3.0.6</spring-boot.version>
         <jersey.version>3.0.10</jersey.version>
-        <elasticsearch.version>8.7.0</elasticsearch.version>
+        <elasticsearch.version>8.7.1</elasticsearch.version>
     </properties>
 
     <modules>
