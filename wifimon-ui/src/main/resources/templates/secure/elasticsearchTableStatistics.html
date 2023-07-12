@@ -11,7 +11,7 @@
 
 <body>
 
-<div th:replace="fragments/header :: header">
+<div th:replace="~{fragments/header :: header}">
 </div>
 <br/>
 <div th:unless="${error != null}" class="container-fluid">
