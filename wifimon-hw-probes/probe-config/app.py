@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect
 from jinja2 import Environment, FileSystemLoader
 import os
+from os import environ
 import time
 from time import sleep
 app = Flask(__name__)
@@ -9,6 +10,8 @@ def my_form():
     return render_template("index.html")
 @app.route("/", methods = ["POST"])
 def my_form_post():
+    if request.form["token"] != os.environ['PROBE_SECRET']:
+        return None
     probe_number = request.form["probe_number"]
     wts = request.form["wts"]
     was = request.form["was"]
@@ -137,6 +140,6 @@ def my_form_post():
 
 
 
-    return redirect("https://penny-ui.netmode.ece.ntua.gr")
+    return redirect("https://krist-ui.netmode.ece.ntua.gr")
 if __name__ == "__main__":
     app.run()
