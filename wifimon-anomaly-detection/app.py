@@ -119,4 +119,4 @@ def plot():
     return render_template_string(html)
 
 if __name__ == '__main__':
-    app.run(host = "147.102.13.122", port = 8123, debug = True)
+    app.run(port = 8888)
