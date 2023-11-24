@@ -10,14 +10,14 @@
 <body class = "center">
     <h1 id = "heading">WiFiMon Analysis Page</h1>
     <br/>
-    <p class = "guidance-text">Fill the following information to request analysis of results</p>
+    <p class = "guidance-text">Fill the following information to request result analysis</p>
     <br/>
 
     <form method="POST">
     
       <div class = "questions">
         <h2 class = "steps">Step 1</h2>
-        <p class = "descriptions">The window size specifies how many past measurements to consider</p>
+        <p class = "descriptions">The window size specifies how many previous measurements to consider</p>
         <p class = "sub-descriptions"> Insert the window size (integer, 1 to 30): <input type = "text" name = "window"> </p>
       </div>
 
@@ -33,7 +33,7 @@
 
       <div class = "questions">
         <h2 class = "steps">Step 3</h2>
-        <p class = "descriptions">How many days in the past do you want to look at?</p>
+        <p class = "descriptions">How many previous days do you want to include?</p>
         <p class = "sub-descriptions">Insert number of days (integer number): <input type = "text"  name = "days"></p>
       </div>
 
@@ -50,7 +50,7 @@
       <div class = "questions">
         <h2 class = "steps">Step 5</h2>
         <p class = "descriptions">What is the name of the test tool that you want to inspect?</p>
-        <p class = "sub-descriptions">Insert test-tool name (string): <input type = "text"  name = "testtool"></p>
+        <p class = "sub-descriptions">Insert test-tool name (string, as defined in WTS HTML files): <input type = "text"  name = "testtool"></p>
       </div>
 
      <span class = "center arrows">&#11015;</span>
