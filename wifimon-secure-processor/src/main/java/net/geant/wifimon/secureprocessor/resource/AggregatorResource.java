@@ -278,274 +278,13 @@ public class AggregatorResource {
     @POST
     @Path("/probes")
     public Response correlate(final ProbesMeasurement measurement, @Context HttpServletRequest request) {
-	Response response = null;
-	String probeNumber = "", timestamp = "";
-
-        try {
-            // Get Wireless Network Performance Metrics
-	    String timestampCurrent = String.valueOf(System.currentTimeMillis());
-            String timestampJson = timestampCurrent != null ? "\"" + TIMESTAMP + "\" : " + timestampCurrent + ", " : "";
-	    String wtsJson = dataValidator(measurement.getWts(), PROBE_WTS, false, false, true);
-	    String pingPacketTransmitJson = dataValidator(measurement.getPingPacketTransmit().toString(), PROBE_PING_PACKET_TRANSMIT, true, false, true);
-	    String pingPacketReceiveJson = dataValidator(measurement.getPingPacketReceive().toString(), PROBE_PING_PACKET_RECEIVE, true, false, true);
-	    String pingPacketLossRateJson = dataValidator(measurement.getPingPacketLossRate().toString(), PROBE_PING_PACKET_LOSS_RATE, true, false, true);
-	    String pingPacketLossCountJson = dataValidator(measurement.getPingPacketLossCount().toString(), PROBE_PING_PACKET_LOSS_COUNT, true, false, true);
-	    String pingRttMinJson = dataValidator(measurement.getPingRttMin().toString(), PROBE_PING_RTT_MIN, true, false, true);
-	    String pingRttAvgJson = dataValidator(measurement.getPingRttAvg().toString(), PROBE_PING_RTT_AVG, true, false, true);
-	    String pingRttMaxJson = dataValidator(measurement.getPingRttMax().toString(), PROBE_PING_RTT_MAX, true, false, true);
-	    String pingRttMdevJson = dataValidator(measurement.getPingRttMdev().toString(), PROBE_PING_RTT_MDEV, true, false, true);
-	    String pingPacketDuplicateRateJson = dataValidator(measurement.getPingPacketDuplicateRate().toString(), PROBE_PING_PACKET_DUPLICATE_RATE, true, false, true);
-	    String pingPacketDuplicateCountJson = dataValidator(measurement.getPingPacketDuplicateCount().toString(), PROBE_PING_PACKET_DUPLICATE_COUNT, true, false, true);
-	    String macAddressJson = dataValidator(measurement.getMacAddress(), MAC_ADDRESS, false, false, true);
-	    String accesspointJson = dataValidator(measurement.getAccesspoint(), PROBE_ACCESSPOINT, false, false, true);
-	    String essidJson = dataValidator(measurement.getEssid(), PROBE_ESSID, false, false, true);
-	    String bitRateJson = dataValidator(measurement.getBitRate().toString(), PROBE_BIT_RATE, true, false, true);
-	    String txPowerJson = dataValidator(measurement.getTxPower().toString(), PROBE_TX_POWER, true, false, true);
-	    String linkQualityJson = dataValidator(measurement.getLinkQuality().toString(), PROBE_LINK_QUALITY, true, false, true);
-	    String signalLevelJson = dataValidator(measurement.getSignalLevel().toString(), PROBE_SIGNAL_LEVEL, true, false, true);
-	    probeNumber = measurement.getProbeNo();
-	    String probeNoJson = dataValidator(probeNumber, PROBE_NUMBER, false, false, true);
-	    String originJson = "\"" + ORIGIN + "\": \"Probe\", ";
-	    String locationNameJson = dataValidator(measurement.getLocationName(), PROBE_LOCATION_NAME, false, false, true);
-	    String testDeviceLocationDescriptionJson = dataValidator(measurement.getTestDeviceLocationDescription(), PROBE_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
-	    String numberOfUsers = dataValidator(measurement.getNumberOfUsers(), NUMBER_OF_USERS, true, false, true);
-	    String natNetworkJson = dataValidator(measurement.getNat(), PROBE_NAT_NETWORK, false, false, true);
-	    String encTypeJson = dataValidator(measurement.getEncType(), PROBE_ENCRYPTION, false, false, true);
-	    String monitorJson = dataValidator(measurement.getMonitor(), PROBE_MONITOR, false, false, true);
-	    String systemJson = dataValidator(measurement.getSystem(), PROBE_SYSTEM, false, true, true);
-
-            // Construct JSON object that will be stored in Elasticsearch
-            String jsonStringDraft = "{" +
-                    timestampJson + wtsJson + pingPacketTransmitJson + pingPacketReceiveJson +
-		    pingPacketLossRateJson + pingPacketLossCountJson + pingRttMinJson +
-		    pingRttAvgJson + pingRttMaxJson + pingRttMdevJson + pingPacketDuplicateRateJson +
-		    pingPacketDuplicateCountJson + macAddressJson + accesspointJson + essidJson + 
-		    bitRateJson + txPowerJson + linkQualityJson + signalLevelJson + probeNoJson + 
-		    originJson + locationNameJson + testDeviceLocationDescriptionJson +
-		    numberOfUsers + natNetworkJson + encTypeJson + monitorJson + systemJson + "}";
-
-            String jsonString = jsonStringDraft.replace("\", }", "\"}");
-
-            String finalProbeNumber = probeNumber;
-            SearchResponse<Map> responseForTimestamp = AggregatorResource.elasticsearchClient.search(s -> s
-                            .index(environment.getProperty(ES_INDEXNAME_PROBES))
-                            .sort(so -> so.field(f -> f.field(TIMESTAMP).order(SortOrder.Desc)))
-                            .from(0)
-                            .postFilter(new Query.Builder()
-                                    .term(t -> t
-                                            .field(PROBE_NUMBER)
-                                            .value(finalProbeNumber)
-                                    ).build()
-                            )
-                            .size(1)
-                            .explain(true),
-                    Map.class
-            );
-            final List<Hit<Map>> hitsForTimestamp = responseForTimestamp.hits().hits();
-            if (responseForTimestamp.hits().total().value() > 0) {
-                Hit<Map> hitForTimestamp = hitsForTimestamp.get(0);
-                Map mapForTimestamp = hitForTimestamp.source();
-                timestamp = (mapForTimestamp.get(TIMESTAMP) != null) ? mapForTimestamp.get(TIMESTAMP).toString() : "N/A";
-            }
-
-            // Store measurements in elasticsearch
-            indexMeasurementProbes(jsonString);
-
-	    if (environment.getProperty(JSON_COLLECT).equals("true")) {
-		SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC+0"));
-
-		String finalTimestamp = timestamp;
-		SearchResponse<Map> searchResponse = AggregatorResource.elasticsearchClient.search(s -> s
-                        .index(environment.getProperty(ES_INDEXNAME_MEASUREMENT))
-                        .query(new Query.Builder()
-                                .range(r -> r
-                                        .field("Timestamp")
-                                        .from(finalTimestamp)
-                                        .to("now")
-                                )
-                                .build())
-                        .postFilter(new Query.Builder()
-                                .term(t -> t
-                                        .field(PROBE_NUMBER)
-                                        .value(finalProbeNumber)
-                                ).build()),
-                Map.class);
-		final List<Hit<Map>> hits = searchResponse.hits().hits();
-                int sequence = 1;
-                Iterator<Hit<Map>> iterator = hits.iterator();
-                Map<String, Hit<Map>> distinctObjects = new HashMap<String,Hit<Map>>();
-
-                String probeDownloadThroughput = "", probeUploadThroughput = "", probeIpv4Ping = "", probeIpv6Ping = "", probeTestTool = "", probeTimestamp = "";
-
-                while (iterator.hasNext()) {
-                        if (sequence > 1) {
-                                probeDownloadThroughput += ", ";
-                                probeUploadThroughput += ", ";
-                                probeIpv4Ping += ", ";
-                                probeIpv6Ping += ", ";
-                                probeTestTool += ", ";
-                                probeTimestamp += ", ";
-                        }
-                        Hit<Map> searchHit = iterator.next();
-                        Map source = searchHit.source();
-                        if (source.get(DOWNLOAD_THROUGHPUT) != null) {
-                                probeDownloadThroughput += source.get(DOWNLOAD_THROUGHPUT).toString();
-                        }
-                        if (source.get(UPLOAD_THROUGHPUT) != null) {
-                                probeUploadThroughput += source.get(UPLOAD_THROUGHPUT).toString();
-                        }
-                        if (source.get(LOCAL_PING) != null) {
-                                probeIpv4Ping += source.get(LOCAL_PING).toString();
-                        }
-                        if (source.get(TIMESTAMP) != null) {
-				long tempTimestamp = Long.parseLong(source.get(TIMESTAMP).toString());
-				Date dateTempTimestamp = new java.util.Date(tempTimestamp * 1L);
-				String tempTimestampFormatted = sdf.format(dateTempTimestamp);
-                                probeTimestamp += tempTimestampFormatted.toString();
-                        }
-                        if (source.get(TEST_TOOL) != null) {
-                                probeTestTool += source.get(TEST_TOOL).toString();
-                        }
-                        probeIpv6Ping += "-1";
-                        sequence += 1;
-                }
-
-		// format the previous measurement timestamp to the desired form
-		long startTimestampLong = Long.parseLong(timestamp);
-		Date dateStartTimestampLong = new java.util.Date(startTimestampLong * 1L);
-		String startTimestampFormatted = sdf.format(dateStartTimestampLong);
-
-		// format the current measurement timestamp to the desired form
-		long currentTimestampLong = Long.parseLong(timestampCurrent);
-		Date dateCurrentTimestampLong = new java.util.Date(currentTimestampLong * 1L);
-		String currentTimestampFormatted = sdf.format(dateCurrentTimestampLong);
-
-		// Generate a unique UUID for this measurement
-		UUID uuid = UUID.randomUUID();
-                String uuidAsString = uuid.toString();
-
-                String overallJson = "";
-		// Stream report origin part of JSON specification
-                String reportOriginJson = "\"" + EXPORTER_ORIGIN + "\": {";
-		reportOriginJson += dataValidator("WiFiMon Hardware Probe", EXPORTER_DEVICE_TYPE, false, false, false);
-		reportOriginJson += dataValidator("4.0", EXPORTER_DEVICE_VERSION, false, false, false);
-		reportOriginJson += dataValidator(measurement.getAccesspoint(), EXPORTER_DEVICE_ID, false, false, true);
-		reportOriginJson += dataValidator(uuidAsString, EXPORTER_TEST_INSTANCE_UNIQUE_ID, false, false, false);
-		reportOriginJson += dataValidator(startTimestampFormatted, EXPORTER_START_TIMESTAMP, false, false, false);
-		reportOriginJson += dataValidator(currentTimestampFormatted, EXPORTER_FINISHED_TIMESTAMP, false, true, false);
-		reportOriginJson += "}";
-
-                // Stream environment part of JSON specification
-                String environmentJson = "\"" + EXPORTER_ENVIRONMENT + "\": {";
-		environmentJson += dataValidator("0", EXPORTER_LONGITUDE, true, false, false);
-		environmentJson += dataValidator("0", EXPORTER_LATITUDE, true, false, false);
-		environmentJson += dataValidator(measurement.getLocationName(), EXPORTER_LOCATION_NAME, false, false, true);
-		environmentJson += dataValidator(measurement.getTestDeviceLocationDescription(), EXPORTER_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
-		environmentJson += dataValidator("Geolocation", EXPORTER_LOCATION_METHOD, false, false, false);
-		environmentJson += measurement.getMonitor() != null ? "\"" + PROBE_MONITOR + "\" : " + measurement.getMonitor() : "";
-                environmentJson += "}";
-
-                // Stream connectivity part of JSON specification
-                String connectivityJson = "\"" + EXPORTER_CONNECTIVITY + "\": {";
-		connectivityJson += dataValidator(measurement.getNat(), EXPORTER_NAT_NETWORK, false, true, true);
-                connectivityJson += "}";
-
-                // Stream performance part of JSON specification
-                String performanceMeasurementsJson = "\"" + EXPORTER_PERFORMANCE_MEASUREMENTS + "\": { ";
-		performanceMeasurementsJson += dataValidator(probeDownloadThroughput.toString(), EXPORTER_DOWNLOAD_THROUGHPUT, false, false, false);
-		performanceMeasurementsJson += dataValidator(probeUploadThroughput.toString(), EXPORTER_UPLOAD_THROUGHPUT, false, false, false);
-		performanceMeasurementsJson += dataValidator(probeIpv4Ping.toString(), EXPORTER_IPV4_LOCAL_PING, false, false, false);
-		performanceMeasurementsJson += dataValidator(probeIpv6Ping.toString(), EXPORTER_IPV6_LOCAL_PING, false, false, false);
-		performanceMeasurementsJson += dataValidator(probeTimestamp.toString(), EXPORTER_TEST_TIMESTAMP, false, false, false);
-		performanceMeasurementsJson += dataValidator(probeTestTool.toString(), EXPORTER_TEST_TOOL, false, true, false);
-                performanceMeasurementsJson += "}";
-
-                overallJson = "{ " + reportOriginJson + ", " + environmentJson + ", " + connectivityJson + ", " + performanceMeasurementsJson + "}";
-
-                String toPost = "type=v100&message=" + overallJson;
-
-                String[] commands = new String[] {"curl", "--data-urlencode", toPost, environment.getProperty(JSON_COLLECTOR)};
-                Process process = Runtime.getRuntime().exec(commands);
-                //process.destroy();
-
-            return Response.ok().build();
-	    }
-
-        } catch (Exception e) {
-	    logger.info(e.toString());
-            response = null;
-        }
-        return response;
+	    return handleProbesMeasurements(measurement);
     }
 
     @POST
     @Path("/twamp")
     public Response correlate(final TwampMeasurement measurement, @Context HttpServletRequest request) {
-        Response response = null;
-	try {
-	    String timestampCurrent = String.valueOf(System.currentTimeMillis());
-	    String timestampJson = dataValidator(timestampCurrent, TWAMP_TIMESTAMP, true, false, false);
-	    String probeNumberJson = dataValidator(measurement.getProbeNumber(), TWAMP_PROBE_NUMBER, false, false, true);
-	    String twampServerJson = dataValidator(measurement.getTwampServer(), TWAMP_SERVER, false, false, true);
-	    String sentJson = dataValidator(measurement.getSent(), TWAMP_SENT, true, false, true);
-	    String lostJson = dataValidator(measurement.getLost(), TWAMP_LOST, true, false, true);
-	    String sendDupsJson = dataValidator(measurement.getSendDups(), TWAMP_SEND_DUPS, true, false, true);
-	    String reflectDupsJson = dataValidator(measurement.getReflectDups(), TWAMP_REFLECT_DUPS, true, false, true);
-	    String minRttJson = dataValidator(measurement.getMinRtt(), TWAMP_MIN_RTT, true, false, true);
-	    String medianRttJson = dataValidator(measurement.getMedianRtt(), TWAMP_MEDIAN_RTT, true, false, true);
-	    String maxRttJson = dataValidator(measurement.getMaxRtt(), TWAMP_MAX_RTT, true, false, true);
-	    String errRttJson = dataValidator(measurement.getErrRtt(), TWAMP_ERR_RTT, true, false, true);
-	    String minSendJson = dataValidator(measurement.getMinSend(), TWAMP_MIN_SEND, true, false, true);
-	    String medianSendJson = dataValidator(measurement.getMedianSend(), TWAMP_MEDIAN_SEND, true, false, true);
-	    String maxSendJson = dataValidator(measurement.getMaxSend(), TWAMP_MAX_SEND, true, false, true);
-	    String errSendJson = dataValidator(measurement.getErrSend(), TWAMP_ERR_SEND, true, false, true);
-	    String minReflectJson = dataValidator(measurement.getMinReflect(), TWAMP_MIN_REFLECT, true, false, true);
-	    String medianReflectJson = dataValidator(measurement.getMedianReflect(), TWAMP_MEDIAN_REFLECT, true, false, true);
-	    String maxReflectJson = dataValidator(measurement.getMaxReflect(), TWAMP_MAX_REFLECT, true, false, true);
-	    String errReflectJson = dataValidator(measurement.getErrReflect(), TWAMP_ERR_REFLECT, true, false, true);
-	    String minReflectorProcessingTimeJson = dataValidator(measurement.getMinReflectorProcessingTime(), TWAMP_MIN_REFLECTOR_PROCESSING_TIME, true, false, true);
-	    String maxReflectorProcessingTimeJson = dataValidator(measurement.getMaxReflectorProcessingTime(), TWAMP_MAX_REFLECTOR_PROCESSING_TIME, true, false, true);
-	    String twoWayJitterValueJson = dataValidator(measurement.getTwoWayJitterValue(), TWAMP_TWO_WAY_JITTER_VALUE, true, false, true);
-	    String twoWayJitterCharJson = dataValidator(measurement.getTwoWayJitterChar(), TWAMP_TWO_WAY_JITTER_CHAR, false, false, true);
-	    String sendJitterValueJson = dataValidator(measurement.getSendJitterValue(), TWAMP_SEND_JITTER_VALUE, true, false, true);
-	    String sendJitterCharJson = dataValidator(measurement.getSendJitterChar(), TWAMP_SEND_JITTER_CHAR, false, false, true);
-	    String reflectJitterValueJson = dataValidator(measurement.getReflectJitterValue(), TWAMP_REFLECT_JITTER_VALUE, true, false, true);
-	    String reflectJitterCharJson = dataValidator(measurement.getReflectJitterChar(), TWAMP_REFLECT_JITTER_CHAR, false, false, true);
-	    String sendHopsValueJson = dataValidator(measurement.getSendHopsValue(), TWAMP_SEND_HOPS_VALUE, true, false, true);
-	    String sendHopsCharJson = dataValidator(measurement.getSendHopsChar(), TWAMP_SEND_HOPS_CHAR, false, false, true);
-	    String reflectHopsValueJson = dataValidator(measurement.getReflectHopsValue(), TWAMP_REFLECT_HOPS_VALUE, true, false, true);
-	    String reflectHopsCharJson = dataValidator(measurement.getReflectHopsChar(), TWAMP_REFLECT_HOPS_CHAR, false, false, true);
-	    String ntpServerNtpstatJson = dataValidator(measurement.getNtpServerNtpstat(), NTP_SERVER_NTPSTAT, false, false, true);
-	    String stratumJson = dataValidator(measurement.getStratum(), STRATUM, false, false, true);
-	    String timeCorrectJson = dataValidator(measurement.getTimeCorrect(), TIME_CORRECT, false, false, true);
-	    String ntpServerNtpqJson = dataValidator(measurement.getNtpServerNtpq(), NTP_SERVER_NTPQ, false, false, true);
-	    String delayNtpqJson = dataValidator(measurement.getDelayNtpq(), DELAY_NTPQ, false, false, true);
-	    String offsetNtpqJson = dataValidator(measurement.getOffsetNtpq(), OFFSET_NTPQ, false, false, true);
-	    String jitterNtpqJson = dataValidator(measurement.getJitterNtpq(), JITTER_NTPQ, false, true, true);
-
-	    String jsonStringDraft = "{" +
-		    timestampJson + probeNumberJson + twampServerJson +
-		    sentJson + lostJson + sendDupsJson + reflectDupsJson + minRttJson +
-		    medianRttJson + maxRttJson + errRttJson + minSendJson + medianSendJson +
-		    maxSendJson + errSendJson + minReflectJson + medianReflectJson +
-		    maxReflectJson + errReflectJson + minReflectorProcessingTimeJson +
-		    maxReflectorProcessingTimeJson + twoWayJitterValueJson +
-		    twoWayJitterCharJson + sendJitterValueJson + sendJitterCharJson + 
-		    reflectJitterValueJson + reflectJitterCharJson + sendHopsValueJson + 
-		    sendHopsCharJson + reflectHopsValueJson + reflectHopsCharJson +
-		    ntpServerNtpstatJson + stratumJson + timeCorrectJson +
-		    ntpServerNtpqJson + delayNtpqJson + offsetNtpqJson +
-		    jitterNtpqJson + "}";
-
-            String jsonString = jsonStringDraft.replace("\", }", "\"}");
-	    indexMeasurementTwamp(jsonString);
-	    return Response.ok().build();
-	} catch (Exception e) {
-	    logger.info(e.toString());
-	    response = null;
-	}
-        return response;
+        return handleTwampMeasurements(measurement);
     }
 
     @POST
@@ -1023,6 +762,275 @@ public class AggregatorResource {
         }
 
         return restClient;
+    }
+
+    protected Response handleTwampMeasurements(TwampMeasurement measurement) {
+        Response response = null;
+        try {
+            String timestampCurrent = String.valueOf(System.currentTimeMillis());
+            String timestampJson = dataValidator(timestampCurrent, TWAMP_TIMESTAMP, true, false, false);
+            String probeNumberJson = dataValidator(measurement.getProbeNumber(), TWAMP_PROBE_NUMBER, false, false, true);
+            String twampServerJson = dataValidator(measurement.getTwampServer(), TWAMP_SERVER, false, false, true);
+            String sentJson = dataValidator(measurement.getSent(), TWAMP_SENT, true, false, true);
+            String lostJson = dataValidator(measurement.getLost(), TWAMP_LOST, true, false, true);
+            String sendDupsJson = dataValidator(measurement.getSendDups(), TWAMP_SEND_DUPS, true, false, true);
+            String reflectDupsJson = dataValidator(measurement.getReflectDups(), TWAMP_REFLECT_DUPS, true, false, true);
+            String minRttJson = dataValidator(measurement.getMinRtt(), TWAMP_MIN_RTT, true, false, true);
+            String medianRttJson = dataValidator(measurement.getMedianRtt(), TWAMP_MEDIAN_RTT, true, false, true);
+            String maxRttJson = dataValidator(measurement.getMaxRtt(), TWAMP_MAX_RTT, true, false, true);
+            String errRttJson = dataValidator(measurement.getErrRtt(), TWAMP_ERR_RTT, true, false, true);
+            String minSendJson = dataValidator(measurement.getMinSend(), TWAMP_MIN_SEND, true, false, true);
+            String medianSendJson = dataValidator(measurement.getMedianSend(), TWAMP_MEDIAN_SEND, true, false, true);
+            String maxSendJson = dataValidator(measurement.getMaxSend(), TWAMP_MAX_SEND, true, false, true);
+            String errSendJson = dataValidator(measurement.getErrSend(), TWAMP_ERR_SEND, true, false, true);
+            String minReflectJson = dataValidator(measurement.getMinReflect(), TWAMP_MIN_REFLECT, true, false, true);
+            String medianReflectJson = dataValidator(measurement.getMedianReflect(), TWAMP_MEDIAN_REFLECT, true, false, true);
+            String maxReflectJson = dataValidator(measurement.getMaxReflect(), TWAMP_MAX_REFLECT, true, false, true);
+            String errReflectJson = dataValidator(measurement.getErrReflect(), TWAMP_ERR_REFLECT, true, false, true);
+            String minReflectorProcessingTimeJson = dataValidator(measurement.getMinReflectorProcessingTime(), TWAMP_MIN_REFLECTOR_PROCESSING_TIME, true, false, true);
+            String maxReflectorProcessingTimeJson = dataValidator(measurement.getMaxReflectorProcessingTime(), TWAMP_MAX_REFLECTOR_PROCESSING_TIME, true, false, true);
+            String twoWayJitterValueJson = dataValidator(measurement.getTwoWayJitterValue(), TWAMP_TWO_WAY_JITTER_VALUE, true, false, true);
+            String twoWayJitterCharJson = dataValidator(measurement.getTwoWayJitterChar(), TWAMP_TWO_WAY_JITTER_CHAR, false, false, true);
+            String sendJitterValueJson = dataValidator(measurement.getSendJitterValue(), TWAMP_SEND_JITTER_VALUE, true, false, true);
+            String sendJitterCharJson = dataValidator(measurement.getSendJitterChar(), TWAMP_SEND_JITTER_CHAR, false, false, true);
+            String reflectJitterValueJson = dataValidator(measurement.getReflectJitterValue(), TWAMP_REFLECT_JITTER_VALUE, true, false, true);
+            String reflectJitterCharJson = dataValidator(measurement.getReflectJitterChar(), TWAMP_REFLECT_JITTER_CHAR, false, false, true);
+            String sendHopsValueJson = dataValidator(measurement.getSendHopsValue(), TWAMP_SEND_HOPS_VALUE, true, false, true);
+            String sendHopsCharJson = dataValidator(measurement.getSendHopsChar(), TWAMP_SEND_HOPS_CHAR, false, false, true);
+            String reflectHopsValueJson = dataValidator(measurement.getReflectHopsValue(), TWAMP_REFLECT_HOPS_VALUE, true, false, true);
+            String reflectHopsCharJson = dataValidator(measurement.getReflectHopsChar(), TWAMP_REFLECT_HOPS_CHAR, false, false, true);
+            String ntpServerNtpstatJson = dataValidator(measurement.getNtpServerNtpstat(), NTP_SERVER_NTPSTAT, false, false, true);
+            String stratumJson = dataValidator(measurement.getStratum(), STRATUM, false, false, true);
+            String timeCorrectJson = dataValidator(measurement.getTimeCorrect(), TIME_CORRECT, false, false, true);
+            String ntpServerNtpqJson = dataValidator(measurement.getNtpServerNtpq(), NTP_SERVER_NTPQ, false, false, true);
+            String delayNtpqJson = dataValidator(measurement.getDelayNtpq(), DELAY_NTPQ, false, false, true);
+            String offsetNtpqJson = dataValidator(measurement.getOffsetNtpq(), OFFSET_NTPQ, false, false, true);
+            String jitterNtpqJson = dataValidator(measurement.getJitterNtpq(), JITTER_NTPQ, false, true, true);
+
+            String jsonStringDraft = "{" +
+                    timestampJson + probeNumberJson + twampServerJson +
+                    sentJson + lostJson + sendDupsJson + reflectDupsJson + minRttJson +
+                    medianRttJson + maxRttJson + errRttJson + minSendJson + medianSendJson +
+                    maxSendJson + errSendJson + minReflectJson + medianReflectJson +
+                    maxReflectJson + errReflectJson + minReflectorProcessingTimeJson +
+                    maxReflectorProcessingTimeJson + twoWayJitterValueJson +
+                    twoWayJitterCharJson + sendJitterValueJson + sendJitterCharJson +
+                    reflectJitterValueJson + reflectJitterCharJson + sendHopsValueJson +
+                    sendHopsCharJson + reflectHopsValueJson + reflectHopsCharJson +
+                    ntpServerNtpstatJson + stratumJson + timeCorrectJson +
+                    ntpServerNtpqJson + delayNtpqJson + offsetNtpqJson +
+                    jitterNtpqJson + "}";
+
+            String jsonString = jsonStringDraft.replace("\", }", "\"}");
+            indexMeasurementTwamp(jsonString);
+            return Response.ok().build();
+        } catch (Exception e) {
+            logger.info(e.toString());
+            response = null;
+        }
+        return response;
+    }
+
+    protected Response handleProbesMeasurements(ProbesMeasurement measurement) y{
+        Response response = null;
+        String probeNumber = "", timestamp = "";
+
+        try {
+            // Get Wireless Network Performance Metrics
+            String timestampCurrent = String.valueOf(System.currentTimeMillis());
+            String timestampJson = timestampCurrent != null ? "\"" + TIMESTAMP + "\" : " + timestampCurrent + ", " : "";
+            String wtsJson = dataValidator(measurement.getWts(), PROBE_WTS, false, false, true);
+            String pingPacketTransmitJson = dataValidator(measurement.getPingPacketTransmit().toString(), PROBE_PING_PACKET_TRANSMIT, true, false, true);
+            String pingPacketReceiveJson = dataValidator(measurement.getPingPacketReceive().toString(), PROBE_PING_PACKET_RECEIVE, true, false, true);
+            String pingPacketLossRateJson = dataValidator(measurement.getPingPacketLossRate().toString(), PROBE_PING_PACKET_LOSS_RATE, true, false, true);
+            String pingPacketLossCountJson = dataValidator(measurement.getPingPacketLossCount().toString(), PROBE_PING_PACKET_LOSS_COUNT, true, false, true);
+            String pingRttMinJson = dataValidator(measurement.getPingRttMin().toString(), PROBE_PING_RTT_MIN, true, false, true);
+            String pingRttAvgJson = dataValidator(measurement.getPingRttAvg().toString(), PROBE_PING_RTT_AVG, true, false, true);
+            String pingRttMaxJson = dataValidator(measurement.getPingRttMax().toString(), PROBE_PING_RTT_MAX, true, false, true);
+            String pingRttMdevJson = dataValidator(measurement.getPingRttMdev().toString(), PROBE_PING_RTT_MDEV, true, false, true);
+            String pingPacketDuplicateRateJson = dataValidator(measurement.getPingPacketDuplicateRate().toString(), PROBE_PING_PACKET_DUPLICATE_RATE, true, false, true);
+            String pingPacketDuplicateCountJson = dataValidator(measurement.getPingPacketDuplicateCount().toString(), PROBE_PING_PACKET_DUPLICATE_COUNT, true, false, true);
+            String macAddressJson = dataValidator(measurement.getMacAddress(), MAC_ADDRESS, false, false, true);
+            String accesspointJson = dataValidator(measurement.getAccesspoint(), PROBE_ACCESSPOINT, false, false, true);
+            String essidJson = dataValidator(measurement.getEssid(), PROBE_ESSID, false, false, true);
+            String bitRateJson = dataValidator(measurement.getBitRate().toString(), PROBE_BIT_RATE, true, false, true);
+            String txPowerJson = dataValidator(measurement.getTxPower().toString(), PROBE_TX_POWER, true, false, true);
+            String linkQualityJson = dataValidator(measurement.getLinkQuality().toString(), PROBE_LINK_QUALITY, true, false, true);
+            String signalLevelJson = dataValidator(measurement.getSignalLevel().toString(), PROBE_SIGNAL_LEVEL, true, false, true);
+            probeNumber = measurement.getProbeNo();
+            String probeNoJson = dataValidator(probeNumber, PROBE_NUMBER, false, false, true);
+            String originJson = "\"" + ORIGIN + "\": \"Probe\", ";
+            String locationNameJson = dataValidator(measurement.getLocationName(), PROBE_LOCATION_NAME, false, false, true);
+            String testDeviceLocationDescriptionJson = dataValidator(measurement.getTestDeviceLocationDescription(), PROBE_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
+            String numberOfUsers = dataValidator(measurement.getNumberOfUsers(), NUMBER_OF_USERS, true, false, true);
+            String natNetworkJson = dataValidator(measurement.getNat(), PROBE_NAT_NETWORK, false, false, true);
+            String encTypeJson = dataValidator(measurement.getEncType(), PROBE_ENCRYPTION, false, false, true);
+            String monitorJson = dataValidator(measurement.getMonitor(), PROBE_MONITOR, false, false, true);
+            String systemJson = dataValidator(measurement.getSystem(), PROBE_SYSTEM, false, true, true);
+
+            // Construct JSON object that will be stored in Elasticsearch
+            String jsonStringDraft = "{" +
+                    timestampJson + wtsJson + pingPacketTransmitJson + pingPacketReceiveJson +
+                    pingPacketLossRateJson + pingPacketLossCountJson + pingRttMinJson +
+                    pingRttAvgJson + pingRttMaxJson + pingRttMdevJson + pingPacketDuplicateRateJson +
+                    pingPacketDuplicateCountJson + macAddressJson + accesspointJson + essidJson +
+                    bitRateJson + txPowerJson + linkQualityJson + signalLevelJson + probeNoJson +
+                    originJson + locationNameJson + testDeviceLocationDescriptionJson +
+                    numberOfUsers + natNetworkJson + encTypeJson + monitorJson + systemJson + "}";
+
+            String jsonString = jsonStringDraft.replace("\", }", "\"}");
+
+            String finalProbeNumber = probeNumber;
+            SearchResponse<Map> responseForTimestamp = AggregatorResource.elasticsearchClient.search(s -> s
+                            .index(environment.getProperty(ES_INDEXNAME_PROBES))
+                            .sort(so -> so.field(f -> f.field(TIMESTAMP).order(SortOrder.Desc)))
+                            .from(0)
+                            .postFilter(new Query.Builder()
+                                    .term(t -> t
+                                            .field(PROBE_NUMBER)
+                                            .value(finalProbeNumber)
+                                    ).build()
+                            )
+                            .size(1)
+                            .explain(true),
+                    Map.class
+            );
+            final List<Hit<Map>> hitsForTimestamp = responseForTimestamp.hits().hits();
+            if (responseForTimestamp.hits().total().value() > 0) {
+                Hit<Map> hitForTimestamp = hitsForTimestamp.get(0);
+                Map mapForTimestamp = hitForTimestamp.source();
+                timestamp = (mapForTimestamp.get(TIMESTAMP) != null) ? mapForTimestamp.get(TIMESTAMP).toString() : "N/A";
+            }
+
+            // Store measurements in elasticsearch
+            indexMeasurementProbes(jsonString);
+
+            if (environment.getProperty(JSON_COLLECT).equals("true")) {
+                SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC+0"));
+
+                String finalTimestamp = timestamp;
+                SearchResponse<Map> searchResponse = AggregatorResource.elasticsearchClient.search(s -> s
+                                .index(environment.getProperty(ES_INDEXNAME_MEASUREMENT))
+                                .query(new Query.Builder()
+                                        .range(r -> r
+                                                .field("Timestamp")
+                                                .from(finalTimestamp)
+                                                .to("now")
+                                        )
+                                        .build())
+                                .postFilter(new Query.Builder()
+                                        .term(t -> t
+                                                .field(PROBE_NUMBER)
+                                                .value(finalProbeNumber)
+                                        ).build()),
+                        Map.class);
+                final List<Hit<Map>> hits = searchResponse.hits().hits();
+                int sequence = 1;
+                Iterator<Hit<Map>> iterator = hits.iterator();
+                Map<String, Hit<Map>> distinctObjects = new HashMap<String,Hit<Map>>();
+
+                String probeDownloadThroughput = "", probeUploadThroughput = "", probeIpv4Ping = "", probeIpv6Ping = "", probeTestTool = "", probeTimestamp = "";
+
+                while (iterator.hasNext()) {
+                    if (sequence > 1) {
+                        probeDownloadThroughput += ", ";
+                        probeUploadThroughput += ", ";
+                        probeIpv4Ping += ", ";
+                        probeIpv6Ping += ", ";
+                        probeTestTool += ", ";
+                        probeTimestamp += ", ";
+                    }
+                    Hit<Map> searchHit = iterator.next();
+                    Map source = searchHit.source();
+                    if (source.get(DOWNLOAD_THROUGHPUT) != null) {
+                        probeDownloadThroughput += source.get(DOWNLOAD_THROUGHPUT).toString();
+                    }
+                    if (source.get(UPLOAD_THROUGHPUT) != null) {
+                        probeUploadThroughput += source.get(UPLOAD_THROUGHPUT).toString();
+                    }
+                    if (source.get(LOCAL_PING) != null) {
+                        probeIpv4Ping += source.get(LOCAL_PING).toString();
+                    }
+                    if (source.get(TIMESTAMP) != null) {
+                        long tempTimestamp = Long.parseLong(source.get(TIMESTAMP).toString());
+                        Date dateTempTimestamp = new java.util.Date(tempTimestamp * 1L);
+                        String tempTimestampFormatted = sdf.format(dateTempTimestamp);
+                        probeTimestamp += tempTimestampFormatted.toString();
+                    }
+                    if (source.get(TEST_TOOL) != null) {
+                        probeTestTool += source.get(TEST_TOOL).toString();
+                    }
+                    probeIpv6Ping += "-1";
+                    sequence += 1;
+                }
+
+                // format the previous measurement timestamp to the desired form
+                long startTimestampLong = Long.parseLong(timestamp);
+                Date dateStartTimestampLong = new java.util.Date(startTimestampLong * 1L);
+                String startTimestampFormatted = sdf.format(dateStartTimestampLong);
+
+                // format the current measurement timestamp to the desired form
+                long currentTimestampLong = Long.parseLong(timestampCurrent);
+                Date dateCurrentTimestampLong = new java.util.Date(currentTimestampLong * 1L);
+                String currentTimestampFormatted = sdf.format(dateCurrentTimestampLong);
+
+                // Generate a unique UUID for this measurement
+                UUID uuid = UUID.randomUUID();
+                String uuidAsString = uuid.toString();
+
+                String overallJson = "";
+                // Stream report origin part of JSON specification
+                String reportOriginJson = "\"" + EXPORTER_ORIGIN + "\": {";
+                reportOriginJson += dataValidator("WiFiMon Hardware Probe", EXPORTER_DEVICE_TYPE, false, false, false);
+                reportOriginJson += dataValidator("4.0", EXPORTER_DEVICE_VERSION, false, false, false);
+                reportOriginJson += dataValidator(measurement.getAccesspoint(), EXPORTER_DEVICE_ID, false, false, true);
+                reportOriginJson += dataValidator(uuidAsString, EXPORTER_TEST_INSTANCE_UNIQUE_ID, false, false, false);
+                reportOriginJson += dataValidator(startTimestampFormatted, EXPORTER_START_TIMESTAMP, false, false, false);
+                reportOriginJson += dataValidator(currentTimestampFormatted, EXPORTER_FINISHED_TIMESTAMP, false, true, false);
+                reportOriginJson += "}";
+
+                // Stream environment part of JSON specification
+                String environmentJson = "\"" + EXPORTER_ENVIRONMENT + "\": {";
+                environmentJson += dataValidator("0", EXPORTER_LONGITUDE, true, false, false);
+                environmentJson += dataValidator("0", EXPORTER_LATITUDE, true, false, false);
+                environmentJson += dataValidator(measurement.getLocationName(), EXPORTER_LOCATION_NAME, false, false, true);
+                environmentJson += dataValidator(measurement.getTestDeviceLocationDescription(), EXPORTER_TEST_DEVICE_LOCATION_DESCRIPTION, false, false, true);
+                environmentJson += dataValidator("Geolocation", EXPORTER_LOCATION_METHOD, false, false, false);
+                environmentJson += measurement.getMonitor() != null ? "\"" + PROBE_MONITOR + "\" : " + measurement.getMonitor() : "";
+                environmentJson += "}";
+
+                // Stream connectivity part of JSON specification
+                String connectivityJson = "\"" + EXPORTER_CONNECTIVITY + "\": {";
+                connectivityJson += dataValidator(measurement.getNat(), EXPORTER_NAT_NETWORK, false, true, true);
+                connectivityJson += "}";
+
+                // Stream performance part of JSON specification
+                String performanceMeasurementsJson = "\"" + EXPORTER_PERFORMANCE_MEASUREMENTS + "\": { ";
+                performanceMeasurementsJson += dataValidator(probeDownloadThroughput.toString(), EXPORTER_DOWNLOAD_THROUGHPUT, false, false, false);
+                performanceMeasurementsJson += dataValidator(probeUploadThroughput.toString(), EXPORTER_UPLOAD_THROUGHPUT, false, false, false);
+                performanceMeasurementsJson += dataValidator(probeIpv4Ping.toString(), EXPORTER_IPV4_LOCAL_PING, false, false, false);
+                performanceMeasurementsJson += dataValidator(probeIpv6Ping.toString(), EXPORTER_IPV6_LOCAL_PING, false, false, false);
+                performanceMeasurementsJson += dataValidator(probeTimestamp.toString(), EXPORTER_TEST_TIMESTAMP, false, false, false);
+                performanceMeasurementsJson += dataValidator(probeTestTool.toString(), EXPORTER_TEST_TOOL, false, true, false);
+                performanceMeasurementsJson += "}";
+
+                overallJson = "{ " + reportOriginJson + ", " + environmentJson + ", " + connectivityJson + ", " + performanceMeasurementsJson + "}";
+
+                String toPost = "type=v100&message=" + overallJson;
+
+                String[] commands = new String[] {"curl", "--data-urlencode", toPost, environment.getProperty(JSON_COLLECTOR)};
+                Process process = Runtime.getRuntime().exec(commands);
+                //process.destroy();
+
+                return Response.ok().build();
+            }
+
+        } catch (Exception e) {
+            logger.info(e.toString());
+            response = null;
+        }
+        return response;
     }
 
     // Used to encrypt IP addresses of end users
