@@ -1,6 +1,6 @@
 '''
 Sample twping output (MIND THE NAMING OF THE LINES)
-
+ 
 line 0: --- twping statistics from [192.168.1.1]:9706 to [192.168.1.2]:19642 ---
 line 1: SID:    c0a80102e5e36a42b8a73f74cec8780e
 line 2: first:  2022-03-21T23:18:58.819
@@ -16,12 +16,33 @@ line 11: reflect jitter = 0 ms (P95-P50)
 line 12: send hops = 0 (consistently)
 line 13:reflect hops = 0 (consistently)
 '''
-
+ 
 import subprocess
 import json
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+import pika
+
+USE_STREAM_DATA = False #Set to True if you do not want to use RabbitMQ
+
+class Publisher:
+    def __init__(self, config):
+        self.config = config
+
+    def publish(self, routing_key, data_object):
+        connection = self.create_connection()
+        channel = connection.channel()
+
+        # Declare the exchange if it does not exist
+        channel.exchange_declare(exchange=self.config['exchange'], exchange_type='direct', durable=True)
+
+        # Serialize the Python object into a JSON string
+        message = json.dumps(data_object)
+
+        # Publish the serialized message to the exchange with the given routing key
+        channel.basic_publish(exchange=self.config['exchange'], routing_key=routing_key, body=message)
+
 
 def return_command_output(command):
     '''
@@ -31,7 +52,7 @@ def return_command_output(command):
     (out, err) = proc.communicate()
     output = out.rstrip('\n'.encode('utf8'))
     return output
-
+ 
 def perform_twping(twamp_server_ip):
     '''
         Perform the twping command and retrieve its output in milliseconds
@@ -39,7 +60,7 @@ def perform_twping(twamp_server_ip):
     command = "twping " + str(twamp_server_ip) + " -n m"
     twping_results = return_command_output(command).decode('utf8')
     return twping_results
-
+ 
 def locate_twping_data(twping_output):
     '''
         Find the line at which the important part of the twping output starts
@@ -52,51 +73,51 @@ def locate_twping_data(twping_output):
             break
         line_to_start += 1
     return line_to_start
-
+ 
 # Parse lines one by one. Look at the top for the numbering of the lines
 def parse_line1(line1):
     parts = line1.split("\t")
     sid = parts[1]
     return sid
-
+ 
 def parse_line4(line4):
     parts = line4.split(" ")
     sent, lost, send_dups, reflect_dups = parts[0], parts[2], parts[5], parts[8]
     return sent, lost, send_dups, reflect_dups
-
+ 
 def parse_times(line):
     parts = line.split(" ")
     min_median_max = parts[4].split("/")
     minimum, median, maximum = min_median_max[0], min_median_max[1], min_median_max[2]
     err = parts[6].split("=")[1]
     return minimum, median, maximum, err
-
+ 
 def parse_line8(line):
     parts = line.split(" ")
     time_unit = parts[-1]
     minimum = parts[-2].split("/")[0]
     maximum = parts[-2].split("/")[1]
     return minimum, maximum
-
+ 
 def parse_jitter(line):
     parts = line.split(" ")
     value = parts[3]
     characterization = parts[5][1:-1]
     return value, characterization
-
+ 
 def parse_hops(line):
     parts = line.split(" ")
     value = parts[3]
     characterization = parts[4][1:-1]
     return value, characterization
-
+ 
 def parse_ntpstat_line_0(line):
     line_parts = line.split(" ")
     ntp_server = line_parts[4]
     ntp_server = ntp_server[1:-1]
     stratum = line_parts = line_parts[7]
     return ntp_server, stratum
-
+ 
 def parse_ntpstat_line_1(line):
     line_parts = line.split(" ")
     while line_parts[0] == "":
@@ -105,7 +126,7 @@ def parse_ntpstat_line_1(line):
     unit = line_parts[5]
     time_correct = str(value) + " " + str(unit)
     return time_correct
-
+ 
 def parse_ntpstat():
     command = "ntpstat"
     ntpstat_output = return_command_output(command).decode('utf8')
@@ -115,7 +136,7 @@ def parse_ntpstat():
     line_1 = ntpstat_output_lines[1]
     time_correct = parse_ntpstat_line_1(line_1)
     return (ntp_server, stratum, time_correct)
-
+ 
 def parse_ntpq_starred_line(line):
     line_parts = line.split(" ")
     try:
@@ -124,7 +145,7 @@ def parse_ntpq_starred_line(line):
     except ValueError:
         pass
     return line_parts
-
+ 
 def parse_ntpq():
     command = "ntpq -pn"
     ntpq_output = return_command_output(command).decode('utf8')
@@ -133,10 +154,10 @@ def parse_ntpq():
         if line[0] == "*":
             ntpq_result = parse_ntpq_starred_line(line[1:])
     return ntpq_result
-
-def form_json(probe_number, twamp_server, sid, sent, lost, send_dups, reflect_dups, 
-        min_rtt, median_rtt, max_rtt, err_rtt, min_send, median_send, max_send, 
-        err_send, min_reflect, median_reflect, max_reflect, err_reflect, 
+ 
+def form_json(probe_number, twamp_server, sid, sent, lost, send_dups, reflect_dups,
+        min_rtt, median_rtt, max_rtt, err_rtt, min_send, median_send, max_send,
+        err_send, min_reflect, median_reflect, max_reflect, err_reflect,
         min_reflector_processing_time, max_reflector_processing_time,
         two_way_jitter_value, two_way_jitter_char, send_jitter_value, send_jitter_char,
         reflect_jitter_value, reflect_jitter_char, send_hops_value, send_hops_char,
@@ -188,7 +209,7 @@ def form_json(probe_number, twamp_server, sid, sent, lost, send_dups, reflect_du
     overall_dictionary["jitterNtpq"] = jitter_ntpq
     json_data = json.dumps(overall_dictionary)
     return json_data
-
+ 
 def parse_twping_and_ntp(twping_output, line_to_start, probe_number):
     '''
         Parse twping output line by line
@@ -213,16 +234,16 @@ def parse_twping_and_ntp(twping_output, line_to_start, probe_number):
     offset_ntpq = ntpq_result[8]
     jitter_ntpq = ntpq_result[9]
     # form json data
-    json_data = form_json(probe_number, twamp_server, sid, sent, lost, send_dups, reflect_dups, 
-            min_rtt, median_rtt, max_rtt, err_rtt, min_send, median_send, max_send, err_send, 
+    json_data = form_json(probe_number, twamp_server, sid, sent, lost, send_dups, reflect_dups,
+            min_rtt, median_rtt, max_rtt, err_rtt, min_send, median_send, max_send, err_send,
             min_reflect, median_reflect, max_reflect, err_reflect, min_reflector_processing_time,
-            max_reflector_processing_time, two_way_jitter_value, two_way_jitter_char, 
-            send_jitter_value, send_jitter_char, reflect_jitter_value, reflect_jitter_char, 
+            max_reflector_processing_time, two_way_jitter_value, two_way_jitter_char,
+            send_jitter_value, send_jitter_char, reflect_jitter_value, reflect_jitter_char,
             send_hops_value, send_hops_char, reflect_hops_value, reflect_hops_char,
             ntp_server_ntpstat, stratum, time_correct, ntp_server_ntpq, delay_ntpq,
             offset_ntpq, jitter_ntpq)
     return json_data
-
+ 
 def stream_data(json_data):
     '''
         Stream JSON data to the WiFiMon Analysis Server
@@ -237,6 +258,18 @@ def stream_data(json_data):
         pass
     return None
 
+def use_publisher(json_data):
+    # Replace these values with your CloudAMQP credentials and configuration
+    config = {
+        'amqp_url': 'INSERT amqps URL',
+        'exchange': 'INSERT YOUR EXCHANGE NAME'
+    }
+
+    # Create an instance of the Publisher
+    publisher = Publisher(config)
+    routing_key = 'INSERT YOUR ROUTING KEY'  # Adjust the routing key based on your RabbitMQ setup
+    publisher.publish(routing_key, json_data)
+
 if __name__ == "__main__":
     # Define the number of the WiFiMon Hardware Probe
     PROBE_NO = "INSERT_PROBE_NUMBER"
@@ -245,4 +278,7 @@ if __name__ == "__main__":
     twping_results = perform_twping(twamp_server)
     line_to_start = locate_twping_data(twping_results)
     json_data = parse_twping_and_ntp(twping_results, line_to_start, PROBE_NO)
-    stream_data(json_data)
+    if USE_STREAM_DATA:
+        stream_data(json_data)
+    else:
+       use_publisher(json_data)

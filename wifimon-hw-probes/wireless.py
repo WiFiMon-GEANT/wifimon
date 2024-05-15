@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 import sys
 import subprocess
 import datetime
@@ -7,29 +5,55 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 import json
+import pika
+
+
+USE_STREAM_DATA = False  # Set this to True if you do not want to use the Publisher
+
+
+class Publisher:
+    def __init__(self, config):
+        self.config = config
+
+    def publish(self, routing_key, data_object):
+        connection = self.create_connection()
+        channel = connection.channel()
+
+        # Declare the exchange if it does not exist
+        channel.exchange_declare(exchange=self.config['exchange'], exchange_type='direct', durable=True)
+
+        # Serialize the Python object into a JSON string
+        message = json.dumps(data_object)
+
+        # Publish the serialized message to the exchange with the given routing key
+        channel.basic_publish(exchange=self.config['exchange'], routing_key=routing_key, body=message)
+
+    def create_connection(self):
+        params = pika.URLParameters(self.config['amqp_url'])
+        return pika.BlockingConnection(params)
 
 def return_command_output(command):
     proc = subprocess.Popen(command, stdout = subprocess.PIPE, shell = True)
     (out, err) = proc.communicate()
     output = out.rstrip('\n'.encode('utf8'))
     return output
-
+ 
 def get_mac(iface):
     command = "cat /sys/class/net/" + str(iface) + "/address"
     mac = return_command_output(command).decode('utf8')
     mac = mac.replace(":", "-")
     return mac
-
+ 
 def find_wlan_iface_name():
     command = "printf '%s\n' /sys/class/net/*/wireless | awk -F'/' '{print $5 }'"
     wlan_iface_name = return_command_output(command)
     return wlan_iface_name.decode('utf8')
-
+ 
 def get_encryption():
     command = "sudo wpa_cli status" + "|grep key_mgmt" + "|awk -F '\=' {'print $2'}"
     enc = return_command_output(command).decode('utf8')
     return enc
-
+ 
 def parse_iwconfig(iface):
     bit_rate = return_command_output("sudo iwconfig " + iface + " | grep Bit | awk '{print $2}' | sed 's/Rate=//'").decode('utf8')
     tx_power = return_command_output("sudo iwconfig " + iface + " | grep Bit | awk '{print $4}' | sed 's/Tx-Power=//'").decode('utf8')
@@ -41,20 +65,20 @@ def parse_iwconfig(iface):
     essid = return_command_output("sudo iwconfig " + iface + " | grep ESSID | awk '{print $4}' | sed 's/ESSID://'").decode('utf8')
     essid = essid.replace("\"", "")
     return bit_rate, tx_power, link_quality, signal_level, accesspoint, essid
-
+ 
 def parse_iwlist(iface, accesspoint):
     information = {}
     command = "sudo iwlist " + iface + " scan | grep -E \"Cell|Frequency|Quality|ESSID\""
     aps = return_command_output(command).decode("utf8")
     aps = aps.split("\n")
-
+ 
     cell_indices = list()
     for index in range(0, len(aps)):
         line_no_whitespace = ' '.join(aps[index].split())
         parts = line_no_whitespace.split()
         if parts[0] == "Cell":
             cell_indices.append(index)
-
+ 
     for index in cell_indices:
         line0 = ' '.join(aps[index].split())
         ap_mac = line0.split()[-1]
@@ -69,9 +93,9 @@ def parse_iwlist(iface, accesspoint):
         line3 = ' '.join(aps[index + 3].split())
         parts = line3.split(":")
         information[ap_mac][str(parts[1].replace('"', ''))] = information[ap_mac]["drillTest"]
-
+ 
     return information
-
+ 
 def convert_info_to_json(accesspoint, essid, mac, enc, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary, number_of_users, pingparser_result):
     overall_dictionary = {}
     # values from ping received through pingparser github tool
@@ -132,7 +156,7 @@ def convert_info_to_json(accesspoint, essid, mac, enc, bit_rate, tx_power, link_
     overall_dictionary["system"] = system_dictionary
     json_data = json.dumps(overall_dictionary)
     return json_data
-
+ 
 def processing_info():
     command = '''echo "$(iostat | head -1 | awk '{print $1}')"'''
     operating_system = return_command_output(command).decode('utf8')
@@ -150,19 +174,19 @@ def processing_info():
     total_disk_size = return_command_output(command).decode('utf8')
     command = '''echo "$(df -h / | tail -1 | awk '{print $3}')"'''
     used_disk_size = return_command_output(command).decode('utf8')
-
+ 
     system_dictionary = {}
     system_dictionary["operatingSystem"] = str(operating_system)
     system_dictionary["driverVersion"] = str(driver_version)
-    system_dictionary["totalCores"] = str(total_cores) 
+    system_dictionary["totalCores"] = str(total_cores)
     system_dictionary["cpuUtilization"] = str(cpu_utilization)
-    system_dictionary["totalMemory"] = str(total_memory) 
+    system_dictionary["totalMemory"] = str(total_memory)
     system_dictionary["usedMemory"] = str(used_memory)
-    system_dictionary["totalDiskSize"] = str(total_disk_size) 
+    system_dictionary["totalDiskSize"] = str(total_disk_size)
     system_dictionary["usedDiskSize"] = str(used_disk_size)
-
+ 
     return system_dictionary
-
+ 
 def stream_data(data):
     headers = {'content-type':"application/json"}
     try:
@@ -171,35 +195,35 @@ def stream_data(data):
         session.post(url='https://INSERT_WAS_FQDN:443/wifimon/probes/', data=data, headers=headers, timeout=30)
     except:
         pass
-
+ 
 def parse_arpscan(result):
     lines = result.split("\n")
     lines.pop(0)
     lines.pop(0)
     space_line = lines.index('')
     return space_line
-
+ 
 def arpscanner():
     command = "sudo arp-scan --localnet"
     arpscan_result = return_command_output(command).decode('utf8')
     number_of_users = parse_arpscan(arpscan_result)
     return number_of_users
-
+ 
 def pingparser(wts):
     command = 'ping -c 10 ' + str(wts)
     ping_results = return_command_output(command).decode('utf8')
     ping_parts = ping_results.split("\n")
-
+ 
     for item in ping_parts:
         if item[0:3] == "---":
             start_parsing_from = 1 + ping_parts.index(item)
-
+ 
     packets_part = ping_parts[start_parsing_from].split(",")
     packet_transmit = int(packets_part[0].split(" ")[0], 10)
     packet_receive = int(packets_part[1].split(" ")[1], 10)
     packet_loss_count = packet_transmit - packet_receive
     packet_loss_rate = packet_loss_count / packet_transmit
-
+ 
     timing_part = ping_parts[start_parsing_from + 1].split("=")[1]
     timing_part_no_whitespace = timing_part[1:]
     timing_without_unit = timing_part_no_whitespace.split(" ")[0]
@@ -208,11 +232,11 @@ def pingparser(wts):
     rtt_min = times[1]
     rtt_avg = times[2]
     rtt_mdev = times[3]
-
+ 
     # unused values
     packet_duplicate_count = -1
     packet_duplicate_rate = -1
-
+ 
     # construct a dict to hold the results
     result_dict = {}
     result_dict["destination"] = wts
@@ -226,14 +250,26 @@ def pingparser(wts):
     result_dict["rtt_mdev"] = rtt_mdev
     result_dict["packet_duplicate_count"] = packet_duplicate_count
     result_dict["packet_duplicate_rate"] = packet_duplicate_rate
-
+ 
     return result_dict
-
+ 
 def set_location_information():
     location_name = "INSERT_LOCATION_NAME"
     test_device_location_description = "INSERT_TEST_DEVICE_LOCATION_DESCRIPTION"
     nat_network = "INSERT_True_OR_False"
     return location_name, test_device_location_description, nat_network
+ 
+def use_publisher(json_data):
+    # Replace these values with your CloudAMQP credentials and configuration
+    config = {
+        'amqp_url': 'INSERT THE amqps URL',
+        'exchange': 'EXCHANGE NAME'
+    }
+
+    # Create an instance of the Publisher
+    publisher = Publisher(config)
+    routing_key = 'INSERT ROUTING KEY NAME'  # Adjust the routing key based on your RabbitMQ setup
+    publisher.publish(routing_key, json_data)
 
 def general_info():
     system_dictionary = processing_info()
@@ -248,7 +284,10 @@ def general_info():
     number_of_users = arpscanner()
     pingparser_result = pingparser(wts)
     json_data = convert_info_to_json(accesspoint, essid, mac, enc, bit_rate, tx_power, link_quality, signal_level, probe_no, information, location_name, test_device_location_description, nat_network, system_dictionary, number_of_users, pingparser_result)
-    stream_data(json_data)
-
+    if USE_STREAM_DATA:
+        stream_data(json_data)
+    else:
+        use_publisher(json_data)
+		
 if __name__ == "__main__":
     general_info()
