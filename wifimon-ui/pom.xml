@@ -134,7 +134,7 @@
         <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
-            <version>3.10.0</version>
+            <version>3.11.1</version>
         </dependency>
         <dependency>
             <groupId>net.geant.wifimon</groupId>
@@ -149,7 +149,7 @@
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
-            <version>2.7.2</version>
+            <version>2.7.3</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -167,7 +167,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.3</version>
+            <version>42.7.4</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
