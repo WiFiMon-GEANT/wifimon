@@ -10,22 +10,26 @@ def return_command_output(command):
     return output
 
 app = Dash(__name__)
-command = "salt '*' test.ping"
-active_probes = return_command_output(command).decode('utf8')
-active_probes = active_probes.replace(" ", "").split("\n")
-probe_names = [active_probes[i][:-1] for i in range(0, len(active_probes), 2) if active_probes[i + 1] == "True"]
 
-app.layout = html.Div([
-    html.P("These are the active WiFiMon Hardware Probes! Check the running version of a specific probe:", style = {"font-weight" : "bold"}),
-    dcc.Dropdown(probe_names, probe_names[0], id = 'probe_dropdown'),
+def support_layout():
+    command = "salt '*' test.ping"
+    active_probes = return_command_output(command).decode('utf8')
+    active_probes = active_probes.replace(" ", "").split("\n")
+    try:
+        probe_names = [active_probes[i][:-1] for i in range(0, len(active_probes), 2) if active_probes[i + 1] == "True"]
 
-    html.Button('Submit', id = 'button'),
+        return html.Div([
+            html.P("These are the active WiFiMon Hardware Probes! Check the running version of a specific probe:", style = {"font-weight" : "bold"}),
+            dcc.Dropdown(probe_names, probe_names[0], id = 'probe_dropdown'),
+            html.Button('Submit', id = 'button'),
+            html.Div([
+                html.P(id = 'dd-output-container')
+                ])
+            ])
+    except:
+        return html.P("No probes available")
 
-    html.Div([
-        html.P(id = 'dd-output-container')
-        ])
-])
-
+app.layout = support_layout
 @callback(
     Output('dd-output-container', 'children'),
     [Input('probe_dropdown', 'value'),

@@ -15,30 +15,33 @@ def return_command_output(command):
     return output
 
 app = Dash(__name__)
-command = "salt '*' test.ping"
-active_probes = return_command_output(command).decode('utf8')
-active_probes = active_probes.replace(" ", "").split("\n")
-probe_names = [active_probes[i][:-1] for i in range(0, len(active_probes), 2) if active_probes[i + 1] == "True"]
 
-wts_info = get_wts_info()
+def support_layout():
+    command = "salt '*' test.ping"
+    active_probes = return_command_output(command).decode('utf8')
+    active_probes = active_probes.replace(" ", "").split("\n")
+    try:
+        probe_names = [active_probes[i][:-1] for i in range(0, len(active_probes), 2) if active_probes[i + 1] == "True"]
+        wts_info = get_wts_info()
 
-app.layout = html.Div([
-    html.P("Select the desired WiFiMon Hardware Probe:", style = {"font-weight" : "bold"}),
-    dcc.Dropdown(probe_names, probe_names[0], id = 'probe_dropdown'),
+        return html.Div([
+            html.P("Select the desired WiFiMon Hardware Probe:", style = {"font-weight" : "bold"}),
+            dcc.Dropdown(probe_names, probe_names[0], id = 'probe_dropdown'),
+            html.P("Select the command that you want to execute:", style = {"font-weight" : "bold"}),
+            dcc.Dropdown(["ping", "traceroute", "default route", "interfaces"], "ping", id = 'command_dropdown'),
+            html.P("Select the argument of the command:", style = {"font-weight" : "bold"}),
+            dcc.Dropdown(["1.1.1.1", "8.8.8.8", "9.9.9.9", wts_info], "1.1.1.1", id = 'argument_dropdown'),
+            html.Button('Submit', id = 'button'),
+            html.Div([
+                html.P(id = 'dd-output-container')
+                ])
+            ])
+    except:
+        return html.P("No probes available")
 
-    html.P("Select the command that you want to execute:", style = {"font-weight" : "bold"}),
-    dcc.Dropdown(["ping", "traceroute", "default route", "interfaces"], "ping", id = 'command_dropdown'),
 
-    html.P("Select the argument of the command:", style = {"font-weight" : "bold"}),
-    dcc.Dropdown(["1.1.1.1", "8.8.8.8", "9.9.9.9", wts_info], "1.1.1.1", id = 'argument_dropdown'),
 
-    html.Button('Submit', id = 'button'),
-
-    html.Div([
-        html.P(id = 'dd-output-container')
-        ])
-])
-
+app.layout = support_layout
 @callback(
     Output('dd-output-container', 'children'),
     [Input('probe_dropdown', 'value'),
