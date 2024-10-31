@@ -164,6 +164,12 @@
 				    <a class="nav-link side-link" href="#"
                                        th:href="@{/secure/hardwareProbes/pingResults}">Ping Results</a>
 				</li>
+				<li class="sub-side-item-7">
+				    <a class="nav-link side-link" th:href="${@environment.getProperty('probestate.host.name')}">Probe State</a>
+			        </li>
+                    		<li class="sub-side-item-8">
+				<a class="nav-link side-link" th:href="${@environment.getProperty('lookingglass.host.name')}">Looking Glass</a>
+				</li>
                             </ul>
                         </div>
                     </details>
