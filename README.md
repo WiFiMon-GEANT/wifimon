@@ -1,5 +1,6 @@
 # WiFiMon
 
+<div align = "justify">
 ## What is WiFiMon?  
 **WiFiMon** is a Wi-Fi network monitoring and performance verification system. It is capable of detecting performance issues, visualising the achievable throughput of a wireless network per user and providing technical information about a Wi-Fi network (e.g. signal strength, link quality, bit rate, etc.). **WiFiMon** leverages on well-known performance verification tools (e.g. [Akamai Boomerang](https://github.com/akamai/boomerang) and [LibreSpeed Speedtest](https://github.com/librespeed/speedtest)) and, in addition, uses data from the Wi-Fi physical layer in order to gather a comprehensive set of Wi-Fi network performance metrics. 
 
@@ -26,3 +27,4 @@ WiFiMon shows the end-user (mobile client) behaviour on a network, its perceptio
 
 ### Active Monitoring with Low Network Overhead
 WiFiMon active measurements are not significantly invasive and do not use any significant bandwidth. One WiFiMon measurement is comparable to one average web-page download (load speed). 
+</div>
