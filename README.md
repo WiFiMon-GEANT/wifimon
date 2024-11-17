@@ -43,4 +43,20 @@ WiFiMon active measurements are not significantly invasive and do not use any si
 
 ![Active monitoring with low network overhead](https://raw.githubusercontent.com/WiFiMon-GEANT/wifimon-images/refs/heads/main/features-4.png)
 
+## Contact
+The following mail lists and contact points are available for WiFiMon users:
+
+**WiFiMon User list**
+You can ask questions and discuss WiFiMon topics with the developers and with other users at the wifimon-users@lists.geant.org list.
+
+To subscribe, go to the WiFiMon-users list page.
+
+**WiFiMon announce list**
+
+To register WiFiMon free of charge and receive all the latest WiFiMon news, updates and new features please go to the WiFiMon registration page, from which you can subscribe to the wifimon-announce@lists.geant.org mail list.
+
+**Contact the developers**
+
+For assistance in deploying WiFiMon, service problems, requests, event support, etc please send an email to: wifimon-ops@lists.geant.org.
+
 </div>
